@@ -1,0 +1,306 @@
+// frontend/src/pages/Settings.js
+import React, { useState } from 'react';
+import Sidebar from '../components/Sidebar';
+import { useAuth } from '../context/AuthContext';
+import { expenseAPI } from '../services/api';
+import CategoryManager from '../components/CategoryManager';
+import AppearanceSettings from '../components/AppearanceSettings';
+import { FaUser, FaBell, FaShieldAlt, FaPalette, FaDollarSign, FaTags } from 'react-icons/fa';
+
+const Settings = () => {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('profile');
+  const [budget, setBudget] = useState(user?.monthly_budget || 0);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+
+  const handleBudgetUpdate = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await expenseAPI.updateBudget(budget);
+      setMessage({ type: 'success', text: 'Budget updated successfully!' });
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to update budget' });
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  const tabs = [
+    { id: 'profile', name: 'Profile', icon: <FaUser /> },
+    { id: 'budget', name: 'Budget', icon: <FaDollarSign /> },
+    { id: 'categories', name: 'Categories', icon: <FaTags /> }, // ✅ ADDED CATEGORIES TAB
+    { id: 'notifications', name: 'Notifications', icon: <FaBell /> },
+    { id: 'appearance', name: 'Appearance', icon: <FaPalette /> },
+    { id: 'privacy', name: 'Privacy', icon: <FaShieldAlt /> },
+  ];
+
+  return (
+    <div className="dashboard">
+      <Sidebar />
+      <div className="main-content">
+        <h2 style={{ marginBottom: '30px' }}>Settings</h2>
+
+        <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
+          {/* Sidebar Tabs */}
+          <div style={{ width: '250px', minWidth: '200px' }}>
+            <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    width: '100%',
+                    padding: '15px 20px',
+                    textAlign: 'left',
+                    background: activeTab === tab.id ? 'linear-gradient(135deg, #667eea, #764ba2)' : 'white',
+                    color: activeTab === tab.id ? 'white' : '#2c3e50',
+                    border: 'none',
+                    borderBottom: '1px solid #eee',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  {tab.icon}
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Content Area */}
+          <div style={{ flex: 1, minWidth: '300px' }}>
+            {/* Profile Tab */}
+            {activeTab === 'profile' && (
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Profile Information</h3>
+                </div>
+                <div style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '30px', marginBottom: '30px', flexWrap: 'wrap' }}>
+                    <div style={{
+                      width: '100px',
+                      height: '100px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '40px',
+                      color: 'white'
+                    }}>
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '24px', marginBottom: '5px' }}>{user?.name}</h3>
+                      <p style={{ color: '#666' }}>{user?.email}</p>
+                      <p style={{ color: '#666', fontSize: '14px' }}>Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <form>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Full Name</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          defaultValue={user?.name}
+                          placeholder="Enter your name"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Email</label>
+                        <input
+                          type="email"
+                          className="form-control"
+                          defaultValue={user?.email}
+                          placeholder="Enter your email"
+                          disabled
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-primary">
+                      Update Profile
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Budget Tab */}
+            {activeTab === 'budget' && (
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Monthly Budget Settings</h3>
+                </div>
+                <div style={{ padding: '20px' }}>
+                  {message.text && (
+                    <div className={`alert alert-${message.type}`} style={{
+                      padding: '15px',
+                      marginBottom: '20px',
+                      borderRadius: '5px',
+                      background: message.type === 'success' ? '#48c77420' : '#f1466820',
+                      color: message.type === 'success' ? '#48c774' : '#f14668',
+                      border: `1px solid ${message.type === 'success' ? '#48c774' : '#f14668'}`
+                    }}>
+                      {message.text}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleBudgetUpdate}>
+                    <div style={{ maxWidth: '400px' }}>
+                      <div className="form-group">
+                        <label>Monthly Budget (₹)</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '20px' }}>₹</span>
+                          <input
+                            type="number"
+                            className="form-control"
+                            value={budget}
+                            onChange={(e) => setBudget(e.target.value)}
+                            placeholder="0.00"
+                            min="0"
+                            step="100"
+                            style={{ fontSize: '18px', fontWeight: 'bold' }}
+                          />
+                        </div>
+                      </div>
+                      
+                      {budget > 0 && (
+                        <div style={{ 
+                          padding: '15px', 
+                          background: '#f5f7fa', 
+                          borderRadius: '10px',
+                          marginBottom: '20px'
+                        }}>
+                          <p style={{ marginBottom: '10px' }}>Recommended daily spending:</p>
+                          <h3 style={{ color: '#667eea' }}>
+                            ₹{(budget / 30).toFixed(0)} / day
+                          </h3>
+                        </div>
+                      )}
+
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary"
+                        disabled={loading}
+                      >
+                        {loading ? 'Updating...' : 'Save Budget'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Categories Tab */}
+            {activeTab === 'categories' && (
+              <div style={{ marginTop: '0' }}>
+                <CategoryManager onCategoryChange={() => {
+                  // Refresh categories in other components
+                  window.dispatchEvent(new Event('categories-updated'));
+                }} />
+              </div>
+            )}
+
+            {/* Notifications Tab */}
+            {activeTab === 'notifications' && (
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Notification Preferences</h3>
+                </div>
+                <div style={{ padding: '20px' }}>
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <input type="checkbox" defaultChecked />
+                      <div>
+                        <strong>Budget Alerts</strong>
+                        <p style={{ color: '#666', fontSize: '14px' }}>Get notified when you're close to exceeding your budget</p>
+                      </div>
+                    </label>
+                  </div>
+                  
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <input type="checkbox" defaultChecked />
+                      <div>
+                        <strong>Weekly Reports</strong>
+                        <p style={{ color: '#666', fontSize: '14px' }}>Receive weekly spending summary via email</p>
+                      </div>
+                    </label>
+                  </div>
+                  
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <input type="checkbox" />
+                      <div>
+                        <strong>Promotional Emails</strong>
+                        <p style={{ color: '#666', fontSize: '14px' }}>Receive tips and offers to save money</p>
+                      </div>
+                    </label>
+                  </div>
+                  
+                  <button className="btn btn-primary">Save Preferences</button>
+                </div>
+              </div>
+            )}
+
+            {/* Appearance Tab */}
+            {activeTab === 'appearance' && (
+              <AppearanceSettings />
+            )}
+
+            {/* Privacy Tab */}
+            {activeTab === 'privacy' && (
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Privacy & Security</h3>
+                </div>
+                <div style={{ padding: '20px' }}>
+                  <div style={{ marginBottom: '30px' }}>
+                    <h4 style={{ marginBottom: '15px' }}>Change Password</h4>
+                    <form style={{ maxWidth: '400px' }}>
+                      <div className="form-group">
+                        <label>Current Password</label>
+                        <input type="password" className="form-control" />
+                      </div>
+                      <div className="form-group">
+                        <label>New Password</label>
+                        <input type="password" className="form-control" />
+                      </div>
+                      <div className="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" className="form-control" />
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Update Password
+                      </button>
+                    </form>
+                  </div>
+                  
+                  <div style={{ borderTop: '1px solid #eee', paddingTop: '30px' }}>
+                    <h4 style={{ marginBottom: '15px', color: '#f14668' }}>Danger Zone</h4>
+                    <button className="btn btn-danger">
+                      Delete Account
+                    </button>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '10px' }}>
+                      This action cannot be undone. All your data will be permanently deleted.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Settings;

@@ -1,0 +1,47 @@
+/* Dark Mode Styles */
+.dark-mode {
+  --primary-color: #818cf8;
+  --secondary-color: #a78bfa;
+  --bg-color: #1a1a1a;
+  --card-bg: #2d2d2d;
+  --text-color: #ffffff;
+  --text-secondary: #b0b0b0;
+  --border-color: #404040;
+  --hover-bg: #3d3d3d;
+}
+
+.dark-mode body {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: var(--text-color);
+}
+
+.dark-mode .card {
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+
+.dark-mode .sidebar {
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+
+.dark-mode .table {
+  color: var(--text-color);
+}
+
+.dark-mode .table td {
+  border-color: var(--border-color);
+}
+
+.dark-mode .form-control {
+  background: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.dark-mode .stat-card {
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+
+/* Add more dark mode styles as needed */
