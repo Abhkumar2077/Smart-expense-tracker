@@ -604,7 +604,7 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel }) => {
                   : formData.type === 'income' 
                     ? 'linear-gradient(135deg, var(--success-color), var(--success-hover))' 
                     : 'linear-gradient(135deg, var(--primary-color), var(--primary-hover))',
-                color: 'white',
+                color: 'grey',
                 border: 'none',
                 borderRadius: 'var(--radius-lg)',
                 fontSize: 'var(--font-size-lg)',

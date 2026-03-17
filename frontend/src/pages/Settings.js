@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { expenseAPI } from '../services/api';
 import CategoryManager from '../components/CategoryManager';
 import AppearanceSettings from '../components/AppearanceSettings';
+import Notifications from '../components/Notifications'; // ✅ IMPORT ADDED
 import { FaUser, FaBell, FaShieldAlt, FaPalette, FaDollarSign, FaTags } from 'react-icons/fa';
 
 const Settings = () => {
@@ -31,7 +32,7 @@ const Settings = () => {
   const tabs = [
     { id: 'profile', name: 'Profile', icon: <FaUser /> },
     { id: 'budget', name: 'Budget', icon: <FaDollarSign /> },
-    { id: 'categories', name: 'Categories', icon: <FaTags /> }, // ✅ ADDED CATEGORIES TAB
+    { id: 'categories', name: 'Categories', icon: <FaTags /> },
     { id: 'notifications', name: 'Notifications', icon: <FaBell /> },
     { id: 'appearance', name: 'Appearance', icon: <FaPalette /> },
     { id: 'privacy', name: 'Privacy', icon: <FaShieldAlt /> },
@@ -203,7 +204,6 @@ const Settings = () => {
             {activeTab === 'categories' && (
               <div style={{ marginTop: '0' }}>
                 <CategoryManager onCategoryChange={() => {
-                  // Refresh categories in other components
                   window.dispatchEvent(new Event('categories-updated'));
                 }} />
               </div>
@@ -211,43 +211,8 @@ const Settings = () => {
 
             {/* Notifications Tab */}
             {activeTab === 'notifications' && (
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title">Notification Preferences</h3>
-                </div>
-                <div style={{ padding: '20px' }}>
-                  <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <input type="checkbox" defaultChecked />
-                      <div>
-                        <strong>Budget Alerts</strong>
-                        <p style={{ color: '#666', fontSize: '14px' }}>Get notified when you're close to exceeding your budget</p>
-                      </div>
-                    </label>
-                  </div>
-                  
-                  <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <input type="checkbox" defaultChecked />
-                      <div>
-                        <strong>Weekly Reports</strong>
-                        <p style={{ color: '#666', fontSize: '14px' }}>Receive weekly spending summary via email</p>
-                      </div>
-                    </label>
-                  </div>
-                  
-                  <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <input type="checkbox" />
-                      <div>
-                        <strong>Promotional Emails</strong>
-                        <p style={{ color: '#666', fontSize: '14px' }}>Receive tips and offers to save money</p>
-                      </div>
-                    </label>
-                  </div>
-                  
-                  <button className="btn btn-primary">Save Preferences</button>
-                </div>
+              <div style={{ marginTop: '0' }}>
+                <Notifications /> {/* ✅ NOW THIS WILL WORK */}
               </div>
             )}
 

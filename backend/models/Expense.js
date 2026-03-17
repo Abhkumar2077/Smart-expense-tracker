@@ -145,37 +145,41 @@ class Expense {
     }
 
     // Get category-wise summary
-    static async getCategorySummary(userId, month, year) {
-        try {
-            const [rows] = await db.execute(
-                `SELECT 
-                    c.id,
-                    c.name,
-                    c.icon,
-                    c.color,
-                    COUNT(e.id) as transaction_count,
-                    SUM(CASE WHEN e.type = 'expense' THEN e.amount ELSE 0 END) as total_expense,
-                    SUM(CASE WHEN e.type = 'income' THEN e.amount ELSE 0 END) as total_income
-                FROM categories c
-                LEFT JOIN expenses e ON c.id = e.category_id 
-                    AND e.user_id = ? 
-                    AND MONTH(e.date) = ? 
-                    AND YEAR(e.date) = ?
-                GROUP BY c.id, c.name, c.icon, c.color
-                HAVING total_expense > 0 OR total_income > 0
-                ORDER BY total_expense DESC`,
-                [userId, month, year]
-            );
-            
-            return rows.map(row => ({
-                ...row,
-                total_amount: row.total_expense
-            }));
-        } catch (error) {
-            console.error('Error getting category summary:', error);
-            throw error;
-        }
+static async getCategorySummary(userId, month, year) {
+    try {
+        console.log(`🔍 Getting category summary for user ${userId}, month ${month}, year ${year}`);
+        
+        const [rows] = await db.execute(
+            `SELECT 
+                c.id,
+                c.name,
+                c.icon,
+                c.color,
+                COUNT(e.id) as transaction_count,
+                SUM(CASE WHEN e.type = 'expense' THEN e.amount ELSE 0 END) as total_expense,
+                SUM(CASE WHEN e.type = 'income' THEN e.amount ELSE 0 END) as total_income
+            FROM categories c
+            LEFT JOIN expenses e ON c.id = e.category_id 
+                AND e.user_id = ? 
+                AND MONTH(e.date) = ? 
+                AND YEAR(e.date) = ?
+            GROUP BY c.id, c.name, c.icon, c.color
+            ORDER BY total_expense DESC`,
+            [userId, month, year]
+        );
+        
+        console.log(`✅ Found ${rows.length} categories with data`);
+        
+        return rows.map(row => ({
+            ...row,
+            total_amount: row.total_expense, // For backward compatibility
+            transaction_count: parseInt(row.transaction_count) || 0
+        }));
+    } catch (error) {
+        console.error('❌ Error getting category summary:', error);
+        return []; // Return empty array instead of throwing
     }
+}
 
     // Get monthly summary
     static async getMonthlySummary(userId, year) {

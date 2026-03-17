@@ -55,23 +55,37 @@ router.get('/', auth, async (req, res) => {
 router.get('/summary', auth, async (req, res) => {
     try {
         const { month, year } = req.query;
-        const currentMonth = month || new Date().getMonth() + 1;
-        const currentYear = year || new Date().getFullYear();
+        const currentMonth = month ? parseInt(month) : new Date().getMonth() + 1;
+        const currentYear = year ? parseInt(year) : new Date().getFullYear();
+
+        console.log(`📊 Fetching summary for user ${req.user.id}, month ${currentMonth}, year ${currentYear}`);
 
         const categorySummary = await Expense.getCategorySummary(req.user.id, currentMonth, currentYear);
         const monthlySummary = await Expense.getMonthlySummary(req.user.id, currentYear);
-        const dailySummary = await Expense.getDailySummary(req.user.id, currentMonth, currentYear);
+        
+        // Get daily summary if available
+        let dailySummary = [];
+        try {
+            dailySummary = await Expense.getDailySummary(req.user.id, currentMonth, currentYear);
+        } catch (err) {
+            console.log('⚠️ Daily summary not available:', err.message);
+        }
         
         res.json({
-            category_summary: categorySummary,
-            monthly_summary: monthlySummary,
-            daily_summary: dailySummary,
+            success: true,
+            category_summary: categorySummary || [],
+            monthly_summary: monthlySummary || [],
+            daily_summary: dailySummary || [],
             current_month: currentMonth,
             current_year: currentYear
         });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ message: 'Server error' });
+        console.error('❌ Error in summary endpoint:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error',
+            error: err.message 
+        });
     }
 });
 

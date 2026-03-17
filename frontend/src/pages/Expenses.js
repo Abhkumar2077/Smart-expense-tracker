@@ -566,7 +566,7 @@ const Expenses = () => {
                   style={{
                     padding: '4px 12px',
                     background: '#f14668',
-                    color: 'white',
+                    color: 'black',
                     border: 'none',
                     borderRadius: '15px',
                     fontSize: '12px',

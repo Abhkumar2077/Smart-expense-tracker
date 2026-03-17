@@ -8,7 +8,7 @@
 -- DROP DATABASE IF EXISTS expense_tracker;
 
 -- Create fresh database
--- CREATE DATABASE expense_tracker;
+ CREATE DATABASE expense_tracker;
 USE expense_tracker;
 
 -- ============================================

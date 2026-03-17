@@ -1,15 +1,20 @@
 // frontend/src/components/Sidebar.js
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+
+
 import { 
   FaTachometerAlt, 
   FaMoneyBill, 
   FaChartPie, 
   FaCog, 
   FaSignOutAlt,
-  FaCloudUploadAlt 
+  FaCloudUploadAlt,
+  FaBullseye,  // ✅ Changed from FaTarget to FaBullseye
+  FaFlag,       // Alternative: FaFlag
+  FaCrosshairs  // Alternative: FaCrosshairs
 } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
@@ -55,6 +60,7 @@ const Sidebar = () => {
           Track your finances smarter
         </p>
       </div>
+      
       <ul className="nav-menu" style={{
         listStyle: 'none',
         padding: 0,
@@ -82,6 +88,7 @@ const Sidebar = () => {
             <FaTachometerAlt /> Dashboard
           </NavLink>
         </li>
+        
         <li className="nav-item">
           <NavLink 
             to="/expenses" 
@@ -103,6 +110,7 @@ const Sidebar = () => {
             <FaMoneyBill /> Expenses
           </NavLink>
         </li>
+        
         <li className="nav-item">
           <NavLink 
             to="/reports" 
@@ -124,6 +132,29 @@ const Sidebar = () => {
             <FaChartPie /> Reports
           </NavLink>
         </li>
+       
+        <li className="nav-item">
+          <NavLink 
+            to="/goals" 
+            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-lg)',
+              padding: 'var(--spacing-lg)',
+              borderRadius: 'var(--radius-lg)',
+              textDecoration: 'none',
+              color: 'inherit',
+              fontWeight: 'inherit',
+              transition: 'all var(--transition-fast)',
+              marginBottom: 'var(--spacing-xs)',
+              position: 'relative'
+            }}
+          >
+            <FaBullseye /> Savings Goals  {/* ✅ Using FaBullseye */}
+          </NavLink>
+        </li>
+       
         <li className="nav-item">
           <NavLink 
             to="/upload" 
@@ -145,6 +176,7 @@ const Sidebar = () => {
             <FaCloudUploadAlt /> Import CSV
           </NavLink>
         </li>
+        
         <li className="nav-item">
           <NavLink 
             to="/settings" 
@@ -171,8 +203,7 @@ const Sidebar = () => {
       <div style={{
         marginTop: 'auto',
         paddingTop: 'var(--spacing-5xl)',
-        borderTop: '1px solid var(--border-light)',
-        marginTop: 'var(--spacing-5xl)'
+        borderTop: '1px solid var(--border-light)'
       }}>
         <div style={{
           marginBottom: 'var(--spacing-xl)',
@@ -197,6 +228,7 @@ const Sidebar = () => {
             {user?.email || 'user@example.com'}
           </p>
         </div>
+        
         <button
           onClick={logout}
           style={{
@@ -217,7 +249,7 @@ const Sidebar = () => {
             boxShadow: 'var(--shadow-sm)'
           }}
           onMouseEnter={(e) => {
-            e.target.style.background = 'var(--error-color)';
+            e.target.style.background = 'var(--danger-color)';
             e.target.style.color = 'white';
             e.target.style.transform = 'translateY(-1px)';
             e.target.style.boxShadow = 'var(--shadow-md)';

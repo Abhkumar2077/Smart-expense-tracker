@@ -19,13 +19,14 @@ const AppearanceSettings = () => {
   } = useTheme();
 
   const colors = [
-    { name: 'Default', value: '#667eea' },
-    { name: 'Purple', value: '#9f7aea' },
-    { name: 'Blue', value: '#4299e1' },
-    { name: 'Green', value: '#48c774' },
-    { name: 'Orange', value: '#ed8936' },
-    { name: 'Red', value: '#f56565' },
-    { name: 'Pink', value: '#ed64a6' },
+    { name: 'Indigo', value: '#6366f1' },
+    { name: 'Purple', value: '#8b5cf6' },
+    { name: 'Pink', value: '#ec4899' },
+    { name: 'Red', value: '#ef4444' },
+    { name: 'Orange', value: '#f59e0b' },
+    { name: 'Green', value: '#10b981' },
+    { name: 'Teal', value: '#06b6d4' },
+    { name: 'Blue', value: '#3b82f6' },
   ];
 
   return (
@@ -42,57 +43,70 @@ const AppearanceSettings = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '15px',
-          background: 'var(--bg-color)',
-          borderRadius: 'var(--border-radius)',
-          marginBottom: '20px'
+          padding: '20px',
+          background: 'var(--bg-tertiary)',
+          borderRadius: 'var(--radius-lg)',
+          marginBottom: '25px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            {darkMode ? <FaMoon size={20} /> : <FaSun size={20} />}
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: 'var(--radius-lg)',
+              background: darkMode ? 'var(--bg-primary)' : 'var(--bg-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px'
+            }}>
+              {darkMode ? <FaMoon /> : <FaSun />}
+            </div>
             <div>
-              <h4 style={{ margin: 0 }}>Dark Mode</h4>
-              <p style={{ margin: '5px 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              <h4 style={{ margin: 0, fontSize: 'var(--font-size-lg)' }}>Dark Mode</h4>
+              <p style={{ margin: '5px 0 0', color: 'var(--text-secondary)' }}>
                 Switch between light and dark theme
               </p>
             </div>
           </div>
           <button
             onClick={toggleDarkMode}
+            className="btn"
             style={{
-              padding: '10px 20px',
-              background: darkMode ? 'var(--primary-color)' : 'var(--bg-color)',
+              background: darkMode ? 'var(--primary-color)' : 'transparent',
               color: darkMode ? 'white' : 'var(--text-primary)',
               border: '2px solid var(--primary-color)',
-              borderRadius: 'var(--border-radius)',
-              cursor: 'pointer',
-              fontWeight: 'bold'
+              minWidth: '120px'
             }}
           >
-            {darkMode ? 'Light Mode' : 'Dark Mode'}
+            {darkMode ? '☀️ Light' : '🌙 Dark'}
           </button>
         </div>
 
         {/* Primary Color Selector */}
-        <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ marginBottom: '10px' }}>Primary Color</h4>
+        <div style={{ marginBottom: '25px' }}>
+          <h4 style={{ marginBottom: '15px', fontSize: 'var(--font-size-lg)' }}>
+            <FaPalette /> Primary Color
+          </h4>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))',
-            gap: '10px'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(70px, 1fr))',
+            gap: '12px'
           }}>
             {colors.map(color => (
               <button
                 key={color.value}
                 onClick={() => setPrimaryColor(color.value)}
                 style={{
-                  height: '50px',
+                  height: '70px',
                   background: color.value,
-                  border: primaryColor === color.value ? '4px solid white' : 'none',
-                  borderRadius: 'var(--border-radius)',
+                  border: 'none',
+                  borderRadius: 'var(--radius-lg)',
                   cursor: 'pointer',
-                  boxShadow: 'var(--shadow-sm)',
-                  outline: primaryColor === color.value ? `2px solid ${color.value}` : 'none',
-                  position: 'relative'
+                  boxShadow: 'var(--shadow-md)',
+                  outline: primaryColor === color.value ? `3px solid var(--text-primary)` : 'none',
+                  outlineOffset: '2px',
+                  position: 'relative',
+                  transition: 'all var(--transition-fast)'
                 }}
                 title={color.name}
               >
@@ -103,7 +117,8 @@ const AppearanceSettings = () => {
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
                     color: 'white',
-                    fontSize: '1.2rem'
+                    fontSize: '24px',
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
                   }} />
                 )}
               </button>
@@ -112,28 +127,31 @@ const AppearanceSettings = () => {
         </div>
 
         {/* Font Size Selector */}
-        <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ marginBottom: '25px' }}>
+          <h4 style={{ marginBottom: '15px', fontSize: 'var(--font-size-lg)' }}>
             <FaFont /> Font Size
           </h4>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            {['small', 'medium', 'large'].map(size => (
+          <div style={{ display: 'flex', gap: '12px' }}>
+            {[
+              { value: 'small', label: 'Small', icon: 'A' },
+              { value: 'medium', label: 'Medium', icon: 'A' },
+              { value: 'large', label: 'Large', icon: 'A' }
+            ].map((size, index) => (
               <button
-                key={size}
-                onClick={() => setFontSize(size)}
+                key={size.value}
+                onClick={() => setFontSize(size.value)}
+                className="btn"
                 style={{
                   flex: 1,
-                  padding: '10px',
-                  background: fontSize === size ? 'var(--primary-color)' : 'var(--bg-color)',
-                  color: fontSize === size ? 'white' : 'var(--text-primary)',
+                  background: fontSize === size.value ? 'var(--primary-color)' : 'transparent',
+                  color: fontSize === size.value ? 'white' : 'var(--text-primary)',
                   border: '2px solid var(--primary-color)',
-                  borderRadius: 'var(--border-radius)',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  textTransform: 'capitalize'
+                  padding: '15px',
+                  fontSize: index === 0 ? '14px' : index === 1 ? '16px' : '18px',
+                  fontWeight: 'bold'
                 }}
               >
-                {size}
+                {size.label}
               </button>
             ))}
           </div>
@@ -144,48 +162,58 @@ const AppearanceSettings = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '15px',
-          background: 'var(--bg-color)',
-          borderRadius: 'var(--border-radius)'
+          padding: '20px',
+          background: 'var(--bg-tertiary)',
+          borderRadius: 'var(--radius-lg)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            {compactMode ? <FaCompress size={20} /> : <FaExpand size={20} />}
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: 'var(--radius-lg)',
+              background: 'var(--bg-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px'
+            }}>
+              {compactMode ? <FaCompress /> : <FaExpand />}
+            </div>
             <div>
-              <h4 style={{ margin: 0 }}>Compact Mode</h4>
-              <p style={{ margin: '5px 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Reduce spacing for more content
+              <h4 style={{ margin: 0, fontSize: 'var(--font-size-lg)' }}>Compact Mode</h4>
+              <p style={{ margin: '5px 0 0', color: 'var(--text-secondary)' }}>
+                Reduce spacing to see more content
               </p>
             </div>
           </div>
           <button
             onClick={toggleCompactMode}
+            className="btn"
             style={{
-              padding: '10px 20px',
-              background: compactMode ? 'var(--primary-color)' : 'var(--bg-color)',
+              background: compactMode ? 'var(--primary-color)' : 'transparent',
               color: compactMode ? 'white' : 'var(--text-primary)',
               border: '2px solid var(--primary-color)',
-              borderRadius: 'var(--border-radius)',
-              cursor: 'pointer',
-              fontWeight: 'bold'
+              minWidth: '120px'
             }}
           >
-            {compactMode ? 'Normal' : 'Compact'}
+            {compactMode ? '📦 Normal' : '🔲 Compact'}
           </button>
         </div>
 
-        {/* Preview Section */}
+        {/* Live Preview */}
         <div style={{
           marginTop: '30px',
           padding: '20px',
-          background: 'var(--bg-color)',
-          borderRadius: 'var(--border-radius)',
+          background: 'var(--bg-card)',
+          borderRadius: 'var(--radius-lg)',
           border: '2px dashed var(--primary-color)'
         }}>
-          <h4 style={{ marginBottom: '15px' }}>Preview</h4>
+          <h4 style={{ marginBottom: '15px' }}>Live Preview</h4>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '10px'
+            gap: '15px',
+            marginBottom: '15px'
           }}>
             <div className="stat-card" style={{ padding: '15px' }}>
               <div className="stat-value">₹1,234</div>
@@ -200,9 +228,7 @@ const AppearanceSettings = () => {
               <div className="stat-label">Count</div>
             </div>
           </div>
-          <button className="btn btn-primary" style={{ marginTop: '15px' }}>
-            Sample Button
-          </button>
+          <button className="btn btn-primary">Sample Button</button>
         </div>
       </div>
     </div>

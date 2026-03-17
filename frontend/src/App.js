@@ -7,6 +7,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import PrivateRoute from './components/PrivateRoute';
 import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
+import Goals from './pages/Goals';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Upload from './pages/Upload';
@@ -25,14 +26,15 @@ function App() {
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/register" element={<Auth />} />
                 <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+                <Route path="/goals" element={<PrivateRoute><Goals /></PrivateRoute>} />
                 <Route path="/expenses" element={<PrivateRoute><Expenses /></PrivateRoute>} />
                 <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
                 <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
                 <Route path="/upload" element={<PrivateRoute><Upload /></PrivateRoute>} />
                 <Route path="/" element={<Navigate to="/dashboard" />} />
-              </Routes>
-            </div>
-          </Router>
+                      </Routes>
+                    </div>
+                  </Router>
         </ThemeProvider>
       </UploadProvider>
     </AuthProvider>
