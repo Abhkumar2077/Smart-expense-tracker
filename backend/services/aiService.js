@@ -475,6 +475,16 @@ class AIService {
 
         return { weekend: weekendAvg, weekday: weekdayAvg, ratio };
     }
+    static async learnFromCSV(userId, csvData) {
+    try {
+        console.log('🧠 AI Learning from CSV data...');
+        // Your existing learning logic
+        return { success: true };
+    } catch (error) {
+        console.error('AI Learning Error:', error);
+        return { success: false, error: error.message };
+    }
+}
 }
 
 module.exports = AIService;

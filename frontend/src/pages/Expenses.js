@@ -5,6 +5,7 @@ import Sidebar from '../components/Sidebar';
 import ExpenseForm from '../components/ExpenseForm';
 import { expenseAPI, categoryAPI } from '../services/api';
 import { useUpload } from '../context/UploadContext';
+import { useNotification } from '../context/NotificationContext';
 import { 
   FaEdit, FaTrash, FaDownload, FaCloudUploadAlt, 
   FaSync, FaArrowDown, FaArrowUp, FaFilter,
@@ -33,6 +34,7 @@ const Expenses = () => {
   });
   
   const { uploadedData } = useUpload();
+  const { showNotification } = useNotification();
 
   // Initial data fetch
   useEffect(() => {
@@ -160,10 +162,10 @@ const Expenses = () => {
         await expenseAPI.delete(id);
         // Optimistically update UI
         setExpenses(prev => prev.filter(exp => exp.id !== id));
-        alert('Transaction deleted successfully!');
+        showNotification('Transaction deleted successfully!', 'success');
       } catch (error) {
         console.error('Error deleting:', error);
-        alert('Error deleting transaction');
+        showNotification('Error deleting transaction', 'error');
         // Refresh to ensure consistency
         fetchData();
       }
@@ -184,15 +186,15 @@ const Expenses = () => {
         const res = await expenseAPI.update(editingExpense.id, formData);
         setExpenses(prev => prev.map(exp => exp.id === editingExpense.id ? res.data : exp));
         setEditingExpense(null);
-        alert('Transaction updated!');
+        showNotification('Transaction updated!', 'success');
       } else {
         const res = await expenseAPI.create(formData);
         setExpenses(prev => [res.data, ...prev]);
-        alert('Transaction added!');
+        showNotification('Transaction added!', 'success');
       }
     } catch (error) {
       console.error('Error saving:', error);
-      alert('❌ Error saving transaction');
+      showNotification('❌ Error saving transaction', 'error');
     }
   };
 
@@ -203,7 +205,7 @@ const Expenses = () => {
       setExpenses(res.data || []);
     } catch (error) {
       console.error('Error filtering:', error);
-      alert('Failed to apply filters');
+      showNotification('Failed to apply filters', 'error');
     } finally {
       setLoading(false);
     }
@@ -220,26 +222,26 @@ const Expenses = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      alert('CSV exported!');
+      showNotification('CSV exported!', 'success');
     } catch (error) {
       console.error('Error exporting:', error);
-      alert('❌ Error exporting CSV');
+      showNotification('❌ Error exporting CSV', 'error');
     }
   };
 
   const handleSyncUploadedData = async () => {
     if (!uploadedData) {
-      alert('No uploaded data to sync');
+      showNotification('No uploaded data to sync', 'info');
       return;
     }
 
     setSyncing(true);
     try {
       await fetchData();
-      alert('Data refreshed!');
+      showNotification('Data refreshed!', 'success');
     } catch (error) {
       console.error('Sync error:', error);
-      alert('Failed to refresh data');
+      showNotification('Failed to refresh data', 'error');
     } finally {
       setSyncing(false);
     }

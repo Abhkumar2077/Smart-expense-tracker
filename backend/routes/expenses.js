@@ -141,26 +141,6 @@ router.get('/insights', auth, async (req, res) => {
     }
 });
 
-// @route   PUT api/expenses/budget
-// @desc    Update monthly budget
-router.put('/budget', [
-    auth,
-    body('monthly_budget').isNumeric().withMessage('Budget must be a number')
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    try {
-        await User.updateBudget(req.user.id, req.body.monthly_budget);
-        res.json({ message: 'Budget updated successfully' });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
 // @route   PUT api/expenses/:id
 // @desc    Update an expense
 router.put('/:id', auth, async (req, res) => {

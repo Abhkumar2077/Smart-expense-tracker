@@ -1,5 +1,6 @@
 // frontend/src/components/Notifications.js
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '../context/NotificationContext';
 import axios from 'axios';
 import io from 'socket.io-client';
 import { 
@@ -10,6 +11,7 @@ import {
 } from 'react-icons/fa';
 
 const Notifications = () => {
+  const { showNotification } = useNotification();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -150,10 +152,10 @@ const Notifications = () => {
     setSaving(true);
     try {
       await axios.put('/api/notifications/preferences', preferences);
-      alert('✅ Preferences saved successfully!');
+      showNotification('✅ Preferences saved successfully!', 'success');
     } catch (error) {
       console.error('Error saving preferences:', error);
-      alert('❌ Failed to save preferences');
+      showNotification('❌ Failed to save preferences', 'error');
     } finally {
       setSaving(false);
     }

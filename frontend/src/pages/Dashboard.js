@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useUpload } from '../context/UploadContext';
+import { useNotification } from '../context/NotificationContext';
 import { expenseAPI } from '../services/api';
 import Sidebar from '../components/Sidebar';
 import AIDashboard from '../components/AIDashboard';
@@ -28,13 +29,14 @@ import {
 const Dashboard = () => {
   const { user } = useAuth();
   const { uploadedData } = useUpload();
+  const { showNotification } = useNotification();
   const [summary, setSummary] = useState(null);
   const [insights, setInsights] = useState(null);
   const [recentExpenses, setRecentExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [budget, setBudget] = useState(user?.monthly_budget || 0);
-  
+
   // Time range state
   const [timeRange, setTimeRange] = useState('month');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -416,10 +418,10 @@ const Dashboard = () => {
   const handleBudgetUpdate = async () => {
     try {
       await expenseAPI.updateBudget(budget);
-      alert('✅ Budget updated successfully!');
+      showNotification('✅ Budget updated successfully!', 'success');
     } catch (error) {
       console.error('Error updating budget:', error);
-      alert('❌ Failed to update budget');
+      showNotification('❌ Failed to update budget', 'error');
     }
   };
 
@@ -545,9 +547,10 @@ const Dashboard = () => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+      showNotification('📄 Dashboard exported successfully!', 'success');
     } catch (error) {
       console.error('Export error:', error);
-      alert('Failed to export dashboard');
+      showNotification('❌ Failed to export dashboard', 'error');
     }
   };
 
@@ -780,26 +783,6 @@ const Dashboard = () => {
             <div className="stat-label">{timeRange === 'month' ? 'Net Savings' : 'Total Savings'}</div>
             <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>{netSavings >= 0 ? 'Surplus' : 'Deficit'}</div>
           </div>
-
-          {/* Dynamic Card based on time range */}
-          {timeRange === 'month' ? (
-            <div className="stat-card">
-              <div className="stat-icon"><FaCreditCard /></div>
-              <div className="stat-value">{formatCurrency(budget)}</div>
-              <div className="stat-label">Monthly Budget</div>
-              <div style={{ display: 'flex', gap: '5px', marginTop: '10px' }}>
-                <input type="number" value={budget} onChange={(e) => setBudget(e.target.value)} className="form-control" style={{ width: '100px' }} />
-                <button onClick={handleBudgetUpdate} className="btn btn-primary">Update</button>
-              </div>
-            </div>
-          ) : (
-            <div className="stat-card">
-              <div className="stat-icon"><FaHistory /></div>
-              <div className="stat-value">{allTimeData.totalTransactions || 0}</div>
-              <div className="stat-label">Total Transactions</div>
-              <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>Across {allTimeData.activeMonths || 0} months</div>
-            </div>
-          )}
         </div>
 
         {/* Best/Worst Months */}
@@ -848,12 +831,6 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* AI Insights */}
-        {hasData && (
-          <div style={{ marginBottom: '30px' }}>
-            <AIDashboard />
-          </div>
-        )}
 
         {/* Charts Section */}
         {hasData && (

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import { expenseAPI } from '../services/api';
 import { useUpload } from '../context/UploadContext';
+import { useNotification } from '../context/NotificationContext';
 import {
     PieChart, Pie, Cell, BarChart, Bar,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
@@ -36,6 +37,7 @@ const Reports = () => {
     const [netSavings, setNetSavings] = useState(0);
     
     const { uploadedData } = useUpload();
+    const { showNotification } = useNotification();
 
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -209,7 +211,7 @@ const Reports = () => {
 
     const handleExportReport = () => {
         if (combinedData.length === 0 && dailyData.length === 0) {
-            alert('No data to export');
+            showNotification('No data to export', 'info');
             return;
         }
 
@@ -257,7 +259,7 @@ const Reports = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(link);
         
-        alert('✅ Detailed report exported successfully!');
+        showNotification('✅ Detailed report exported successfully!', 'success');
     };
 
     const renderActiveShape = (props) => {

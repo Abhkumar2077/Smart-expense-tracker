@@ -5,35 +5,15 @@ import { useAuth } from '../context/AuthContext';
 import { expenseAPI } from '../services/api';
 import CategoryManager from '../components/CategoryManager';
 import AppearanceSettings from '../components/AppearanceSettings';
-import Notifications from '../components/Notifications'; // ✅ IMPORT ADDED
-import { FaUser, FaBell, FaShieldAlt, FaPalette, FaDollarSign, FaTags } from 'react-icons/fa';
+import { FaUser, FaShieldAlt, FaPalette, FaDollarSign, FaTags } from 'react-icons/fa';
 
 const Settings = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
-  const [budget, setBudget] = useState(user?.monthly_budget || 0);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-
-  const handleBudgetUpdate = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await expenseAPI.updateBudget(budget);
-      setMessage({ type: 'success', text: 'Budget updated successfully!' });
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update budget' });
-    } finally {
-      setLoading(false);
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-    }
-  };
 
   const tabs = [
     { id: 'profile', name: 'Profile', icon: <FaUser /> },
-    { id: 'budget', name: 'Budget', icon: <FaDollarSign /> },
     { id: 'categories', name: 'Categories', icon: <FaTags /> },
-    { id: 'notifications', name: 'Notifications', icon: <FaBell /> },
     { id: 'appearance', name: 'Appearance', icon: <FaPalette /> },
     { id: 'privacy', name: 'Privacy', icon: <FaShieldAlt /> },
   ];
@@ -134,72 +114,6 @@ const Settings = () => {
               </div>
             )}
 
-            {/* Budget Tab */}
-            {activeTab === 'budget' && (
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title">Monthly Budget Settings</h3>
-                </div>
-                <div style={{ padding: '20px' }}>
-                  {message.text && (
-                    <div className={`alert alert-${message.type}`} style={{
-                      padding: '15px',
-                      marginBottom: '20px',
-                      borderRadius: '5px',
-                      background: message.type === 'success' ? '#48c77420' : '#f1466820',
-                      color: message.type === 'success' ? '#48c774' : '#f14668',
-                      border: `1px solid ${message.type === 'success' ? '#48c774' : '#f14668'}`
-                    }}>
-                      {message.text}
-                    </div>
-                  )}
-
-                  <form onSubmit={handleBudgetUpdate}>
-                    <div style={{ maxWidth: '400px' }}>
-                      <div className="form-group">
-                        <label>Monthly Budget (₹)</label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ fontSize: '20px' }}>₹</span>
-                          <input
-                            type="number"
-                            className="form-control"
-                            value={budget}
-                            onChange={(e) => setBudget(e.target.value)}
-                            placeholder="0.00"
-                            min="0"
-                            step="100"
-                            style={{ fontSize: '18px', fontWeight: 'bold' }}
-                          />
-                        </div>
-                      </div>
-                      
-                      {budget > 0 && (
-                        <div style={{ 
-                          padding: '15px', 
-                          background: '#f5f7fa', 
-                          borderRadius: '10px',
-                          marginBottom: '20px'
-                        }}>
-                          <p style={{ marginBottom: '10px' }}>Recommended daily spending:</p>
-                          <h3 style={{ color: '#667eea' }}>
-                            ₹{(budget / 30).toFixed(0)} / day
-                          </h3>
-                        </div>
-                      )}
-
-                      <button 
-                        type="submit" 
-                        className="btn btn-primary"
-                        disabled={loading}
-                      >
-                        {loading ? 'Updating...' : 'Save Budget'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
-
             {/* Categories Tab */}
             {activeTab === 'categories' && (
               <div style={{ marginTop: '0' }}>
@@ -209,14 +123,10 @@ const Settings = () => {
               </div>
             )}
 
-            {/* Notifications Tab */}
-            {activeTab === 'notifications' && (
-              <div style={{ marginTop: '0' }}>
-                <Notifications /> {/* ✅ NOW THIS WILL WORK */}
-              </div>
-            )}
-
             {/* Appearance Tab */}
+            {activeTab === 'appearance' && (
+              <AppearanceSettings />
+            )}
             {activeTab === 'appearance' && (
               <AppearanceSettings />
             )}

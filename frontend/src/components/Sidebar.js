@@ -1,5 +1,5 @@
 // frontend/src/components/Sidebar.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 
 
@@ -10,82 +10,50 @@ import {
   FaCog, 
   FaSignOutAlt,
   FaCloudUploadAlt,
-  FaBullseye,  // ✅ Changed from FaTarget to FaBullseye
-  FaFlag,       // Alternative: FaFlag
-  FaCrosshairs  // Alternative: FaCrosshairs
+  FaBullseye,
+  FaBell,
+  FaBars
 } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const root = document.querySelector('.dashboard');
+    if (root) {
+      if (collapsed) {
+        root.classList.add('sidebar-collapsed');
+      } else {
+        root.classList.remove('sidebar-collapsed');
+      }
+    }
+  }, [collapsed]);
+
+  const toggleSidebar = () => {
+    setCollapsed((value) => !value);
+  };
 
   return (
-    <div className="sidebar" style={{
-      background: 'var(--bg-secondary)',
-      borderRight: '1px solid var(--border-light)',
-      padding: 'var(--spacing-2xl)',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      position: 'fixed',
-      left: 0,
-      top: 0,
-      width: '280px',
-      boxShadow: 'var(--shadow-lg)',
-      zIndex: 1000
-    }}>
-      <div style={{
-        marginBottom: 'var(--spacing-4xl)',
-        paddingBottom: 'var(--spacing-xl)',
-        borderBottom: '1px solid var(--border-light)'
-      }}>
-        <h1 style={{
-          fontSize: 'var(--font-size-2xl)',
-          fontWeight: 'var(--font-weight-bold)',
-          color: 'var(--primary-color)',
-          margin: 0,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--spacing-md)',
-          textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          💰 Smart Expense
-        </h1>
-        <p style={{
-          color: 'var(--text-muted)',
-          fontSize: 'var(--font-size-sm)',
-          margin: 'var(--spacing-sm) 0 0 0',
-          fontWeight: 'var(--font-weight-normal)'
-        }}>
-          Track your finances smarter
-        </p>
-      </div>
+    <>
+      <button className="sidebar-toggle floating-toggle" onClick={toggleSidebar}>
+        <FaBars />
+      </button>
+      <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-top">
+          <div className="sidebar-brand">
+            <h1></h1>
+          </div>
+        </div>
       
-      <ul className="nav-menu" style={{
-        listStyle: 'none',
-        padding: 0,
-        margin: 0,
-        flex: 1
-      }}>
+        <ul className="nav-menu">
         <li className="nav-item">
           <NavLink 
             to="/dashboard" 
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-lg)',
-              padding: 'var(--spacing-lg)',
-              borderRadius: 'var(--radius-lg)',
-              textDecoration: 'none',
-              color: 'inherit',
-              fontWeight: 'inherit',
-              transition: 'all var(--transition-fast)',
-              marginBottom: 'var(--spacing-xs)',
-              position: 'relative'
-            }}
           >
-            <FaTachometerAlt /> Dashboard
+            <FaTachometerAlt /> <span className="nav-text">Dashboard</span>
           </NavLink>
         </li>
         
@@ -93,21 +61,8 @@ const Sidebar = () => {
           <NavLink 
             to="/expenses" 
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-lg)',
-              padding: 'var(--spacing-lg)',
-              borderRadius: 'var(--radius-lg)',
-              textDecoration: 'none',
-              color: 'inherit',
-              fontWeight: 'inherit',
-              transition: 'all var(--transition-fast)',
-              marginBottom: 'var(--spacing-xs)',
-              position: 'relative'
-            }}
           >
-            <FaMoneyBill /> Expenses
+            <FaMoneyBill /> <span className="nav-text">Expenses</span>
           </NavLink>
         </li>
         
@@ -115,21 +70,8 @@ const Sidebar = () => {
           <NavLink 
             to="/reports" 
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-lg)',
-              padding: 'var(--spacing-lg)',
-              borderRadius: 'var(--radius-lg)',
-              textDecoration: 'none',
-              color: 'inherit',
-              fontWeight: 'inherit',
-              transition: 'all var(--transition-fast)',
-              marginBottom: 'var(--spacing-xs)',
-              position: 'relative'
-            }}
           >
-            <FaChartPie /> Reports
+            <FaChartPie /> <span className="nav-text">Reports</span>
           </NavLink>
         </li>
        
@@ -137,21 +79,8 @@ const Sidebar = () => {
           <NavLink 
             to="/goals" 
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-lg)',
-              padding: 'var(--spacing-lg)',
-              borderRadius: 'var(--radius-lg)',
-              textDecoration: 'none',
-              color: 'inherit',
-              fontWeight: 'inherit',
-              transition: 'all var(--transition-fast)',
-              marginBottom: 'var(--spacing-xs)',
-              position: 'relative'
-            }}
           >
-            <FaBullseye /> Savings Goals  {/* ✅ Using FaBullseye */}
+            <FaBullseye /> <span className="nav-text">Savings Goals</span>
           </NavLink>
         </li>
        
@@ -159,21 +88,17 @@ const Sidebar = () => {
           <NavLink 
             to="/upload" 
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-lg)',
-              padding: 'var(--spacing-lg)',
-              borderRadius: 'var(--radius-lg)',
-              textDecoration: 'none',
-              color: 'inherit',
-              fontWeight: 'inherit',
-              transition: 'all var(--transition-fast)',
-              marginBottom: 'var(--spacing-xs)',
-              position: 'relative'
-            }}
           >
-            <FaCloudUploadAlt /> Import CSV
+            <FaCloudUploadAlt /> <span className="nav-text">Import CSV</span>
+          </NavLink>
+        </li>
+
+        <li className="nav-item">
+          <NavLink 
+            to="/notifications" 
+            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+          >
+            <FaBell /> <span className="nav-text">Notifications</span>
           </NavLink>
         </li>
         
@@ -181,90 +106,20 @@ const Sidebar = () => {
           <NavLink 
             to="/settings" 
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-lg)',
-              padding: 'var(--spacing-lg)',
-              borderRadius: 'var(--radius-lg)',
-              textDecoration: 'none',
-              color: 'inherit',
-              fontWeight: 'inherit',
-              transition: 'all var(--transition-fast)',
-              marginBottom: 'var(--spacing-xs)',
-              position: 'relative'
-            }}
           >
-            <FaCog /> Settings
+            <FaCog /> <span className="nav-text">Settings</span>
           </NavLink>
         </li>
       </ul>
-      
-      <div style={{
-        marginTop: 'auto',
-        paddingTop: 'var(--spacing-5xl)',
-        borderTop: '1px solid var(--border-light)'
-      }}>
-        <div style={{
-          marginBottom: 'var(--spacing-xl)',
-          padding: 'var(--spacing-xl)',
-          background: 'var(--bg-tertiary)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-light)'
-        }}>
-          <p style={{
-            fontWeight: 'var(--font-weight-semibold)',
-            marginBottom: 'var(--spacing-xs)',
-            fontSize: 'var(--font-size-sm)',
-            color: 'var(--text-primary)'
-          }}>
-            {user?.name || 'User'}
-          </p>
-          <p style={{
-            color: 'var(--text-muted)',
-            fontSize: 'var(--font-size-xs)',
-            margin: 0
-          }}>
-            {user?.email || 'user@example.com'}
-          </p>
+            <div className="sidebar-footer">
+        <div className="user-card">
+          <p className="user-name">{user?.name || 'User'}</p>
+          <p className="user-email">{user?.email || 'user@example.com'}</p>
         </div>
-        
-        <button
-          onClick={logout}
-          style={{
-            width: '100%',
-            padding: 'var(--spacing-lg)',
-            background: 'var(--bg-secondary)',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--border-medium)',
-            borderRadius: 'var(--radius-lg)',
-            fontSize: 'var(--font-size-base)',
-            fontWeight: 'var(--font-weight-medium)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 'var(--spacing-md)',
-            transition: 'all var(--transition-fast)',
-            boxShadow: 'var(--shadow-sm)'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.background = 'var(--danger-color)';
-            e.target.style.color = 'white';
-            e.target.style.transform = 'translateY(-1px)';
-            e.target.style.boxShadow = 'var(--shadow-md)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = 'var(--bg-secondary)';
-            e.target.style.color = 'var(--text-primary)';
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = 'var(--shadow-sm)';
-          }}
-        >
-          <FaSignOutAlt style={{ fontSize: 'var(--font-size-lg)' }} /> Logout
-        </button>
+
       </div>
     </div>
+    </>
   );
 };
 

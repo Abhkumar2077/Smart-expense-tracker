@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import { useUpload } from '../context/UploadContext';
+import { useNotification } from '../context/NotificationContext';
 import { 
     FaCloudUploadAlt, 
     FaFileCsv, 
@@ -20,6 +21,7 @@ import { MdInsertDriveFile, MdBarChart, MdEvent, MdAttachMoney, MdDescription, M
 import { Link, useNavigate } from 'react-router-dom';
 
 const CSVUploader = ({ onUploadComplete }) => {
+    const { showNotification } = useNotification();
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [result, setResult] = useState(null);
@@ -138,7 +140,7 @@ const CSVUploader = ({ onUploadComplete }) => {
             
             // Show success message
             setTimeout(() => {
-                alert(`Successfully imported ${res.data.valid_records} transactions!`);
+                showNotification(`Successfully imported ${res.data.valid_records} transactions!`, 'success');
             }, 500);
             
         } catch (err) {
@@ -166,7 +168,7 @@ const CSVUploader = ({ onUploadComplete }) => {
             window.URL.revokeObjectURL(url);
         } catch (err) {
             console.error('Error downloading template:', err);
-            alert('Failed to download template');
+            showNotification('Failed to download template', 'error');
         }
     };
 

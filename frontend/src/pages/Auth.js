@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import './Auth.css';
 
 const Auth = () => {
@@ -18,6 +19,7 @@ const Auth = () => {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   
   const { login, register } = useAuth();
+  const { showNotification } = useNotification();
   const navigate = useNavigate();
 
   const validateEmail = (email) => {
@@ -89,13 +91,10 @@ const Auth = () => {
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    alert(`${provider} login would be integrated here`);
-  };
-
   return (
     <div className="auth-container">
       <div className="auth-card">
+        <h1 className="auth-app-name">Smart Expense Tracker</h1>
         <h2 className="auth-title">
           {isLogin ? 'Welcome Back' : 'Create Account'}
         </h2>
@@ -227,29 +226,6 @@ const Auth = () => {
             {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
           </button>
         </form>
-
-        {/* Social Login */}
-        <div className="social-login">
-          <div className="divider">
-            <span>Or continue with</span>
-          </div>
-          <div className="social-buttons">
-            <button
-              className="social-btn google"
-              onClick={() => handleSocialLogin('Google')}
-              disabled={isLoading || registrationSuccess}
-            >
-              Google
-            </button>
-            <button
-              className="social-btn facebook"
-              onClick={() => handleSocialLogin('Facebook')}
-              disabled={isLoading || registrationSuccess}
-            >
-              Facebook
-            </button>
-          </div>
-        </div>
 
         <p className="auth-footer">
           {isLogin ? "Don't have an account? " : "Already have an account? "}

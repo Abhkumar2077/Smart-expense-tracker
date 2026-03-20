@@ -1,5 +1,6 @@
 // frontend/src/components/CategoryManager.js
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '../context/NotificationContext';
 import axios from 'axios';
 import { 
     FaPlus, FaEdit, FaTrash, FaSave, FaTimes,
@@ -8,6 +9,7 @@ import {
 } from 'react-icons/fa';
 
 const CategoryManager = ({ onCategoryChange }) => {
+    const { showNotification } = useNotification();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -74,24 +76,24 @@ const CategoryManager = ({ onCategoryChange }) => {
         e.preventDefault();
         
         if (!formData.name.trim()) {
-            alert('Please enter a category name');
+            showNotification('Please enter a category name', 'error');
             return;
         }
 
         try {
             if (editingCategory) {
                 await axios.put(`/api/categories/${editingCategory.id}`, formData);
-                alert('Category updated successfully!');
+                showNotification('Category updated successfully!', 'success');
             } else {
                 await axios.post('/api/categories', formData);
-                alert('Category created successfully!');
+                showNotification('Category created successfully!', 'success');
             }
             
             resetForm();
             fetchCategories();
             if (onCategoryChange) onCategoryChange();
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to save category');
+            showNotification(err.response?.data?.message || 'Failed to save category', 'error');
         }
     };
 
@@ -100,11 +102,11 @@ const CategoryManager = ({ onCategoryChange }) => {
         
         try {
             await axios.delete(`/api/categories/${id}`);
-            alert('Category deleted');
+            showNotification('Category deleted', 'success');
             fetchCategories();
             if (onCategoryChange) onCategoryChange();
         } catch (err) {
-            alert(err.response?.data?.message || 'Cannot delete category with transactions');
+            showNotification(err.response?.data?.message || 'Cannot delete category with transactions', 'error');
         }
     };
 

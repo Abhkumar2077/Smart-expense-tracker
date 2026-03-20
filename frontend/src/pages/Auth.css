@@ -5,22 +5,42 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #0b2d72, #0992c2, #0ac4e0);
   padding: 20px;
 }
 
 .auth-card {
-  background: white;
-  border-radius: 20px;
-  padding: 40px;
+  background: #f6e7bc;
+  border-radius: 16px;
+  padding: 28px;
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  max-width: 480px;
+  box-shadow: 0 8px 30px rgba(11, 45, 114, 0.2);
+  animation: authIn 0.45s ease-out both;
+}
+
+@keyframes authIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.auth-app-name {
+  text-align: center;
+  color: #0b2d72;
+  margin-bottom: 4px;
+  font-size: 22px;
+  font-weight: 700;
 }
 
 .auth-title {
   text-align: center;
-  color: #333;
+  color: #0b2d72;
   margin-bottom: 30px;
   font-size: 28px;
 }
@@ -28,8 +48,8 @@
 /* Toggle Buttons */
 .auth-toggle {
   display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 .auth-toggle-btn {
@@ -40,14 +60,16 @@
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: #f6e7bc;
+  color: #0b2d72;
+  border: 2px solid #0992c2;
   transition: all 0.3s;
 }
 
 .auth-toggle-btn.active {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: #0ac4e0;
+  color: #0b2d72;
+  border-color: #0b2d72;
 }
 
 .auth-toggle-btn:disabled {
@@ -57,12 +79,12 @@
 
 /* Form Groups */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: #555;
   font-weight: 500;
 }
@@ -81,7 +103,7 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #0992c2;
 }
 
 .form-group input.error {
@@ -155,8 +177,8 @@
 .submit-btn {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: linear-gradient(135deg, #0992c2, #0ac4e0);
+  color: #0b2d72;
   border: none;
   border-radius: 8px;
   font-size: 16px;
@@ -250,7 +272,7 @@
 .auth-footer {
   text-align: center;
   margin-top: 20px;
-  color: #666;
+  color: #0b2d72;
 }
 
 .auth-footer button {

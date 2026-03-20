@@ -45,19 +45,6 @@ class User {
         }
     }
 
-    // Update user budget
-    static async updateBudget(userId, monthly_budget) {
-        try {
-            const [result] = await db.execute(
-                'UPDATE users SET monthly_budget = ? WHERE id = ?',
-                [monthly_budget, userId]
-            );
-            return result.affectedRows > 0;
-        } catch (error) {
-            console.error('Error updating budget:', error);
-            throw error;
-        }
-    }
 }
 
 module.exports = User;
