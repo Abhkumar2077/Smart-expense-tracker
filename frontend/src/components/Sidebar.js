@@ -7,11 +7,11 @@ import {
   FaTachometerAlt, 
   FaMoneyBill, 
   FaChartPie, 
+  FaBell,
   FaCog, 
   FaSignOutAlt,
   FaCloudUploadAlt,
   FaBullseye,
-  FaBell,
   FaBars
 } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
@@ -101,7 +101,7 @@ const Sidebar = () => {
             <FaBell /> <span className="nav-text">Notifications</span>
           </NavLink>
         </li>
-        
+
         <li className="nav-item">
           <NavLink 
             to="/settings" 

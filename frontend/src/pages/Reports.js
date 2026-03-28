@@ -82,7 +82,7 @@ const Reports = () => {
                     total: expenseAmount + incomeAmount,
                     color: cat.color || COMBINED_COLORS[index % COMBINED_COLORS.length],
                     count: parseInt(cat.transaction_count) || 0,
-                    icon: cat.icon || '📌'
+                    icon: cat.icon || '\uD83D\uDCCC'
                 });
             }
             
@@ -92,7 +92,7 @@ const Reports = () => {
                     value: expenseAmount,
                     color: cat.color || EXPENSE_COLORS[index % EXPENSE_COLORS.length],
                     count: parseInt(cat.transaction_count) || 0,
-                    icon: cat.icon || '📌',
+                    icon: cat.icon || '\uD83D\uDCCC',
                     type: 'expense'
                 });
             }
@@ -103,7 +103,7 @@ const Reports = () => {
                     value: incomeAmount,
                     color: cat.color || INCOME_COLORS[index % INCOME_COLORS.length],
                     count: parseInt(cat.transaction_count) || 0,
-                    icon: cat.icon || '📌',
+                    icon: cat.icon || '\uD83D\uDCCC',
                     type: 'income'
                 });
             }
@@ -941,7 +941,7 @@ const Reports = () => {
                                                         alignItems: 'center',
                                                         gap: '5px'
                                                     }}>
-                                                        <span>{item.icon}</span>
+                                                        <span className="category-icon">{item.icon || '\uD83D\uDCCC'}</span>
                                                         {item.name}
                                                     </span>
                                                 </td>

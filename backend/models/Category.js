@@ -38,6 +38,7 @@ class Category {
                 id: row.id,
                 name: row.name,
                 color: row.color || '#808080',
+                icon: row.icon || '\uD83D\uDCCC',
                 is_default: row.is_default === 1 || row.is_default === true,
                 user_id: row.user_id || null,
                 usage_count: hasUsageCount ? (row.usage_count || 0) : 0,
@@ -79,6 +80,7 @@ class Category {
                 id: row.id,
                 name: row.name,
                 color: row.color || '#808080',
+                icon: row.icon || '\uD83D\uDCCC',
                 is_default: false,
                 user_id: row.user_id,
                 usage_count: row.usage_count || 0,
@@ -100,7 +102,7 @@ class Category {
     // ============================================
     static async create(categoryData) {
         try {
-            const { user_id, name, color = '#808080' } = categoryData;
+            const { user_id, name, color = '#808080', icon = '\uD83D\uDCCC' } = categoryData;
             
             console.log(`Creating category "${name}" for user ${user_id}`);
             
@@ -133,8 +135,8 @@ class Category {
             
             // Insert new category
             const [result] = await db.execute(
-                'INSERT INTO categories (user_id, name, color, is_default) VALUES (?, ?, ?, FALSE)',
-                [user_id, name.trim(), color]
+                'INSERT INTO categories (user_id, name, color, icon, is_default) VALUES (?, ?, ?, ?, FALSE)',
+                [user_id, name.trim(), color, icon]
             );
             
             console.log(`Category created with ID: ${result.insertId}`);
@@ -144,6 +146,7 @@ class Category {
                 id: result.insertId,
                 name: name.trim(),
                 color: color,
+                icon: icon,
                 is_default: false,
                 user_id: user_id,
                 usage_count: 0,
@@ -161,7 +164,7 @@ class Category {
     // ============================================
     static async update(id, userId, categoryData) {
         try {
-            const { name, color } = categoryData;
+            const { name, color, icon } = categoryData;
             
             console.log(`Updating category ${id} for user ${userId}`);
             
@@ -192,8 +195,8 @@ class Category {
             
             // Update category
             const [result] = await db.execute(
-                'UPDATE categories SET name = ?, color = ? WHERE id = ? AND user_id = ? AND is_default = FALSE',
-                [name.trim(), color, id, userId]
+                'UPDATE categories SET name = ?, color = ?, icon = ? WHERE id = ? AND user_id = ? AND is_default = FALSE',
+                [name.trim(), color, icon, id, userId]
             );
             
             console.log(`Category updated: ${result.affectedRows > 0}`);

@@ -33,7 +33,7 @@ class AIService {
 
             // Generate different types of insights - PASS expenses to all functions
             const patterns = this.detectPatterns(expenses, categorySummary);
-            const recommendations = await this.getRecommendations(user, insights, categorySummary);
+            const recommendations = await this.getRecommendations(user, insights, categorySummary, expenses);
             const alerts = this.generateAlerts(user, insights, expenses); // ← FIXED: Pass expenses
             const forecast = this.forecastSpending(expenses);
             const anomalies = this.detectAnomalies(expenses);
@@ -149,12 +149,14 @@ class AIService {
     // ============================================
     // 3. GENERATE PERSONALIZED RECOMMENDATIONS
     // ============================================
-    static async getRecommendations(user, insights, categorySummary) {
+    static async getRecommendations(user, insights, categorySummary, expenses = []) {
         const recommendations = [];
 
         if (!insights || !insights.current_month) return recommendations;
 
         const { total_income, total_expenses } = insights.current_month;
+        const previousExpenses = insights?.previous_month?.total_expenses || 0;
+        const netSavings = total_income - total_expenses;
 
         // Income recommendations
         if (total_income > 0) {
@@ -162,20 +164,29 @@ class AIService {
             const savingsRate = total_income > 0 ? (savings / total_income) * 100 : 0;
 
             if (savingsRate < 20 && total_income > 0) {
+                const monthlyTarget = total_income * 0.2;
+                const currentSavings = Math.max(0, savings);
+                const gapToTarget = Math.max(0, monthlyTarget - currentSavings);
                 recommendations.push({
                     type: 'savings_rate',
                     title: '💰 Improve Savings Rate',
-                    description: `Your current savings rate is ${savingsRate.toFixed(1)}%.`,
-                    suggestion: 'Aim to save at least 20% of your income. Try to reduce discretionary spending.',
-                    impact: 'high'
+                    description: `Your current savings rate is ${savingsRate.toFixed(1)}%, below the 20% target.`,
+                    suggestion: `Free up about ₹${gapToTarget.toFixed(0)} this month by reducing non-essential spending and automating transfers to savings.`,
+                    impact: 'high',
+                    priority: 'high',
+                    confidence: total_income > 0 && total_expenses > 0 ? 'high' : 'medium',
+                    expected_outcome: `Potential monthly savings increase: ₹${gapToTarget.toFixed(0)}`
                 });
             } else if (savingsRate > 30) {
                 recommendations.push({
                     type: 'good_savings',
                     title: '🌟 Excellent Savings Rate',
                     description: `You're saving ${savingsRate.toFixed(1)}% of your income!`,
-                    suggestion: 'Consider investing your savings in mutual funds or fixed deposits.',
-                    impact: 'positive'
+                    suggestion: 'Create a split plan: keep 6 months of expenses in emergency fund, then invest the surplus systematically.',
+                    impact: 'positive',
+                    priority: 'low',
+                    confidence: 'high',
+                    expected_outcome: 'Improves long-term wealth growth while keeping liquidity.'
                 });
             }
         }
@@ -185,23 +196,135 @@ class AIService {
             const budgetUtilization = (total_expenses / user.monthly_budget) * 100;
             
             if (budgetUtilization > 100) {
+                const overspendAmount = total_expenses - user.monthly_budget;
                 recommendations.push({
                     type: 'budget_overshoot',
                     title: '⚠️ Budget Exceeded',
                     description: `You've spent ${(budgetUtilization - 100).toFixed(0)}% over your budget.`,
-                    suggestion: 'Review your expenses and consider increasing your budget or cutting back.',
-                    impact: 'high'
+                    suggestion: `Cut ₹${overspendAmount.toFixed(0)} from optional expenses over the next 2 weeks to return within budget.`,
+                    impact: 'high',
+                    priority: 'high',
+                    confidence: 'high',
+                    expected_outcome: `Brings spending back to your monthly budget by reducing ₹${overspendAmount.toFixed(0)}.`
                 });
             } else if (budgetUtilization > 80) {
+                const remainingBudget = Math.max(0, user.monthly_budget - total_expenses);
                 recommendations.push({
                     type: 'budget_warning',
                     title: '⚠️ Approaching Budget Limit',
                     description: `You've used ${budgetUtilization.toFixed(0)}% of your budget.`,
-                    suggestion: 'Be careful with remaining expenses this month.',
-                    impact: 'medium'
+                    suggestion: `Cap daily discretionary spending so you stay within the remaining ₹${remainingBudget.toFixed(0)} budget.`,
+                    impact: 'medium',
+                    priority: 'medium',
+                    confidence: 'high',
+                    expected_outcome: 'Reduces end-of-month overspending risk.'
                 });
             }
         }
+
+        // Expense trend recommendation (month-over-month)
+        if (previousExpenses > 0 && total_expenses > previousExpenses * 1.1) {
+            const increaseAmount = total_expenses - previousExpenses;
+            const increasePct = ((increaseAmount / previousExpenses) * 100).toFixed(1);
+            recommendations.push({
+                type: 'expense_trend_up',
+                title: '📈 Spending Trend Is Rising',
+                description: `This month is ₹${increaseAmount.toFixed(0)} (${increasePct}%) higher than last month.`,
+                suggestion: 'Audit your top 3 spending categories and set category caps for the next 7 days.',
+                impact: 'high',
+                priority: 'high',
+                confidence: 'medium',
+                expected_outcome: 'Helps stop month-over-month spending drift early.'
+            });
+        }
+
+        // Category concentration recommendation
+        if (Array.isArray(categorySummary) && categorySummary.length > 0 && total_expenses > 0) {
+            const topCategory = categorySummary[0];
+            const topAmount = parseFloat(topCategory.total_expense || topCategory.total_amount || 0);
+            const concentration = topAmount > 0 ? (topAmount / total_expenses) * 100 : 0;
+
+            if (concentration >= 35) {
+                const targetCut = topAmount * 0.12;
+                recommendations.push({
+                    type: 'category_concentration',
+                    title: `🎯 ${topCategory.name} Is Driving Your Spend`,
+                    description: `${topCategory.name} is ${concentration.toFixed(1)}% of monthly expenses.`,
+                    suggestion: `Try a 7-day challenge to cut ${topCategory.name} by ₹${targetCut.toFixed(0)} using this tactic: ${this.getCategorySuggestion(topCategory.name, topAmount)}.`,
+                    impact: 'medium',
+                    priority: 'medium',
+                    confidence: 'high',
+                    expected_outcome: `Estimated savings if achieved: ₹${targetCut.toFixed(0)} this month.`
+                });
+            }
+        }
+
+        // Frequent small expenses recommendation
+        const expenseTransactions = Array.isArray(expenses)
+            ? expenses.filter(e => e && e.type === 'expense')
+            : [];
+        if (expenseTransactions.length > 0) {
+            const smallExpenses = expenseTransactions.filter(e => (parseFloat(e.amount) || 0) <= 500);
+            const smallExpenseTotal = smallExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+            if (smallExpenses.length >= 12 && total_expenses > 0 && (smallExpenseTotal / total_expenses) >= 0.2) {
+                const possibleCut = smallExpenseTotal * 0.2;
+                recommendations.push({
+                    type: 'small_expense_leak',
+                    title: '🧾 Small Expenses Are Adding Up',
+                    description: `${smallExpenses.length} small transactions contribute ₹${smallExpenseTotal.toFixed(0)} this month.`,
+                    suggestion: 'Set a daily micro-budget for coffee/snacks/quick buys and review it every evening.',
+                    impact: 'medium',
+                    priority: 'medium',
+                    confidence: 'medium',
+                    expected_outcome: `Potential savings: about ₹${possibleCut.toFixed(0)} per month.`
+                });
+            }
+        }
+
+        // Emergency runway recommendation
+        if (total_income > 0 && netSavings < 0) {
+            recommendations.push({
+                type: 'negative_savings',
+                title: '🚨 Negative Monthly Savings',
+                description: `You are currently short by ₹${Math.abs(netSavings).toFixed(0)} this month.`,
+                suggestion: 'Pause optional purchases for 5 days and reroute that amount to stabilize cash flow.',
+                impact: 'high',
+                priority: 'high',
+                confidence: 'high',
+                expected_outcome: 'Prevents cash crunch and improves monthly balance.'
+            });
+        }
+
+        return this.prioritizeRecommendations(recommendations);
+    }
+
+    static prioritizeRecommendations(recommendations) {
+        if (!Array.isArray(recommendations) || recommendations.length === 0) {
+            return [];
+        }
+
+        const priorityWeight = { high: 3, medium: 2, low: 1 };
+        const confidenceWeight = { high: 3, medium: 2, low: 1 };
+        const impactWeight = { high: 3, medium: 2, low: 1, positive: 1 };
+
+        const deduped = [];
+        const seen = new Set();
+
+        recommendations.forEach(rec => {
+            const key = `${rec.type}|${rec.title}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                deduped.push(rec);
+            }
+        });
+
+        return deduped
+            .sort((a, b) => {
+                const scoreA = (priorityWeight[a.priority] || 0) + (confidenceWeight[a.confidence] || 0) + (impactWeight[a.impact] || 0);
+                const scoreB = (priorityWeight[b.priority] || 0) + (confidenceWeight[b.confidence] || 0) + (impactWeight[b.impact] || 0);
+                return scoreB - scoreA;
+            })
+            .slice(0, 6);
 
         return recommendations;
     }
@@ -240,11 +363,12 @@ class AIService {
             );
             
             largeExpenses.slice(0, 3).forEach(exp => {
+                const formattedDate = this.formatDateOnly(exp.date);
                 alerts.push({
                     type: 'large_expense',
                     severity: 'medium',
                     title: '💰 Large Expense Detected',
-                    message: `${exp.description || 'Transaction'} of ₹${parseFloat(exp.amount).toFixed(0)} on ${exp.date}`,
+                    message: `${exp.description || 'Transaction'} of ₹${parseFloat(exp.amount).toFixed(0)} on ${formattedDate}`,
                     suggestion: 'Review if this was a necessary purchase or if you could find alternatives.'
                 });
             });
@@ -331,13 +455,14 @@ class AIService {
         // Find unusually large expenses (> 2 standard deviations)
         expenseTransactions.forEach(expense => {
             if (expense.amount > avg + (2 * stdDev)) {
+                const formattedDate = this.formatDateOnly(expense.date);
                 anomalies.push({
                     type: 'unusual_expense',
                     title: '⚠️ Unusually Large Expense',
-                    description: `${expense.category_name || 'Expense'}: ₹${parseFloat(expense.amount).toFixed(0)} on ${expense.date}`,
+                    description: `${expense.category_name || 'Expense'}: ₹${parseFloat(expense.amount).toFixed(0)} on ${formattedDate}`,
                     suggestion: `This is ${((expense.amount/avg)-1).toFixed(1)}x larger than your typical expense.`,
                     impact: 'high',
-                    date: expense.date
+                    date: formattedDate
                 });
             }
         });
@@ -439,7 +564,9 @@ class AIService {
 
         const categorySuggestions = suggestions[category];
         if (categorySuggestions) {
-            return categorySuggestions[Math.floor(Math.random() * categorySuggestions.length)];
+            const seed = `${category}-${Math.round(amount || 0)}`;
+            const index = this.getDeterministicIndex(seed, categorySuggestions.length);
+            return categorySuggestions[index];
         }
         
         return `Review your ${category} expenses to identify potential savings.`;
@@ -475,6 +602,39 @@ class AIService {
 
         return { weekend: weekendAvg, weekday: weekdayAvg, ratio };
     }
+
+    static formatDateOnly(dateValue) {
+        if (!dateValue) return 'Unknown date';
+
+        const parsedDate = new Date(dateValue);
+        if (!Number.isNaN(parsedDate.getTime())) {
+            return parsedDate.toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        if (typeof dateValue === 'string') {
+            return dateValue.split(' ')[0];
+        }
+
+        return String(dateValue);
+    }
+
+    static getDeterministicIndex(seed, max) {
+        if (!max || max <= 0) return 0;
+
+        let hash = 0;
+        const safeSeed = String(seed || 'default');
+        for (let i = 0; i < safeSeed.length; i++) {
+            hash = (hash << 5) - hash + safeSeed.charCodeAt(i);
+            hash |= 0;
+        }
+
+        return Math.abs(hash) % max;
+    }
+
     static async learnFromCSV(userId, csvData) {
     try {
         console.log('🧠 AI Learning from CSV data...');

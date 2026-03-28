@@ -354,7 +354,7 @@ const Dashboard = () => {
             expense: 0,
             income: 0,
             color: e.color || COLORS[categoryMap.size % COLORS.length],
-            icon: e.icon || '📌'
+            icon: e.icon || '\uD83D\uDCCC'
           });
         }
         const cat = categoryMap.get(catName);
@@ -973,7 +973,7 @@ const Dashboard = () => {
                       <td>{expense.date}</td>
                       <td>
                         <span className="category-badge" style={{ backgroundColor: expense.color || '#667eea' }}>
-                          <span className="category-icon">{expense.icon || '📌'}</span>
+                          <span className="category-icon">{expense.icon || '\uD83D\uDCCC'}</span>
                           {expense.category_name || 'Other'}
                         </span>
                       </td>

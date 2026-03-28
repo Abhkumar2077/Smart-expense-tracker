@@ -33,6 +33,17 @@ PREPARE stmt FROM @preparedStatement;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+-- Check and add icon column
+SET @columnname = "icon";
+SET @preparedStatement = (SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+    "SELECT 1",
+    CONCAT("ALTER TABLE ", @tablename, " ADD COLUMN ", @columnname, " VARCHAR(50) DEFAULT '📌' AFTER name;")
+));
+PREPARE stmt FROM @preparedStatement;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 -- Check and add last_used column
 SET @columnname = "last_used";
 SET @preparedStatement = (SELECT IF(
@@ -146,6 +157,26 @@ WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = 'Travel' AND is_default 
 INSERT INTO categories (name, icon, color, is_default)
 SELECT 'Income', '💰', '#48C774', TRUE
 WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = 'Income' AND is_default = TRUE);
+
+-- ============================================
+-- 6. UPDATE EXISTING CATEGORIES WITH DEFAULT ICONS
+-- ============================================
+
+-- Update categories with default icons if they don't have one
+UPDATE categories SET icon = '🍔' WHERE name = 'Food & Dining' AND (icon IS NULL OR icon = '');
+UPDATE categories SET icon = '🚗' WHERE name = 'Transportation' AND (icon IS NULL OR icon = '');
+UPDATE categories SET icon = '🛍️' WHERE name = 'Shopping' AND (icon IS NULL OR icon = '');
+UPDATE categories SET icon = '🎬' WHERE name = 'Entertainment' AND (icon IS NULL OR icon = '');
+UPDATE categories SET icon = '📄' WHERE name = 'Bills & Utilities' AND (icon IS NULL OR icon = '');
+UPDATE categories SET icon = '🏥' WHERE name = 'Healthcare' AND (icon IS NULL OR icon = '');
+UPDATE categories SET icon = '📚' WHERE name = 'Education' AND (icon IS NULL OR icon = '');
+UPDATE categories SET icon = '🛒' WHERE name = 'Groceries' AND (icon IS NULL OR icon = '');
+UPDATE categories SET icon = '✈️' WHERE name = 'Travel' AND (icon IS NULL OR icon = '');
+UPDATE categories SET icon = '💰' WHERE name = 'Income' AND (icon IS NULL OR icon = '');
+UPDATE categories SET icon = '📌' WHERE name = 'Other' AND (icon IS NULL OR icon = '');
+
+-- Set default icon for any category that still doesn't have one
+UPDATE categories SET icon = '📌' WHERE icon IS NULL OR icon = '';
 
 -- Insert Other if missing
 INSERT INTO categories (name, icon, color, is_default)

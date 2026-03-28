@@ -46,8 +46,8 @@ function App() {
                 <Route path="/goals" element={privateRoute(<Goals />)} />
                 <Route path="/expenses" element={privateRoute(<Expenses />)} />
                 <Route path="/reports" element={privateRoute(<Reports />)} />
-                <Route path="/settings" element={privateRoute(<Settings />)} />
                 <Route path="/notifications" element={privateRoute(<Notifications />)} />
+                <Route path="/settings" element={privateRoute(<Settings />)} />
                 <Route path="/upload" element={privateRoute(<Upload />)} />
                 <Route path="/" element={<Navigate to="/dashboard" />} />
                       </Routes>

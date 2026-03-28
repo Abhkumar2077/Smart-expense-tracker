@@ -47,7 +47,7 @@ router.post('/', auth, async (req, res) => {
     try {
         console.log('Creating category with data:', req.body);
         
-        const { name, color } = req.body;
+        const { name, color, icon } = req.body;
         
         if (!name || name.trim() === '') {
             return res.status(400).json({ message: 'Category name is required' });
@@ -56,7 +56,8 @@ router.post('/', auth, async (req, res) => {
         const categoryData = {
             user_id: req.user.id,
             name: name.trim(),
-            color: color || '#808080'
+            color: color || '#808080',
+            icon: icon || '\uD83D\uDCCC'
         };
         
         console.log('Category data:', categoryData);
@@ -89,7 +90,7 @@ router.post('/', auth, async (req, res) => {
 // @desc    Update a custom category
 router.put('/:id', auth, async (req, res) => {
     try {
-        const { name, color } = req.body;
+        const { name, color, icon } = req.body;
         
         if (!name || name.trim() === '') {
             return res.status(400).json({ message: 'Category name is required' });
@@ -97,7 +98,8 @@ router.put('/:id', auth, async (req, res) => {
         
         const updated = await Category.update(req.params.id, req.user.id, {
             name: name.trim(),
-            color
+            color,
+            icon
         });
         
         if (!updated) {

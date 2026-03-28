@@ -253,6 +253,25 @@ const Expenses = () => {
     return expenses.filter(e => e && e.type === filterType);
   };
 
+  const formatDisplayDate = (dateValue) => {
+    if (!dateValue) return '-';
+
+    const parsedDate = new Date(dateValue);
+    if (!Number.isNaN(parsedDate.getTime())) {
+      return parsedDate.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    if (typeof dateValue === 'string') {
+      return dateValue.split(' ')[0];
+    }
+
+    return String(dateValue);
+  };
+
   const clearFilters = () => {
     setFilters({ startDate: '', endDate: '' });
     setFilterType('all');
@@ -685,7 +704,7 @@ const Expenses = () => {
                 <tbody>
                   {filteredExpenses.map(expense => (
                     <tr key={expense.id} style={{ borderBottom: '1px solid #eee' }}>
-                      <td style={{ padding: '12px' }}>{expense.date}</td>
+                      <td style={{ padding: '12px' }}>{formatDisplayDate(expense.date)}</td>
                       <td style={{ padding: '12px' }}>
                         <span className="category-badge" style={{ 
                           backgroundColor: expense.color || '#667eea',
@@ -697,7 +716,7 @@ const Expenses = () => {
                           alignItems: 'center',
                           gap: '4px'
                         }}>
-                          {expense.icon || <MdPushPin />}  {expense.category_name || 'Other'}
+                          <span className="category-icon">{expense.icon || '\uD83D\uDCCC'}</span>  {expense.category_name || 'Other'}
                         </span>
                       </td>
                       <td style={{ padding: '12px' }}>{expense.description || '-'}</td>

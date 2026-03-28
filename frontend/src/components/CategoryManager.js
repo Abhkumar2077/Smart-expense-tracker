@@ -19,13 +19,20 @@ const CategoryManager = ({ onCategoryChange }) => {
     const [popularCategories, setPopularCategories] = useState([]);
     const [formData, setFormData] = useState({
         name: '',
-        color: '#667eea'
+        color: '#667eea',
+        icon: '\uD83D\uDCCC'
     });
 
     const presetColors = [
         '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
         '#DDA0DD', '#98D8C8', '#FF9F1C', '#A06AB4', '#48C774',
         '#F14668', '#667EEA', '#ED8936', '#9F7AEA', '#F56565'
+    ];
+
+    const presetIcons = [
+        '🍔', '🚗', '🛍️', '🎬', '📄', '🏥', '📚', '🛒', '✈️', '💰',
+        '📌', '🏠', '☕', '🍕', '🎮', '💡', '📱', '👕', '🎵', '🏃',
+        '💼', '🎓', '🏥', '🚑', '🔧', '🛠️', '📦', '🎁', '💳', '🏦'
     ];
 
     useEffect(() => {
@@ -114,7 +121,8 @@ const CategoryManager = ({ onCategoryChange }) => {
         setEditingCategory(category);
         setFormData({
             name: category.name,
-            color: category.color || '#667eea'
+            color: category.color || '#667eea',
+            icon: category.icon || '\uD83D\uDCCC'
         });
         setShowAddForm(true);
     };
@@ -122,14 +130,16 @@ const CategoryManager = ({ onCategoryChange }) => {
     const handleUseSuggestion = (suggestion) => {
         setFormData({
             ...formData,
-            name: suggestion.suggested_name.toLowerCase()
+            name: suggestion.suggested_name.toLowerCase(),
+            icon: suggestion.icon || '\uD83D\uDCCC'
         });
     };
 
     const handleUsePopular = (popular) => {
         setFormData({
             name: popular.name,
-            color: popular.color || '#667eea'
+            color: popular.color || '#667eea',
+            icon: popular.icon || '\uD83D\uDCCC'
         });
     };
 
@@ -138,7 +148,8 @@ const CategoryManager = ({ onCategoryChange }) => {
         setEditingCategory(null);
         setFormData({
             name: '',
-            color: '#667eea'
+            color: '#667eea',
+            icon: '\uD83D\uDCCC'
         });
     };
 
@@ -241,6 +252,66 @@ const CategoryManager = ({ onCategoryChange }) => {
                             </div>
                         </div>
 
+                        {/* Icon Selector */}
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                Category Icon
+                            </label>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
+                                <div style={{
+                                    fontSize: '24px',
+                                    padding: '10px',
+                                    border: '2px solid var(--border-color)',
+                                    borderRadius: '5px',
+                                    background: formData.color + '20',
+                                    minWidth: '50px',
+                                    textAlign: 'center'
+                                }}>
+                                    {formData.icon}
+                                </div>
+                                <input
+                                    type="text"
+                                    value={formData.icon}
+                                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                                    placeholder="Enter emoji or icon"
+                                    style={{
+                                        padding: '10px',
+                                        border: '2px solid var(--border-color)',
+                                        borderRadius: '5px',
+                                        fontSize: '16px',
+                                        flex: 1
+                                    }}
+                                />
+                            </div>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(10, 1fr)',
+                                gap: '5px'
+                            }}>
+                                {presetIcons.map(icon => (
+                                    <button
+                                        key={icon}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, icon })}
+                                        style={{
+                                            fontSize: '18px',
+                                            padding: '8px',
+                                            background: formData.icon === icon ? formData.color + '40' : 'white',
+                                            border: formData.icon === icon ? `2px solid ${formData.color}` : '2px solid var(--border-color)',
+                                            borderRadius: '5px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                        title={icon}
+                                    >
+                                        {icon}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         {/* Action Buttons */}
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                             <button type="submit" className="btn btn-primary">
@@ -334,6 +405,15 @@ const CategoryManager = ({ onCategoryChange }) => {
                             }}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{
+                                    fontSize: '24px',
+                                    background: category.color + '20',
+                                    padding: '8px',
+                                    borderRadius: '8px',
+                                    border: `2px solid ${category.color}40`
+                                }}>
+                                    {category.icon || '\uD83D\uDCCC'}
+                                </div>
                                 <div style={{ flex: 1 }}>
                                     <h4 style={{ margin: 0, fontSize: '16px' }}>
                                         {category.name}

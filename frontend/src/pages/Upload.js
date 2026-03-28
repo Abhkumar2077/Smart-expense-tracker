@@ -1,14 +1,17 @@
 // frontend/src/pages/Upload.js
 import React from 'react';
+import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 import CSVUploader from '../components/CSVUploader';
 import { useUpload } from '../context/UploadContext';
+import { useNotification } from '../context/NotificationContext';
 import { FaUpload, FaHistory, FaTrash, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
 import { MdPushPin, MdEvent, MdAttachMoney, MdDescription, MdSync } from 'react-icons/md';
 import { Link } from 'react-router-dom';
 
 const Upload = () => {
-    const { uploadHistory, clearHistory, removeUpload } = useUpload();
+    const { uploadHistory, clearHistory, removeUpload, clearUpload } = useUpload();
+    const { showNotification } = useNotification();
 
     const handleUploadComplete = (result) => {
         console.log('Upload complete:', result);
@@ -23,15 +26,56 @@ const Upload = () => {
         }).format(amount || 0);
     };
 
+    const handleRemoveAllImportedData = async () => {
+        const confirmed = window.confirm(
+            'This will permanently delete all imported CSV transactions and clear upload history. Continue?'
+        );
+
+        if (!confirmed) return;
+
+        try {
+            const res = await axios.delete('/api/upload/clear-all');
+            clearUpload();
+            clearHistory();
+            window.dispatchEvent(new Event('upload-data-changed'));
+
+            const deletedCount = res.data?.deletedCount ?? 0;
+            showNotification(`Deleted ${deletedCount} transactions successfully`, 'success');
+        } catch (err) {
+            const message = err.response?.data?.message || 'Failed to remove imported data';
+            showNotification(message, 'error');
+        }
+    };
+
     return (
         <div className="dashboard">
             <Sidebar />
             <div className="main-content">
                 <div style={{ marginBottom: '30px' }}>
-                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <FaUpload style={{ color: '#667eea' }} />
-                        Import Expenses from CSV
-                    </h2>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+                            <FaUpload style={{ color: '#667eea' }} />
+                            Import Expenses from CSV
+                        </h2>
+                        <button
+                            onClick={handleRemoveAllImportedData}
+                            className="btn"
+                            style={{
+                                background: '#f14668',
+                                color: 'white',
+                                border: 'none',
+                                padding: '10px 16px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            <FaTrash /> Remove All Imported Data
+                        </button>
+                    </div>
                     <p style={{ color: '#666', marginTop: '5px' }}>
                         Upload your bank statements, credit card bills, or any expense CSV file.
                         Each new upload will replace the current dataset.

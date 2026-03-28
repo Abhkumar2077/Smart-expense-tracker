@@ -364,7 +364,32 @@ const AIDashboard = () => {
                                  rec.type === 'budget_overshoot' ? '⚠️' : '💡'}
                             </div>
                             <div style={{ flex: 1 }}>
-                                <h4 style={{ margin: '0 0 5px 0', color: '#2c3e50' }}>{rec.title}</h4>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    flexWrap: 'wrap',
+                                    marginBottom: '5px'
+                                }}>
+                                    <h4 style={{ margin: 0, color: '#2c3e50' }}>{rec.title}</h4>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        {rec.priority && (
+                                            <span style={{
+                                                padding: '2px 10px',
+                                                background: rec.priority === 'high' ? '#f1466820' : rec.priority === 'medium' ? '#ff9f1c20' : '#48c77420',
+                                                color: rec.priority === 'high' ? '#f14668' : rec.priority === 'medium' ? '#ff9f1c' : '#48c774',
+                                                borderRadius: '12px',
+                                                fontSize: '11px',
+                                                fontWeight: 'bold',
+                                                textTransform: 'uppercase'
+                                            }}>
+                                                {rec.priority} priority
+                                            </span>
+                                        )}
+                                        {getConfidenceBadge(rec.confidence)}
+                                    </div>
+                                </div>
                                 <p style={{ color: '#666', marginBottom: '8px' }}>{rec.description}</p>
                                 <div style={{
                                     background: 'white',
@@ -374,6 +399,19 @@ const AIDashboard = () => {
                                 }}>
                                     <strong>✨ Action:</strong> {rec.suggestion}
                                 </div>
+                                {rec.expected_outcome && (
+                                    <div style={{
+                                        marginTop: '8px',
+                                        background: '#fff',
+                                        padding: '8px 10px',
+                                        borderRadius: '6px',
+                                        fontSize: '13px',
+                                        border: '1px solid #ffd98a',
+                                        color: '#5a4a00'
+                                    }}>
+                                        <strong>🎯 Expected Outcome:</strong> {rec.expected_outcome}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}

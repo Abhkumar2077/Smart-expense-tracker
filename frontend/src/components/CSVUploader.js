@@ -182,11 +182,23 @@ const CSVUploader = ({ onUploadComplete }) => {
     };
 
     const handleClearData = () => {
-        if (window.confirm('Are you sure? This will clear ALL current data and refresh the page.')) {
-            clearUpload();
-            localStorage.removeItem('uploadedData');
-            localStorage.removeItem('uploadHistory');
-            window.location.reload();
+        if (window.confirm('Are you sure? This will delete all imported CSV transactions.')) {
+            axios.delete('/api/upload/clear-all')
+                .then((res) => {
+                    clearUpload();
+                    localStorage.removeItem('uploadedData');
+                    localStorage.removeItem('uploadHistory');
+                    window.dispatchEvent(new Event('upload-data-changed'));
+                    showNotification(
+                        `Deleted ${res.data?.deletedCount ?? 0} transactions successfully`,
+                        'success'
+                    );
+                    window.location.reload();
+                })
+                .catch((err) => {
+                    const message = err.response?.data?.message || 'Failed to clear imported data';
+                    showNotification(message, 'error');
+                });
         }
     };
 
