@@ -1,4 +1,5 @@
 ﻿// backend/services/csvService.js
+const moment = require('moment');
 const Expense = require('../models/Expense');
 const Category = require('../models/Category');
 
@@ -391,47 +392,85 @@ class CSVService {
         
         dateStr = dateStr.replace(/^["']|["']$/g, '').trim();
         if (!dateStr) return null;
-        
-        // Try DD/MM/YYYY
-        let match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-        if (match) {
-            let [_, d, m, y] = match;
-            d = d.padStart(2, '0');
-            m = m.padStart(2, '0');
-            return `${y}-${m}-${d}`;
+
+        // Keep only the calendar date for timestamp-like values.
+        const timestampMatch = dateStr.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})(?:[T\s].*)?$/);
+        if (timestampMatch) {
+            const [, year, month, day] = timestampMatch;
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+
+        // Handle the default JavaScript Date.toString() format, for example:
+        // Wed Dec 30 2026 00:00:00 GMT+0530 (India Standard Time)
+        const jsDateStringMatch = dateStr.match(
+            /^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+([A-Za-z]{3,9})\s+(\d{1,2})\s+(\d{4})\s+\d{2}:\d{2}:\d{2}\s+GMT[+-]\d{4}(?:\s+\(.+\))?$/
+        );
+        if (jsDateStringMatch) {
+            const [, monthName, day, year] = jsDateStringMatch;
+            const parsed = moment(`${day} ${monthName} ${year}`, 'D MMM YYYY', true);
+            if (parsed.isValid()) {
+                return parsed.format('YYYY-MM-DD');
+            }
+        }
+
+        // Excel/Sheets serial dates sometimes appear in exported CSV files.
+        if (/^\d{4,5}(?:\.0+)?$/.test(dateStr)) {
+            const serial = parseInt(dateStr, 10);
+            if (!Number.isNaN(serial) && serial > 0) {
+                const excelEpoch = Date.UTC(1899, 11, 30);
+                return new Date(excelEpoch + serial * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+            }
         }
         
-        // Try MM/DD/YYYY
+        // Try YYYY-MM-DD, YYYY/MM/DD, or YYYY.MM.DD.
+        let match = dateStr.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})$/);
+        if (match) {
+            let [_, y, m, d] = match;
+            return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+        }
+
+        // Try DD/MM/YYYY.
         match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         if (match) {
-            let [_, m, d, y] = match;
-            d = d.padStart(2, '0');
-            m = m.padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        }
-        
-        // Try YYYY-MM-DD
-        match = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-        if (match) {
-            return dateStr;
-        }
-        
-        // Try DD-MM-YYYY
-        match = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-        if (match) {
             let [_, d, m, y] = match;
-            d = d.padStart(2, '0');
-            m = m.padStart(2, '0');
-            return `${y}-${m}-${d}`;
+            return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+        }
+
+        // Try DD/MM/YY or MM/DD/YY using a small heuristic.
+        match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
+        if (match) {
+            let [_, first, second, year] = match;
+            const firstNumber = parseInt(first, 10);
+            const secondNumber = parseInt(second, 10);
+            const fullYear = parseInt(year, 10) >= 70 ? `19${year}` : `20${year}`;
+
+            if (firstNumber > 12) {
+                return `${fullYear}-${second.padStart(2, '0')}-${first.padStart(2, '0')}`;
+            }
+
+            if (secondNumber > 12) {
+                return `${fullYear}-${first.padStart(2, '0')}-${second.padStart(2, '0')}`;
+            }
+
+            return `${fullYear}-${second.padStart(2, '0')}-${first.padStart(2, '0')}`;
         }
         
-        // Try MM-DD-YYYY
+        // Try DD-MM-YYYY or MM-DD-YYYY.
         match = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
         if (match) {
-            let [_, m, d, y] = match;
-            d = d.padStart(2, '0');
-            m = m.padStart(2, '0');
-            return `${y}-${m}-${d}`;
+            let [_, first, second, year] = match;
+            const firstNumber = parseInt(first, 10);
+            const secondNumber = parseInt(second, 10);
+
+            if (firstNumber > 12) {
+                return `${year}-${second.padStart(2, '0')}-${first.padStart(2, '0')}`;
+            }
+
+            if (secondNumber > 12) {
+                return `${year}-${first.padStart(2, '0')}-${second.padStart(2, '0')}`;
+            }
+
+            return `${year}-${second.padStart(2, '0')}-${first.padStart(2, '0')}`;
         }
         
         // Try YYYY/MM/DD
@@ -450,6 +489,54 @@ class CSVService {
             d = d.padStart(2, '0');
             m = m.padStart(2, '0');
             return `${y}-${m}-${d}`;
+        }
+
+        const strictFormats = [
+            moment.ISO_8601,
+            'YYYY-MM-DD HH:mm:ss',
+            'YYYY-MM-DD HH:mm:ss.SSS',
+            'YYYY-MM-DDTHH:mm:ss',
+            'YYYY-MM-DDTHH:mm:ss.SSS',
+            'YYYY-MM-DDTHH:mm:ssZ',
+            'YYYY-MM-DDTHH:mm:ss.SSSZ',
+            'YYYY/MM/DD HH:mm:ss',
+            'YYYY/MM/DD HH:mm:ss.SSS',
+            'DD/MM/YYYY HH:mm:ss',
+            'DD/MM/YYYY HH:mm:ss.SSS',
+            'MM/DD/YYYY HH:mm:ss',
+            'MM/DD/YYYY HH:mm:ss.SSS',
+            'DD-MM-YYYY HH:mm:ss',
+            'DD-MM-YYYY HH:mm:ss.SSS',
+            'MM-DD-YYYY HH:mm:ss',
+            'MM-DD-YYYY HH:mm:ss.SSS',
+            'D MMM YYYY',
+            'DD MMM YYYY',
+            'D MMMM YYYY',
+            'DD MMMM YYYY',
+            'D MMM YYYY HH:mm:ss',
+            'DD MMM YYYY HH:mm:ss',
+            'D MMMM YYYY HH:mm:ss',
+            'DD MMMM YYYY HH:mm:ss',
+            'MMM D, YYYY',
+            'MMM DD, YYYY',
+            'MMMM D, YYYY',
+            'MMMM DD, YYYY',
+            'MMM D, YYYY HH:mm:ss',
+            'MMM DD, YYYY HH:mm:ss',
+            'MMMM D, YYYY HH:mm:ss',
+            'MMMM DD, YYYY HH:mm:ss'
+        ];
+
+        for (const format of strictFormats) {
+            const parsed = moment(dateStr, format, true);
+            if (parsed.isValid()) {
+                return parsed.format('YYYY-MM-DD');
+            }
+        }
+
+        const relaxedParsed = moment(dateStr);
+        if (relaxedParsed.isValid()) {
+            return relaxedParsed.format('YYYY-MM-DD');
         }
         
         return null;
