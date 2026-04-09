@@ -1,59 +1,44 @@
 // frontend/src/pages/Auth.js
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import './Auth.css';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isRightPanelActive, setIsRightPanelActive] = useState(false);
+  const [signInData, setSignInData] = useState({ email: '', password: '' });
+  const [signUpData, setSignUpData] = useState({ name: '', email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  
+
   const { login, register } = useAuth();
   const { showNotification } = useNotification();
   const navigate = useNavigate();
+  const containerRef = useRef(null);
 
   const validateEmail = (email) => {
     return /\S+@\S+\.\S+/.test(email);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSignInSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setErrors({});
-    setRegistrationSuccess(false);
 
-    // Validation
     const newErrors = {};
-    
-    if (!email.trim()) {
+
+    if (!signInData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!validateEmail(email)) {
+    } else if (!validateEmail(signInData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
-    
-    if (!password.trim()) {
+
+    if (!signInData.password.trim()) {
       newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
+    } else if (signInData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
-    }
-    
-    if (!isLogin) {
-      if (!name.trim()) {
-        newErrors.name = 'Name is required';
-      }
-      if (password !== confirmPassword) {
-        newErrors.confirmPassword = 'Passwords do not match';
-      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -63,27 +48,8 @@ const Auth = () => {
     }
 
     try {
-      if (isLogin) {
-        // Login - navigate to dashboard on success
-        await login(email, password);
-        navigate('/dashboard');
-      } else {
-        // Register - show success message and switch to login
-        await register(name, email, password);
-        setRegistrationSuccess(true);
-        
-        // Clear registration form
-        setName('');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        
-        // Show success message and switch to login after 2 seconds
-        setTimeout(() => {
-          setIsLogin(true);
-          setRegistrationSuccess(false);
-        }, 2000);
-      }
+      await login(signInData.email, signInData.password);
+      navigate('/dashboard');
     } catch (error) {
       setErrors({ general: error.message });
     } finally {
@@ -91,151 +57,196 @@ const Auth = () => {
     }
   };
 
+  const handleSignUpSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrors({});
+
+    const newErrors = {};
+
+    if (!signUpData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+
+    if (!signUpData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!validateEmail(signUpData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+
+    if (!signUpData.password.trim()) {
+      newErrors.password = 'Password is required';
+    } else if (signUpData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await register(signUpData.name, signUpData.email, signUpData.password);
+      setRegistrationSuccess(true);
+      setSignUpData({ name: '', email: '', password: '' });
+
+      setTimeout(() => {
+        setIsRightPanelActive(false);
+        setRegistrationSuccess(false);
+      }, 2000);
+    } catch (error) {
+      setErrors({ general: error.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUpClick = () => {
+    setIsRightPanelActive(true);
+    setErrors({});
+  };
+
+  const handleSignInClick = () => {
+    setIsRightPanelActive(false);
+    setErrors({});
+  };
+
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h1 className="auth-app-name">Smart Expense Tracker</h1>
-        <h2 className="auth-title">
-          {isLogin ? 'Welcome Back' : 'Create Account'}
-        </h2>
-
-        {/* Success Message for Registration */}
-        {registrationSuccess && (
-          <div className="success-message">
-            ✅ Registration successful! Redirecting to login...
-          </div>
-        )}
-
-        <div className="auth-toggle">
-          <button
-            className={`auth-toggle-btn ${isLogin ? 'active' : ''}`}
-            onClick={() => setIsLogin(true)}
-            disabled={isLoading || registrationSuccess}
-          >
-            Login
-          </button>
-          <button
-            className={`auth-toggle-btn ${!isLogin ? 'active' : ''}`}
-            onClick={() => setIsLogin(false)}
-            disabled={isLoading || registrationSuccess}
-          >
-            Register
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          {errors.general && (
-            <div className="error-message">{errors.general}</div>
-          )}
-
-          {!isLogin && (
-            <div className="form-group">
-              <label>Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className={errors.name ? 'error' : ''}
-                placeholder="Enter your name"
-                disabled={isLoading || registrationSuccess}
-              />
-              {errors.name && <span className="error-text">{errors.name}</span>}
+    <div className="auth-page">
+      <div className={`container ${isRightPanelActive ? 'right-panel-active' : ''}`} ref={containerRef}>
+        <div className="form-container sign-up-container">
+          <form className="form" onSubmit={handleSignUpSubmit}>
+            <h1>Create Account</h1>
+            <div className="social-container">
+              <a href="#" className="social facebook">
+                <i className="fab fa-facebook-f"></i>
+              </a>
+              <a href="#" className="social google">
+                <i className="fab fa-google-plus-g"></i>
+              </a>
+              <a href="#" className="social linkedin">
+                <i className="fab fa-linkedin-in"></i>
+              </a>
             </div>
-          )}
+            <span>or use your email for registration</span>
 
-          <div className="form-group">
-            <label>Email</label>
+            {errors.general && (
+              <div className="error-message">{errors.general}</div>
+            )}
+
+            {registrationSuccess && (
+              <div className="success-message">
+                ✅ Registration successful! Redirecting to login...
+              </div>
+            )}
+
+            <input
+              type="text"
+              placeholder="Name"
+              value={signUpData.name}
+              onChange={(e) => setSignUpData({ ...signUpData, name: e.target.value })}
+              className={errors.name ? 'error' : ''}
+              disabled={isLoading || registrationSuccess}
+              required
+            />
+            {errors.name && <span className="error-text">{errors.name}</span>}
+
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              value={signUpData.email}
+              onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
               className={errors.email ? 'error' : ''}
-              placeholder="Enter your email"
               disabled={isLoading || registrationSuccess}
+              required
             />
             {errors.email && <span className="error-text">{errors.email}</span>}
-          </div>
 
-          <div className="form-group">
-            <label>Password</label>
-            <div className="password-input">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={errors.password ? 'error' : ''}
-                placeholder="Enter your password"
-                disabled={isLoading || registrationSuccess}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                disabled={isLoading || registrationSuccess}
-              >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
+            <input
+              type="password"
+              placeholder="Password"
+              value={signUpData.password}
+              onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
+              className={errors.password ? 'error' : ''}
+              disabled={isLoading || registrationSuccess}
+              required
+            />
+            {errors.password && <span className="error-text">{errors.password}</span>}
+
+            <button type="submit" disabled={isLoading || registrationSuccess}>
+              {isLoading ? 'Signing Up...' : 'Sign Up'}
+            </button>
+          </form>
+        </div>
+
+        <div className="form-container sign-in-container">
+          <form className="form" onSubmit={handleSignInSubmit}>
+            <h1>Sign In</h1>
+            <div className="social-container">
+              <a href="#" className="social facebook">
+                <i className="fab fa-facebook-f"></i>
+              </a>
+              <a href="#" className="social google">
+                <i className="fab fa-google-plus-g"></i>
+              </a>
+              <a href="#" className="social linkedin">
+                <i className="fab fa-linkedin-in"></i>
+              </a>
+            </div>
+            <span>or use your account</span>
+
+            {errors.general && (
+              <div className="error-message">{errors.general}</div>
+            )}
+
+            <input
+              type="email"
+              placeholder="Email"
+              value={signInData.email}
+              onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
+              className={errors.email ? 'error' : ''}
+              disabled={isLoading}
+              required
+            />
+            {errors.email && <span className="error-text">{errors.email}</span>}
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={signInData.password}
+              onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
+              className={errors.password ? 'error' : ''}
+              disabled={isLoading}
+              required
+            />
+            {errors.password && <span className="error-text">{errors.password}</span>}
+
+            <a href="#" className="forgot-password">Forgot your password?</a>
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </button>
+          </form>
+        </div>
+
+        <div className="overlay-container">
+          <div className="overlay">
+            <div className="overlay-panel overlay-left">
+              <h1>Welcome Back!</h1>
+              <p>To keep connected with us please login with your personal info</p>
+              <button className="ghost" onClick={handleSignInClick} disabled={isLoading}>
+                Sign In
               </button>
             </div>
-            {errors.password && <span className="error-text">{errors.password}</span>}
+            <div className="overlay-panel overlay-right">
+              <h1>Hello, Friend!</h1>
+              <p>Enter your personal details and start journey with us</p>
+              <button className="ghost" onClick={handleSignUpClick} disabled={isLoading}>
+                Sign Up
+              </button>
+            </div>
           </div>
-
-          {!isLogin && (
-            <div className="form-group">
-              <label>Confirm Password</label>
-              <div className="password-input">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={errors.confirmPassword ? 'error' : ''}
-                  placeholder="Confirm your password"
-                  disabled={isLoading || registrationSuccess}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  disabled={isLoading || registrationSuccess}
-                >
-                  {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
-                </button>
-              </div>
-              {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
-            </div>
-          )}
-
-          {isLogin && (
-            <div className="form-group checkbox">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  disabled={isLoading || registrationSuccess}
-                />
-                Remember me
-              </label>
-            </div>
-          )}
-
-          <button 
-            type="submit" 
-            className="submit-btn" 
-            disabled={isLoading || registrationSuccess}
-          >
-            {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
-          </button>
-        </form>
-
-        <p className="auth-footer">
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            disabled={isLoading || registrationSuccess}
-          >
-            {isLogin ? 'Sign up' : 'Sign in'}
-          </button>
-        </p>
+        </div>
       </div>
     </div>
   );
