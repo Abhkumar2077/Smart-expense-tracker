@@ -1,28 +1,31 @@
-/* Dark Mode Styles */
+/* Dark Mode Styles - PayPal Blue Theme */
 .dark-mode {
-  --primary-color: #818cf8;
-  --secondary-color: #a78bfa;
-  --bg-color: #1a1a1a;
-  --card-bg: #2d2d2d;
+  --primary-color: #00A3E0;
+  --secondary-color: #009CDE;
+  --bg-color: #001435;
+  --card-bg: #002152;
   --text-color: #ffffff;
-  --text-secondary: #b0b0b0;
-  --border-color: #404040;
-  --hover-bg: #3d3d3d;
+  --text-secondary: #00A3E0;
+  --border-color: #003087;
+  --hover-bg: #003087;
 }
 
 .dark-mode body {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  background: linear-gradient(135deg, #001435 0%, #003087 50%, #00A3E0 100%);
   color: var(--text-color);
 }
 
 .dark-mode .card {
   background: var(--card-bg);
   color: var(--text-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 6px -1px rgba(0, 3, 135, 0.1), 0 2px 4px -1px rgba(0, 3, 135, 0.06);
 }
 
 .dark-mode .sidebar {
   background: var(--card-bg);
   color: var(--text-color);
+  border-right: 1px solid var(--border-color);
 }
 
 .dark-mode .table {
@@ -42,6 +45,22 @@
 .dark-mode .stat-card {
   background: var(--card-bg);
   color: var(--text-color);
+  border: 1px solid var(--border-color);
 }
 
-/* Add more dark mode styles as needed */
+/* Additional dark mode styles for PayPal theme */
+.dark-mode .btn-primary {
+  background: linear-gradient(135deg, #003087 0%, #00A3E0 100%);
+  border: none;
+  color: white;
+}
+
+.dark-mode .btn-primary:hover {
+  background: linear-gradient(135deg, #001435 0%, #003087 100%);
+}
+
+.dark-mode .top-nav {
+  background: rgba(0, 1, 53, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+}

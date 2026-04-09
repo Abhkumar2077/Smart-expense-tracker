@@ -161,7 +161,7 @@ const Upload = () => {
                 {/* Tips Section */}
                 <div className="card" style={{ 
                     marginTop: '30px', 
-                    background: 'linear-gradient(135deg, #667eea05, #764ba05)'
+                    background: 'linear-gradient(135deg, #00308705, #00A3E005)'
                 }}>
                     <h3 style={{ marginBottom: '15px' }}><MdPushPin /> Tips for Best Results</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>

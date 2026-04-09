@@ -965,9 +965,9 @@ const Reports = () => {
                                 </tbody>
                                 <tfoot>
                                     <tr style={{ 
-                                        background: 'linear-gradient(135deg, #667eea10, #764ba210)',
+                                        background: 'linear-gradient(135deg, #00308710, #00A3E010)',
                                         fontWeight: 'bold',
-                                        borderTop: '2px solid #667eea'
+                                        borderTop: '2px solid #003087'
                                     }}>
                                         <td><strong>TOTAL</strong></td>
                                         <td><strong>{combinedData.reduce((sum, item) => sum + item.count, 0)}</strong></td>
@@ -1005,9 +1005,9 @@ const Reports = () => {
                                 <div key={index} style={{
                                     padding: '15px',
                                     marginBottom: '10px',
-                                    background: 'linear-gradient(135deg, #667eea15, #764ba215)',
+                                    background: 'linear-gradient(135deg, #00308715, #00A3E015)',
                                     borderRadius: '10px',
-                                    borderLeft: '4px solid #667eea'
+                                    borderLeft: '4px solid #003087'
                                 }}>
                                     {suggestion}
                                 </div>

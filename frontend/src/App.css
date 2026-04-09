@@ -1,17 +1,17 @@
 :root {
-  /* Enhanced Color Palette */
-  --primary-color: #0b2d72;
-  --primary-dark: #092154;
-  --primary-light: #3865a8;
-  --secondary-color: #0992c2;
-  --secondary-dark: #076f90;
-  --accent-color: #0ac4e0;
+  /* PayPal/PhonePe Blue Color Palette */
+  --primary-color: #003087;
+  --primary-dark: #001435;
+  --primary-light: #00A3E0;
+  --secondary-color: #00A3E0;
+  --secondary-dark: #0074A6;
+  --accent-color: #009CDE;
   --success-color: #10b981;
   --warning-color: #f59e0b;
   --danger-color: #ef4444;
   --info-color: #3b82f6;
 
-  /* Enhanced Background Colors */
+  /* PayPal-style Background Colors */
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-tertiary: #f1f5f9;
@@ -19,18 +19,18 @@
   --bg-sidebar: #ffffff;
   --bg-overlay: rgba(0, 0, 0, 0.5);
 
-  /* Enhanced Text Colors */
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
+  /* PayPal-style Text Colors */
+  --text-primary: #001435;
+  --text-secondary: #003087;
   --text-muted: #64748b;
   --text-inverse: #ffffff;
-  --text-accent: #6366f1;
+  --text-accent: #00A3E0;
 
-  /* Enhanced Border Colors */
+  /* PayPal-style Border Colors */
   --border-light: #e2e8f0;
   --border-medium: #cbd5e1;
   --border-dark: #94a3b8;
-  --border-focus: #6366f1;
+  --border-focus: #003087;
   --border-color: var(--border-light);
 
   /* Input and Form Colors */
@@ -40,13 +40,13 @@
   /* Card Background */
   --card-bg: var(--bg-card);
 
-  /* Enhanced Shadows */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  /* PayPal-style Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 3, 135, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 3, 135, 0.1), 0 1px 2px 0 rgba(0, 3, 135, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 3, 135, 0.1), 0 2px 4px -1px rgba(0, 3, 135, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 3, 135, 0.1), 0 4px 6px -2px rgba(0, 3, 135, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 3, 135, 0.1), 0 10px 10px -5px rgba(0, 3, 135, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 3, 135, 0.25);
 
   /* Enhanced Spacing */
   --spacing-xs: 0.25rem;
@@ -101,23 +101,23 @@
   --z-tooltip: 1070;
 }
 
-/* Dark Mode */
+/* Dark Mode - PayPal Blue Theme */
 .dark-mode {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --bg-card: #1e293b;
-  --bg-sidebar: #0f172a;
+  --bg-primary: #001435;
+  --bg-secondary: #002152;
+  --bg-tertiary: #003087;
+  --bg-card: #002152;
+  --bg-sidebar: #001435;
   --bg-overlay: rgba(0, 0, 0, 0.7);
 
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e0;
+  --text-primary: #ffffff;
+  --text-secondary: #00A3E0;
   --text-muted: #94a3b8;
-  --text-inverse: #0f172a;
+  --text-inverse: #001435;
 
-  --border-light: #334155;
-  --border-medium: #475569;
-  --border-dark: #64748b;
+  --border-light: #003087;
+  --border-medium: #0047A6;
+  --border-dark: #0056B3;
   --border-color: var(--border-light);
 
   /* Input and Form Colors */
@@ -127,12 +127,12 @@
   /* Card Background */
   --card-bg: var(--bg-card);
 
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  --shadow-xs: 0 1px 2px 0 rgba(0, 3, 135, 0.3);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 3, 135, 0.4), 0 1px 2px 0 rgba(0, 3, 135, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 3, 135, 0.4), 0 2px 4px -1px rgba(0, 3, 135, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 3, 135, 0.4), 0 4px 6px -2px rgba(0, 3, 135, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 3, 135, 0.4), 0 10px 10px -5px rgba(0, 3, 135, 0.3);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 3, 135, 0.5);
 }
 
 /* Compact Mode */
@@ -150,10 +150,12 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
-  background: linear-gradient(135deg, #0b2d72, #0992c2);
+  background: linear-gradient(135deg, #003087 0%, #00A3E0 100%);
   color: #fff;
   z-index: 1100;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 4px 6px -1px rgba(0, 3, 135, 0.1), 0 2px 4px -1px rgba(0, 3, 135, 0.06);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .top-nav-left,
@@ -208,9 +210,15 @@
 }
 
 .top-nav-primary {
-  background: #ffdd57;
-  color: #0b2d72;
+  background: linear-gradient(135deg, #003087 0%, #00A3E0 100%);
+  color: #ffffff;
   border-color: transparent;
+  box-shadow: 0 2px 4px rgba(0, 3, 135, 0.2);
+}
+
+.top-nav-primary:hover {
+  background: linear-gradient(135deg, #001435 0%, #003087 100%);
+  box-shadow: 0 4px 8px rgba(0, 3, 135, 0.3);
 }
 
 .user-dropdown-container {
@@ -594,7 +602,7 @@ body, .App, .main-content, .card, .table-container, .form-control, .btn, .sideba
 }
 
 .card-title svg {
-  color: #0992c2;
+  color: var(--primary-color);
   font-size: var(--font-size-lg);
 }
 

@@ -408,7 +408,7 @@ const Expenses = () => {
                 alignItems: 'center', 
                 gap: '8px', 
                 padding: '10px 20px',
-                background: expenses.length === 0 ? '#ccc' : 'linear-gradient(135deg, #667eea, #764ba2)',
+                background: expenses.length === 0 ? '#ccc' : 'linear-gradient(135deg, #003087, #00A3E0)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '5px',
@@ -680,7 +680,7 @@ const Expenses = () => {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '12px 24px',
-                    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                    background: 'linear-gradient(135deg, #003087, #00A3E0)',
                     color: 'white',
                     textDecoration: 'none',
                     borderRadius: '5px'
@@ -693,12 +693,12 @@ const Expenses = () => {
               <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #667eea' }}>Date</th>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #667eea' }}>Category</th>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #667eea' }}>Description</th>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #667eea' }}>Type</th>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #667eea' }}>Amount</th>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #667eea' }}>Actions</th>
+                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Date</th>
+                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Category</th>
+                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Description</th>
+                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Type</th>
+                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Amount</th>
+                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>

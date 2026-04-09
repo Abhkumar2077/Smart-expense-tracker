@@ -787,7 +787,7 @@ const Dashboard = () => {
 
         {/* Best/Worst Months */}
         {timeRange !== 'month' && allTimeData.bestMonth && (
-          <div className="card" style={{ background: 'linear-gradient(135deg, #667eea10, #764ba210)', border: '2px solid #667eea', marginBottom: '30px' }}>
+          <div className="card" style={{ background: 'linear-gradient(135deg, #00308710, #00A3E010)', border: '2px solid #003087', marginBottom: '30px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '20px' }}>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ color: '#48c774', fontSize: '14px', marginBottom: '5px' }}>🏆 Best Month</div>
