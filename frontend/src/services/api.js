@@ -52,6 +52,36 @@ export const categoryAPI = {
   getAll: () => API.get('/categories')
 };
 
+// Goals API
+export const goalsAPI = {
+  getAll: () => API.get('/goals'),
+  create: (data) => API.post('/goals', data),
+  update: (id, data) => API.put(`/goals/${id}`, data),
+  delete: (id) => API.delete(`/goals/${id}`)
+};
+
+// Reminders API
+export const remindersAPI = {
+  getAll: () => API.get('/reminders'),
+  create: (data) => API.post('/reminders', data),
+  markAsPaid: (id) => API.put(`/reminders/${id}/paid`),
+  delete: (id) => API.delete(`/reminders/${id}`)
+};
+
+// User API
+export const userAPI = {
+  getProfile: () => API.get('/auth/profile'),
+  updateProfile: (data) => API.put('/auth/profile', data),
+  updateBudget: (budget) => API.put('/auth/budget', { monthly_budget: budget })
+};
+
+// Dashboard API
+export const dashboardAPI = {
+  getSummary: (timeRange, month, year) => API.get('/dashboard/summary', { 
+    params: { timeRange, month, year } 
+  })
+};
+
 // AI API
 export const aiAPI = {
   getInsights: () => API.get('/ai/insights'),

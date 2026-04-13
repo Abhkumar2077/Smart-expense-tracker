@@ -40,7 +40,7 @@ class Expense {
     }
 
     // Get all expenses for a user
-    static async findByUserId(userId, startDate, endDate) {
+    static async findByUserId(userId, startDate, endDate, limit = null) {
         try {
             let query = 'SELECT e.*, c.name as category_name, c.icon, c.color FROM expenses e ' +
                        'JOIN categories c ON e.category_id = c.id ' +
@@ -54,8 +54,13 @@ class Expense {
 
             query += ' ORDER BY e.date DESC';
             
+            if (limit) {
+                query += ' LIMIT ?';
+                params.push(limit);
+            }
+            
             const [rows] = await db.execute(query, params);
-            console.log(`📊 Found ${rows.length} transactions for user ${userId}`);
+            console.log(`📊 Found ${rows.length} transactions for user ${userId}${limit ? ` (limited to ${limit})` : ''}`);
             return rows;
         } catch (error) {
             console.error('Error finding expenses:', error);

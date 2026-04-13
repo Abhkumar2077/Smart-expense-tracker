@@ -297,27 +297,29 @@ body, .App, .main-content, .card, .table-container, .form-control, .btn, .sideba
 .dashboard {
   display: flex;
   min-height: 100vh;
+  background: #F4F4F5;
 }
 
 /* ===== Sidebar ===== */
 .sidebar {
   width: 280px;
-  background: var(--bg-sidebar);
+  background: #ffffff;
   padding: var(--spacing-2xl);
   box-shadow: var(--shadow-lg);
   position: fixed;
-  top: 60px;
-  height: calc(100vh - 60px);
+  top: 0;
+  left: 0;
+  height: 100vh;
   overflow-y: auto;
   transition: all var(--transition-normal);
   z-index: var(--z-fixed);
-  border-right: 1px solid var(--border-light);
+  border-right: 1px solid #e5e7eb;
 }
 
 @media (max-width: 768px) {
   .sidebar {
-    top: 60px;
-    height: calc(100vh - 60px);
+    top: 0;
+    height: 100vh;
     width: 100%;
     position: absolute;
     z-index: 1050;
@@ -390,7 +392,7 @@ body, .App, .main-content, .card, .table-container, .form-control, .btn, .sideba
 
 .floating-toggle {
   position: fixed;
-  top: 72px;
+  top: 16px;
   left: 16px;
   z-index: 1200;
   box-shadow: var(--shadow-md);
@@ -539,10 +541,10 @@ body, .App, .main-content, .card, .table-container, .form-control, .btn, .sideba
 .main-content {
   flex: 1;
   margin-left: 280px;
-  margin-top: 60px;
+  margin-right: 320px;
   padding: calc(var(--spacing-4xl) + 10px)  var(--spacing-4xl) var(--spacing-4xl);
-  background: var(--bg-secondary);
-  min-height: calc(100vh - 60px);
+  background: #F4F4F5;
+  min-height: 100vh;
   transition: margin-left var(--transition-normal);
 }
 

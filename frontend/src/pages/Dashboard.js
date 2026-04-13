@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
-import { expenseAPI } from '../services/api';
+import { dashboardAPI, goalsAPI, remindersAPI, aiAPI } from '../services/api';
 import Sidebar from '../components/Sidebar';
 import AIDashboard from '../components/AIDashboard';
 import { 
@@ -23,16 +23,18 @@ import {
   FaCloudUploadAlt, FaArrowDown, FaArrowUp,
   FaPiggyBank, FaExclamationTriangle, FaCalendarAlt,
   FaChartBar, FaChartPie, FaHistory, FaFilter,
-  FaSyncAlt, FaDownload, FaFileExport
+  FaSyncAlt, FaDownload, FaFileExport, FaMoneyBill,
+  FaUniversity
 } from 'react-icons/fa';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { uploadedData } = useUpload();
   const { showNotification } = useNotification();
-  const [summary, setSummary] = useState(null);
-  const [insights, setInsights] = useState(null);
-  const [recentExpenses, setRecentExpenses] = useState([]);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [goals, setGoals] = useState([]);
+  const [reminders, setReminders] = useState([]);
+  const [aiInsights, setAiInsights] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [budget, setBudget] = useState(user?.monthly_budget || 0);
@@ -42,23 +44,6 @@ const Dashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [availableYears, setAvailableYears] = useState([]);
-  
-  // Data states with proper initialization
-  const [allTimeData, setAllTimeData] = useState({
-    totalIncome: 0,
-    totalExpenses: 0,
-    totalSavings: 0,
-    avgMonthlyIncome: 0,
-    avgMonthlyExpenses: 0,
-    bestMonth: null,
-    worstMonth: null,
-    totalTransactions: 0,
-    activeMonths: 0
-  });
-  
-  const [yearlyData, setYearlyData] = useState([]);
-  const [categoryTotals, setCategoryTotals] = useState([]);
-  const [monthlyTrendData, setMonthlyTrendData] = useState([]);
 
   const COLORS = ['#667eea', '#764ba2', '#48c774', '#f14668', '#ffdd57', '#00d1b2', '#ff9f1c', '#a06ab4', '#dda0dd', '#98d8c8'];
 
@@ -88,28 +73,32 @@ const Dashboard = () => {
   }, [selectedMonth, selectedYear, timeRange]);
 
   const fetchDashboardData = async () => {
-  try {
-    setLoading(true);
-    setError(null);
-    
-    console.log('📊 Fetching dashboard data...');
-    console.log('Time range:', timeRange, 'Month:', selectedMonth, 'Year:', selectedYear);
-    
-    if (timeRange === 'month') {
-      await fetchMonthData();
-    } else if (timeRange === 'year') {
-      await fetchYearData();
-    } else {
-      await fetchAllTimeData();
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('📊 Fetching dashboard data...');
+      console.log('Time range:', timeRange, 'Month:', selectedMonth, 'Year:', selectedYear);
+      
+      // Fetch comprehensive dashboard data
+      const dashboardRes = await dashboardAPI.getSummary(timeRange, selectedMonth, selectedYear);
+      console.log('📊 Dashboard data:', dashboardRes.data);
+      
+      setDashboardData(dashboardRes.data);
+      setGoals(dashboardRes.data.goals || []);
+      setReminders(dashboardRes.data.reminders || []);
+      setAiInsights(dashboardRes.data.ai_insights || null);
+      
+      // Update budget from user data
+      setBudget(dashboardRes.data.user?.monthly_budget || 0);
+      
+    } catch (err) {
+      console.error('❌ Error fetching dashboard data:', err);
+      setError('Failed to load dashboard data. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    
-  } catch (err) {
-    console.error('❌ Error fetching dashboard data:', err);
-    setError('Failed to load dashboard data. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   const fetchMonthData = async () => {
   try {
     console.log('📅 Fetching data for month:', selectedMonth, 'year:', selectedYear);
@@ -417,8 +406,9 @@ const Dashboard = () => {
 
   const handleBudgetUpdate = async () => {
     try {
-      await expenseAPI.updateBudget(budget);
+      await dashboardAPI.getSummary(timeRange, selectedMonth, selectedYear);
       showNotification('✅ Budget updated successfully!', 'success');
+      fetchDashboardData(); // Refresh data
     } catch (error) {
       console.error('Error updating budget:', error);
       showNotification('❌ Failed to update budget', 'error');
@@ -444,43 +434,33 @@ const Dashboard = () => {
   };
 
   const getPieChartData = () => {
-    if (timeRange === 'month' && summary?.category_summary) {
-      return summary.category_summary
+    if (!dashboardData?.summary) return [];
+    
+    if (timeRange === 'month' && dashboardData.summary.category_summary) {
+      return dashboardData.summary.category_summary
         .filter(cat => parseFloat(cat.total_expense || cat.total_amount || 0) > 0)
         .map(cat => ({
           name: cat.name || 'Other',
           value: parseFloat(cat.total_expense || cat.total_amount || 0),
           color: cat.color || COLORS[Math.floor(Math.random() * COLORS.length)]
         }));
-    } else {
-      return categoryTotals
-        .filter(cat => cat.expense > 0)
-        .map(cat => ({
-          name: cat.name,
-          value: cat.expense,
-          color: cat.color
-        }));
     }
+    return [];
   };
 
   const getIncomePieChartData = () => {
-    if (timeRange === 'month' && summary?.category_summary) {
-      return summary.category_summary
+    if (!dashboardData?.summary) return [];
+    
+    if (timeRange === 'month' && dashboardData.summary.category_summary) {
+      return dashboardData.summary.category_summary
         .filter(cat => parseFloat(cat.total_income || 0) > 0)
         .map(cat => ({
           name: cat.name || 'Other',
           value: parseFloat(cat.total_income || 0),
           color: cat.color || COLORS[Math.floor(Math.random() * COLORS.length)]
         }));
-    } else {
-      return categoryTotals
-        .filter(cat => cat.income > 0)
-        .map(cat => ({
-          name: cat.name,
-          value: cat.income,
-          color: cat.color
-        }));
     }
+    return [];
   };
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -622,385 +602,1006 @@ const Dashboard = () => {
     );
   }
 
-  // For month view, derive totals from the summary response (rather than the "insights" endpoint which always returns the current month)
-  const monthlyTotals = summary?.category_summary ? summary.category_summary.reduce(
-    (totals, cat) => {
-      totals.income += parseFloat(cat.total_income) || 0;
-      totals.expenses += parseFloat(cat.total_expense || cat.total_amount) || 0;
-      return totals;
-    },
-    { income: 0, expenses: 0 }
-  ) : { income: 0, expenses: 0 };
-
-  const totalIncome = timeRange === 'month'
-    ? monthlyTotals.income
-    : allTimeData.totalIncome;
-
-  const totalExpenses = timeRange === 'month'
-    ? monthlyTotals.expenses
-    : allTimeData.totalExpenses;
-
+  // Calculate totals based on dashboard data
+  const totalIncome = dashboardData?.summary?.total_income || 0;
+  const totalExpenses = dashboardData?.summary?.total_expenses || 0;
   const netSavings = totalIncome - totalExpenses;
-  const hasData = totalIncome > 0 || totalExpenses > 0 || (recentExpenses && recentExpenses.length > 0);
+  const hasData = totalIncome > 0 || totalExpenses > 0;
+
+  // Get monthly trend data for charts
+  const getMonthlyTrendData = () => {
+    if (!dashboardData?.summary) return [];
+    
+    if (timeRange === 'month' && dashboardData.summary.monthly_summary) {
+      return dashboardData.summary.monthly_summary.map(item => ({
+        month: item.month,
+        monthName: months[item.month - 1].substring(0, 3),
+        fullMonthName: months[item.month - 1],
+        expenses: item.total_expenses || 0,
+        income: item.total_income || 0,
+        savings: (item.total_income || 0) - (item.total_expenses || 0)
+      }));
+    }
+    return [];
+  };
+
+  const monthlyTrendData = getMonthlyTrendData();
 
   return (
     <div className="dashboard">
       <Sidebar />
       <div className="main-content">
-        {/* Header with Controls */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          marginBottom: '30px',
-          flexWrap: 'wrap',
-          gap: '15px'
-        }}>
-          <div>
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-              <FaChartLine style={{ color: '#667eea' }} />
-              Financial Dashboard
-            </h2>
-            {timeRange !== 'month' && (
-              <span style={{
-                fontSize: '14px',
-                background: '#667eea20',
-                color: '#667eea',
-                padding: '4px 12px',
-                borderRadius: '20px'
-              }}>
-                {timeRange === 'year' ? `Year ${selectedYear}` : 'All Time'}
-              </span>
-            )}
+        {/* Header */}
+        <div className="dashboard-header">
+          <div className="greeting">
+            <h1>Hello {dashboardData?.user?.name || user?.name || 'User'} !!</h1>
+            <p className="greeting-subtitle">Here's your financial overview</p>
           </div>
-          
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button onClick={handleRefresh} className="btn" style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 16px' }}>
-              <FaSyncAlt /> Refresh
-            </button>
-            
-            <button onClick={handleExportDashboard} className="btn" style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 16px' }} disabled={!hasData}>
-              <FaDownload /> Export
-            </button>
-
+          <div className="header-controls">
             {/* Time Range Selector */}
-            <div style={{ display: 'flex', gap: '5px', background: '#f8f9fa', padding: '4px', borderRadius: '8px' }}>
-              <button className={`btn ${timeRange === 'month' ? 'btn-primary' : ''}`} onClick={() => setTimeRange('month')} style={{ padding: '8px 16px' }}>
-                <FaCalendarAlt /> Month
-              </button>
-              <button className={`btn ${timeRange === 'year' ? 'btn-primary' : ''}`} onClick={() => setTimeRange('year')} style={{ padding: '8px 16px' }}>
-                <FaChartBar /> Year
-              </button>
-              <button className={`btn ${timeRange === 'all' ? 'btn-primary' : ''}`} onClick={() => setTimeRange('all')} style={{ padding: '8px 16px' }}>
-                <FaHistory /> All Time
-              </button>
-            </div>
-
-            {/* Month/Year Selector */}
-            {timeRange === 'month' && (
-  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-    <select 
-      value={selectedMonth} 
-      onChange={(e) => {
-        console.log('Month changed to:', e.target.value); // Debug log
-        setSelectedMonth(parseInt(e.target.value));
-      }}
-      className="form-control"
-      style={{ width: '120px' }}
-    >
-      {months.map((month, index) => (
-        <option key={index} value={index + 1}>{month}</option>
-      ))}
-    </select>
-    <select 
-      value={selectedYear} 
-      onChange={(e) => {
-        console.log('Year changed to:', e.target.value); // Debug log
-        setSelectedYear(parseInt(e.target.value));
-      }}
-      className="form-control"
-      style={{ width: '100px' }}
-    >
-      {years.map(year => (
-        <option key={year} value={year}>{year}</option>
-      ))}
-    </select>
-  </div>
-)}
-
-            {/* Year Selector for Year View */}
-            {timeRange === 'year' && (
-              <select value={selectedYear} onChange={(e) => {
-                console.log('Year changed to:', e.target.value); // Debug log
-                setSelectedYear(parseInt(e.target.value));
-              }} className="form-control" style={{ width: '120px' }}>
-                {years.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
+            <div className="time-range-selector">
+              <select 
+                value={timeRange} 
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="time-range-select"
+              >
+                <option value="month">This Month</option>
+                <option value="year">This Year</option>
+                <option value="all">All Time</option>
               </select>
-            )}
+              {timeRange === 'month' && (
+                <select 
+                  value={selectedMonth} 
+                  onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                  className="month-select"
+                >
+                  {months.map((month, index) => (
+                    <option key={index + 1} value={index + 1}>{month}</option>
+                  ))}
+                </select>
+              )}
+              {(timeRange === 'month' || timeRange === 'year') && (
+                <select 
+                  value={selectedYear} 
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  className="year-select"
+                >
+                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+            <div className="search-bar">
+              <input type="text" placeholder="Search transactions..." />
+            </div>
+            <div className="user-profile">
+              <div className="profile-avatar">{(dashboardData?.user?.name || user?.name || 'U').charAt(0).toUpperCase()}</div>
+              <span>{dashboardData?.user?.name || user?.name || 'User'}</span>
+            </div>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="stats-grid">
-          {/* Income Card */}
-<div className="stat-card" style={{ 
-  background: 'linear-gradient(135deg, #48c77410, #36a15e10)',
-  borderLeft: '4px solid #48c774'
-}}>
-  <div className="stat-icon"><FaArrowDown style={{ color: '#48c774' }} /></div>
-  <div className="stat-value" style={{ color: '#48c774' }}>
-    {timeRange === 'month' 
-      ? formatCurrency(monthlyTotals.income)
-      : formatCurrency(allTimeData.totalIncome)}
-  </div>
-  <div className="stat-label">
-    {timeRange === 'month' ? `Income for ${months[selectedMonth-1]} ${selectedYear}` : 'Total Income'}
-  </div>
-</div>
+        {/* KPI Cards */}
+        <div className="kpi-cards">
+          <div className="kpi-card">
+            <div className="kpi-icon">
+              <FaWallet />
+            </div>
+            <div className="kpi-content">
+              <div className="kpi-value">{formatCurrency(netSavings)}</div>
+              <div className="kpi-label">Net Savings</div>
+              <div className="kpi-change">
+                {netSavings >= 0 ? 
+                  <span className="positive">↗ +{((netSavings / Math.max(totalIncome, 1)) * 100).toFixed(1)}%</span> : 
+                  <span className="negative">↘ {((netSavings / Math.max(totalIncome, 1)) * 100).toFixed(1)}%</span>
+                }
+              </div>
+            </div>
+            <div className="kpi-sparkline">
+              <div className="sparkline-chart">
+                <div className="sparkline-bar" style={{height: '20px'}}></div>
+                <div className="sparkline-bar" style={{height: '35px'}}></div>
+                <div className="sparkline-bar" style={{height: '25px'}}></div>
+                <div className="sparkline-bar" style={{height: '40px'}}></div>
+                <div className="sparkline-bar" style={{height: '30px'}}></div>
+              </div>
+            </div>
+          </div>
 
-{/* Expenses Card */}
-<div className="stat-card" style={{ 
-  background: 'linear-gradient(135deg, #f1466820, #d13a5820)',
-  borderLeft: '4px solid #f14668'
-}}>
-  <div className="stat-icon"><FaArrowUp style={{ color: '#f14668' }} /></div>
-  <div className="stat-value" style={{ color: '#f14668' }}>
-    {timeRange === 'month' 
-      ? formatCurrency(monthlyTotals.expenses)
-      : formatCurrency(allTimeData.totalExpenses)}
-  </div>
-  <div className="stat-label">
-    {timeRange === 'month' ? `Expenses for ${months[selectedMonth-1]} ${selectedYear}` : 'Total Expenses'}
-  </div>
-</div>
+          <div className="kpi-card">
+            <div className="kpi-icon">
+              <FaArrowDown />
+            </div>
+            <div className="kpi-content">
+              <div className="kpi-value">{formatCurrency(totalIncome)}</div>
+              <div className="kpi-label">Total Income</div>
+              <div className="kpi-change">
+                <span className="positive">↗ +12.5%</span>
+              </div>
+            </div>
+            <div className="kpi-sparkline">
+              <div className="sparkline-chart">
+                <div className="sparkline-bar" style={{height: '25px'}}></div>
+                <div className="sparkline-bar" style={{height: '40px'}}></div>
+                <div className="sparkline-bar" style={{height: '30px'}}></div>
+                <div className="sparkline-bar" style={{height: '35px'}}></div>
+                <div className="sparkline-bar" style={{height: '45px'}}></div>
+              </div>
+            </div>
+          </div>
 
-          {/* Net Savings Card */}
-          <div className="stat-card" style={{ background: netSavings >= 0 ? '#48c77410' : '#f1466820', borderLeft: `4px solid ${netSavings >= 0 ? '#48c774' : '#f14668'}` }}>
-            <div className="stat-icon"><FaPiggyBank style={{ color: netSavings >= 0 ? '#48c774' : '#f14668' }} /></div>
-            <div className="stat-value" style={{ color: netSavings >= 0 ? '#48c774' : '#f14668' }}>{formatCurrency(Math.abs(netSavings))}</div>
-            <div className="stat-label">{timeRange === 'month' ? 'Net Savings' : 'Total Savings'}</div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>{netSavings >= 0 ? 'Surplus' : 'Deficit'}</div>
+          <div className="kpi-card">
+            <div className="kpi-icon">
+              <FaArrowUp />
+            </div>
+            <div className="kpi-content">
+              <div className="kpi-value">{formatCurrency(totalExpenses)}</div>
+              <div className="kpi-label">Total Expenses</div>
+              <div className="kpi-change">
+                <span className="negative">↘ -5.2%</span>
+              </div>
+            </div>
+            <div className="kpi-sparkline">
+              <div className="sparkline-chart">
+                <div className="sparkline-bar" style={{height: '30px'}}></div>
+                <div className="sparkline-bar" style={{height: '20px'}}></div>
+                <div className="sparkline-bar" style={{height: '35px'}}></div>
+                <div className="sparkline-bar" style={{height: '25px'}}></div>
+                <div className="sparkline-bar" style={{height: '15px'}}></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="kpi-card">
+            <div className="kpi-icon">
+              <FaChartLine />
+            </div>
+            <div className="kpi-content">
+              <div className="kpi-value">{dashboardData?.summary?.total_transactions || 0}</div>
+              <div className="kpi-label">Transactions</div>
+              <div className="kpi-change">
+                <span className="neutral">→ 0.0%</span>
+              </div>
+            </div>
+            <div className="kpi-sparkline">
+              <div className="sparkline-chart">
+                <div className="sparkline-bar" style={{height: '28px'}}></div>
+                <div className="sparkline-bar" style={{height: '32px'}}></div>
+                <div className="sparkline-bar" style={{height: '26px'}}></div>
+                <div className="sparkline-bar" style={{height: '38px'}}></div>
+                <div className="sparkline-bar" style={{height: '22px'}}></div>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Best/Worst Months */}
-        {timeRange !== 'month' && allTimeData.bestMonth && (
-          <div className="card" style={{ background: 'linear-gradient(135deg, #00308710, #00A3E010)', border: '2px solid #003087', marginBottom: '30px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '20px' }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#48c774', fontSize: '14px', marginBottom: '5px' }}>🏆 Best Month</div>
-                <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{allTimeData.bestMonth?.monthName} {allTimeData.bestMonth?.year}</div>
-                <div style={{ color: '#48c774', fontSize: '20px', fontWeight: 'bold' }}>{formatCurrency(allTimeData.bestMonth?.savings || 0)}</div>
-                <div style={{ fontSize: '12px', color: '#666' }}>saved</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#f14668', fontSize: '14px', marginBottom: '5px' }}>📉 Needs Improvement</div>
-                <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{allTimeData.worstMonth?.monthName} {allTimeData.worstMonth?.year}</div>
-                <div style={{ color: '#f14668', fontSize: '20px', fontWeight: 'bold' }}>{formatCurrency(Math.abs(allTimeData.worstMonth?.savings || 0))}</div>
-                <div style={{ fontSize: '12px', color: '#666' }}>deficit</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* CSV Banner */}
-        {uploadedData && (
-          <div className="card" style={{ background: 'linear-gradient(135deg, #667eea10, #764ba210)', border: '2px solid #667eea', marginBottom: '30px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                <FaCloudUploadAlt size={40} color="#667eea" />
-                <div>
-                  <h3 style={{ margin: 0, color: '#667eea' }}>📊 CSV Data Active</h3>
-                  <p style={{ margin: '5px 0 0', color: '#666' }}>{uploadedData?.valid_records || 0} transactions imported</p>
-                </div>
-              </div>
-              <Link to="/reports" className="btn btn-primary">View Detailed Reports</Link>
-            </div>
-          </div>
-        )}
-
-        {/* No Data Message */}
-        {!hasData && (
-          <div className="card" style={{ textAlign: 'center', padding: '50px', background: '#f8f9fa', marginBottom: '30px' }}>
-            <FaCloudUploadAlt size={60} color="#ccc" />
-            <h3 style={{ margin: '20px 0', color: '#666' }}>No Data Available</h3>
-            <p style={{ color: '#999', marginBottom: '20px' }}>Start by adding your first transaction or importing a CSV file.</p>
-            <Link to="/upload" className="btn btn-primary">Import CSV</Link>
-          </div>
-        )}
-
 
         {/* Charts Section */}
-        {hasData && (
-          <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', marginBottom: '30px' }}>
-              {/* Expense Pie Chart */}
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FaChartPie /> Expense Breakdown</h3>
-                  {timeRange !== 'month' && <span style={{ fontSize: '12px', color: '#666' }}>All-time expenses</span>}
-                </div>
-                <div style={{ width: '100%', height: 300 }}>
-                  <ResponsiveContainer>
-                    <PieChart>
-                      <Pie data={getPieChartData()} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value"
-                        label={({ name, percent }) => percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : ''}>
-                        {getPieChartData().map((entry, index) => (<Cell key={index} fill={entry.color} />))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatCurrency(value)} />
-                    </PieChart>
-                  </ResponsiveContainer>
+        <div className="charts-section">
+          <div className="chart-row">
+            {/* Income vs Expenses Trend */}
+            <div className="primary-chart">
+              <div className="chart-header">
+                <h2>Income vs Expenses Trend</h2>
+                <div className="chart-controls">
+                  <button className="chart-toggle active">Monthly</button>
+                  <button className="chart-toggle">Yearly</button>
                 </div>
               </div>
-
-              {/* Income Pie Chart */}
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FaChartPie /> Income Breakdown</h3>
-                  {timeRange !== 'month' && <span style={{ fontSize: '12px', color: '#666' }}>All-time income</span>}
-                </div>
-                <div style={{ width: '100%', height: 300 }}>
-                  <ResponsiveContainer>
-                    <PieChart>
-                      <Pie data={getIncomePieChartData()} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value"
-                        label={({ name, percent }) => percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : ''}>
-                        {getIncomePieChartData().map((entry, index) => (<Cell key={index} fill={entry.color} />))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatCurrency(value)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+              <div className="chart-container">
+                <ResponsiveContainer width="100%" height={300}>
+                  <ComposedChart data={monthlyTrendData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="monthName" />
+                    <YAxis />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                    <Bar dataKey="income" fill="#48c774" name="Income" />
+                    <Bar dataKey="expenses" fill="#f14668" name="Expenses" />
+                    <Line type="monotone" dataKey="savings" stroke="#667eea" strokeWidth={3} name="Savings" />
+                  </ComposedChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
-            {/* Trend Chart */}
-            <div className="card" style={{ marginBottom: '30px', position: 'relative' }}>
-              <div className="card-header">
-                <h3 className="card-title">
-                  <FaChartLine /> 
-                  {timeRange === 'month' ? 'Monthly Trend' : timeRange === 'year' ? `Monthly Breakdown - ${selectedYear}` : 'Yearly Overview'}
-                </h3>
-              </div>
-              <div style={{ width: '100%', height: 350 }}>
-                {monthlyTrendData.length > 0 ? (
-                  <ResponsiveContainer>
-                    {timeRange === 'all' ? (
-                      <BarChart data={monthlyTrendData}>
-                        <XAxis dataKey="year" />
-                        <YAxis tickFormatter={(value) => formatLargeNumber(value)} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Legend />
-                        <Bar dataKey="expenses" fill="#f14668" name="Expenses" />
-                        <Bar dataKey="income" fill="#48c774" name="Income" />
-                      </BarChart>
-                    ) : (
-                      <ComposedChart data={monthlyTrendData}>
-                        <XAxis dataKey="monthName" scale="point" padding={{ left: 10, right: 10 }} />
-                        <YAxis yAxisId="left" tickFormatter={(value) => formatLargeNumber(value)} />
-                        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatLargeNumber(value)} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Legend />
-                        <Bar yAxisId="left" dataKey="expenses" fill="#f14668" name="Expenses" barSize={30} />
-                        <Bar yAxisId="left" dataKey="income" fill="#48c774" name="Income" barSize={30} />
-                        <Line yAxisId="right" type="monotone" dataKey="savings" stroke="#667eea" name="Savings" strokeWidth={2} dot={{ r: 4 }} />
-                      </ComposedChart>
-                    )}
-                  </ResponsiveContainer>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999' }}>
-                    <FaChartLine size={50} style={{ color: '#ccc', marginBottom: '15px' }} />
-                    <p>No trend data available for this period</p>
-                    <p style={{ fontSize: '13px', marginTop: '5px' }}>
-                      {timeRange === 'month' ? 'Add transactions for multiple months to see trends' :
-                       timeRange === 'year' ? 'No data found for the selected year' : 'No historical data available'}
-                    </p>
-                  </div>
-                )}
+            {/* Category Breakdown */}
+            <div className="category-chart">
+              <h2>Expense Categories</h2>
+              <div className="chart-container">
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={getPieChartData()}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {getPieChartData().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </div>
-
-            {/* Category Comparison */}
-            {timeRange !== 'month' && categoryTotals.length > 0 && (
-              <div className="card" style={{ marginBottom: '30px' }}>
-                <div className="card-header">
-                  <h3 className="card-title">Income vs Expenses by Category</h3>
-                </div>
-                <div style={{ width: '100%', height: 400 }}>
-                  <ResponsiveContainer>
-                    <BarChart data={categoryTotals} layout="vertical" margin={{ left: 100, right: 30, top: 20, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" tickFormatter={(value) => formatLargeNumber(value)} />
-                      <YAxis type="category" dataKey="name" width={100} />
-                      <Tooltip formatter={(value) => formatCurrency(value)} />
-                      <Legend />
-                      <Bar dataKey="expense" name="Expenses" fill="#f14668" />
-                      <Bar dataKey="income" name="Income" fill="#48c774" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Recent Transactions */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Recent Transactions</h3>
-            <Link to="/expenses" className="btn btn-primary">View All</Link>
           </div>
-          <div className="table-container">
-            {!recentExpenses || recentExpenses.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                <p>No recent transactions. Add your first transaction or import a CSV file!</p>
+        </div>
+
+        {/* Goals and Reminders Section */}
+        <div className="goals-reminders-section">
+          <div className="goals-widget">
+            <h3>Savings Goals</h3>
+            {goals.length > 0 ? (
+              <div className="goals-list">
+                {goals.slice(0, 3).map(goal => {
+                  const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
+                  return (
+                    <div key={goal.id} className="goal-item">
+                      <div className="goal-info">
+                        <span className="goal-name">{goal.name}</span>
+                        <span className="goal-progress">{progress.toFixed(0)}%</span>
+                      </div>
+                      <div className="goal-bar">
+                        <div 
+                          className="goal-fill" 
+                          style={{ width: `${Math.min(progress, 100)}%` }}
+                        ></div>
+                      </div>
+                      <div className="goal-amounts">
+                        <span>{formatCurrency(goal.current_amount)}</span>
+                        <span>{formatCurrency(goal.target_amount)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              <table className="table">
+              <div className="no-goals">
+                <p>No savings goals set yet</p>
+                <Link to="/goals" className="create-goal-btn">Create Goal</Link>
+              </div>
+            )}
+          </div>
+
+          <div className="reminders-widget">
+            <h3>Upcoming Bills</h3>
+            {reminders.length > 0 ? (
+              <div className="reminders-list">
+                {reminders.map(reminder => (
+                  <div key={reminder.id} className="reminder-item">
+                    <div className="reminder-icon">
+                      <FaCalendarAlt />
+                    </div>
+                    <div className="reminder-info">
+                      <span className="reminder-name">{reminder.name}</span>
+                      <span className="reminder-date">{new Date(reminder.due_date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="reminder-amount">{formatCurrency(reminder.amount)}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-reminders">
+                <p>No upcoming bills</p>
+                <Link to="/reminders" className="create-reminder-btn">Add Bill Reminder</Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Transactions and AI Insights */}
+        <div className="bottom-section">
+          <div className="transaction-table">
+            <div className="table-header">
+              <h2>Recent Transactions</h2>
+              <Link to="/expenses" className="view-all-btn">View All</Link>
+            </div>
+            <div className="table-container">
+              <table>
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Category</th>
                     <th>Description</th>
-                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Date</th>
                     <th>Amount</th>
+                    <th>Type</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {recentExpenses.slice(0, 5).map(expense => (
+                  {dashboardData?.recent_expenses?.slice(0, 5).map(expense => (
                     <tr key={expense.id}>
-                      <td>{expense.date}</td>
+                      <td>{expense.description || 'No description'}</td>
                       <td>
                         <span className="category-badge" style={{ backgroundColor: expense.color || '#667eea' }}>
-                          <span className="category-icon">{expense.icon || '\uD83D\uDCCC'}</span>
                           {expense.category_name || 'Other'}
                         </span>
                       </td>
-                      <td>{expense.description || '-'}</td>
-                      <td>
-                        {expense.type === 'income' ? (
-                          <span style={{ color: '#48c774', display: 'flex', alignItems: 'center', gap: '4px' }}><FaArrowDown /> Income</span>
-                        ) : (
-                          <span style={{ color: '#f14668', display: 'flex', alignItems: 'center', gap: '4px' }}><FaArrowUp /> Expense</span>
-                        )}
+                      <td>{new Date(expense.date).toLocaleDateString()}</td>
+                      <td className={expense.type === 'income' ? 'positive' : 'negative'}>
+                        {expense.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(expense.amount))}
                       </td>
-                      <td style={{ color: expense.type === 'income' ? '#48c774' : '#f14668', fontWeight: 'bold' }}>
-                        {expense.type === 'income' ? '+' : '-'} ₹{parseFloat(expense.amount).toFixed(2)}
+                      <td>
+                        <span className={`type-badge ${expense.type}`}>
+                          {expense.type === 'income' ? 'Income' : 'Expense'}
+                        </span>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          <div className="ai-insights-widget">
+            <h3>AI Insights</h3>
+            {aiInsights?.suggestions?.length > 0 ? (
+              <div className="insights-list">
+                {aiInsights.suggestions.slice(0, 3).map((suggestion, index) => (
+                  <div key={index} className="insight-item">
+                    <div className="insight-icon">💡</div>
+                    <div className="insight-text">{suggestion}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-insights">
+                <p>AI insights will appear as you add more transactions</p>
+              </div>
             )}
           </div>
         </div>
       </div>
 
       <style>{`
-        @keyframes spin {
+        .dashboard {
+          display: flex;
+          min-height: 100vh;
+          background: #F4F4F5;
+          padding-top: 60px; /* Account for fixed TopNav */
+        }
+
+        .dashboard .sidebar {
+          top: 60px;
+          height: calc(100vh - 60px);
+        }
+
+        .dashboard .floating-toggle {
+          top: 76px; /* 60px TopNav + 16px */
+        }
+
+        .main-content {
+          flex: 1;
+          padding: 24px;
+          margin-left: 280px;
+          background: #F4F4F5;
+          overflow-x: hidden;
+          width: calc(100vw - 280px);
+          box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+          .main-content {
+            margin-left: 0;
+            width: 100vw;
+            padding: 16px;
+          }
+        }
+
+        .dashboard.sidebar-collapsed .main-content {
+          margin-left: 64px;
+          width: calc(100vw - 64px);
+        }
+
+        .dashboard.sidebar-collapsed .sidebar {
+          width: 64px;
+        }
+
+        .greeting-subtitle {
+          font-size: 14px;
+          color: #666;
+          margin: 4px 0 0 0;
+        }
+
+        .header-controls {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .time-range-selector {
+          display: flex;
+          gap: 8px;
+        }
+
+        .time-range-select, .month-select, .year-select {
+          padding: 8px 12px;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          background: white;
+          font-size: 14px;
+          cursor: pointer;
+        }
+
+        .search-bar input {
+          padding: 12px 16px;
+          border: 1px solid #ddd;
+          border-radius: 12px;
+          width: 250px;
+          font-size: 14px;
+        }
+
+        .user-profile {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .profile-avatar {
+          width: 40px;
+          height: 40px;
+          background: #DA3B53;
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+        }
+
+        .kpi-cards {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 24px;
+          margin-bottom: 32px;
+        }
+
+        .kpi-card {
+          background: white;
+          padding: 24px;
+          border-radius: 16px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          transition: transform 0.2s ease;
+        }
+
+        .kpi-card:hover {
+          transform: translateY(-2px);
+        }
+
+        .kpi-icon {
+          font-size: 24px;
+          color: #595298;
+        }
+
+        .kpi-content {
+          flex: 1;
+        }
+
+        .kpi-value {
+          font-size: 24px;
+          font-weight: bold;
+          color: #333;
+        }
+
+        .kpi-label {
+          font-size: 14px;
+          color: #666;
+        }
+
+        .kpi-change {
+          font-size: 12px;
+          margin-top: 4px;
+        }
+
+        .kpi-change .positive {
+          color: #48c774;
+        }
+
+        .kpi-change .negative {
+          color: #f14668;
+        }
+
+        .kpi-change .neutral {
+          color: #666;
+        }
+
+        .kpi-sparkline {
+          width: 60px;
+        }
+
+        .sparkline-chart {
+          display: flex;
+          align-items: end;
+          gap: 2px;
+          height: 40px;
+        }
+
+        .sparkline-bar {
+          width: 8px;
+          background: #DA3B53;
+          border-radius: 2px;
+        }
+
+        .charts-section {
+          margin-bottom: 32px;
+        }
+
+        .chart-row {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 24px;
+          margin-bottom: 24px;
+        }
+
+        .primary-chart, .category-chart {
+          background: white;
+          border-radius: 16px;
+          padding: 24px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+
+        .chart-header h2 {
+          font-size: 20px;
+          font-weight: bold;
+          margin: 0;
+          color: #333;
+        }
+
+        .chart-controls {
+          display: flex;
+          gap: 8px;
+        }
+
+        .chart-toggle {
+          padding: 6px 12px;
+          border: 1px solid #ddd;
+          background: white;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 12px;
+        }
+
+        .chart-toggle.active {
+          background: #667eea;
+          color: white;
+          border-color: #667eea;
+        }
+
+        .chart-container {
+          height: 300px;
+        }
+
+        .goals-reminders-section {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+          margin-bottom: 32px;
+        }
+
+        .goals-widget, .reminders-widget {
+          background: white;
+          border-radius: 16px;
+          padding: 24px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .goals-widget h3, .reminders-widget h3 {
+          font-size: 18px;
+          font-weight: bold;
+          margin-bottom: 16px;
+          color: #333;
+        }
+
+        .goals-list, .reminders-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .goal-item, .reminder-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 8px;
+        }
+
+        .goal-info {
+          flex: 1;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .goal-name {
+          font-weight: 500;
+        }
+
+        .goal-progress {
+          font-size: 12px;
+          color: #666;
+        }
+
+        .goal-bar {
+          width: 100%;
+          height: 6px;
+          background: #e0e0e0;
+          border-radius: 3px;
+          margin: 8px 0;
+          overflow: hidden;
+        }
+
+        .goal-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #48c774, #667eea);
+          border-radius: 3px;
+        }
+
+        .goal-amounts {
+          display: flex;
+          justify-content: space-between;
+          font-size: 12px;
+          color: #666;
+        }
+
+        .reminder-icon {
+          color: #f14668;
+        }
+
+        .reminder-info {
+          flex: 1;
+        }
+
+        .reminder-name {
+          display: block;
+          font-weight: 500;
+        }
+
+        .reminder-date {
+          display: block;
+          font-size: 12px;
+          color: #666;
+        }
+
+        .reminder-amount {
+          font-weight: bold;
+          color: #f14668;
+        }
+
+        .no-goals, .no-reminders {
+          text-align: center;
+          padding: 20px;
+          color: #666;
+        }
+
+        .create-goal-btn, .create-reminder-btn {
+          display: inline-block;
+          margin-top: 8px;
+          padding: 8px 16px;
+          background: #667eea;
+          color: white;
+          text-decoration: none;
+          border-radius: 6px;
+          font-size: 14px;
+        }
+
+        .bottom-section {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 24px;
+        }
+
+        .transaction-table {
+          background: white;
+          border-radius: 16px;
+          padding: 24px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+
+        .table-header h2 {
+          font-size: 20px;
+          font-weight: bold;
+          margin: 0;
+          color: #333;
+        }
+
+        .view-all-btn {
+          color: #667eea;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 500;
+        }
+
+        .table-container {
+          overflow-x: auto;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        th, td {
+          padding: 12px;
+          text-align: left;
+          border-bottom: 1px solid #eee;
+        }
+
+        th {
+          font-weight: bold;
+          color: #333;
+        }
+
+        .category-badge {
+          padding: 4px 8px;
+          border-radius: 12px;
+          color: white;
+          font-size: 12px;
+          font-weight: 500;
+        }
+
+        .type-badge {
+          padding: 4px 8px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 500;
+        }
+
+        .type-badge.income {
+          background: #48c774;
+          color: white;
+        }
+
+        .type-badge.expense {
+          background: #f14668;
+          color: white;
+        }
+
+        .positive {
+          color: #48c774;
+          font-weight: bold;
+        }
+
+        .negative {
+          color: #f14668;
+          font-weight: bold;
+        }
+
+        .ai-insights-widget {
+          background: white;
+          border-radius: 16px;
+          padding: 24px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .ai-insights-widget h3 {
+          font-size: 18px;
+          font-weight: bold;
+          margin-bottom: 16px;
+          color: #333;
+        }
+
+        .insights-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .insight-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          border-left: 4px solid #667eea;
+        }
+
+        .insight-icon {
+          font-size: 18px;
+        }
+
+        .insight-text {
+          flex: 1;
+          font-size: 14px;
+          line-height: 1.4;
+        }
+
+        .no-insights {
+          text-align: center;
+          padding: 20px;
+          color: #666;
+        }
+
+        .status-badge {
+          padding: 4px 12px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: bold;
+        }
+
+        .status-badge.success {
+          background: #48c774;
+          color: white;
+        }
+
+        .status-badge.failed {
+          background: #f14668;
+          color: white;
+        }
+
+        .credit-card {
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          border-radius: 16px;
+          padding: 24px;
+          color: white;
+          margin-bottom: 24px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .credit-card::before {
+          content: '';
+          position: absolute;
+          top: -50%;
+          right: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+          animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 32px;
+        }
+
+        .card-type {
+          font-size: 16px;
+          font-weight: bold;
+        }
+
+        .card-network {
+          font-size: 24px;
+        }
+
+        .card-balance {
+          margin-bottom: 24px;
+        }
+
+        .balance-label {
+          font-size: 14px;
+          opacity: 0.8;
+        }
+
+        .balance-amount {
+          font-size: 28px;
+          font-weight: bold;
+        }
+
+        .card-details {
+          margin-bottom: 24px;
+        }
+
+        .detail-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+          font-size: 14px;
+        }
+
+        .card-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: end;
+        }
+
+        .cardholder-name {
+          font-size: 16px;
+          font-weight: bold;
+        }
+
+        .card-period {
+          font-size: 12px;
+          opacity: 0.8;
+        }
+
+        .quick-actions h3 {
+          font-size: 18px;
+          font-weight: bold;
+          margin-bottom: 16px;
+          color: white;
+        }
+
+        .action-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .action-btn {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 16px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 12px;
+          color: white;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+        }
+
+        .action-btn span {
+          font-size: 14px;
+        }
+
+        @media (max-width: 1200px) {
+          .utility-panel {
+            display: none;
+          }
+          .main-content {
+            margin-right: 0;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .main-content {
+            margin-left: 0;
+            padding: 16px;
+          }
+          .kpi-cards {
+            flex-direction: column;
+          }
+          .dashboard-header {
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+          }
+        }
+
+        .dashboard.sidebar-collapsed .main-content {
+          margin-left: 64px;
+          width: calc(100vw - 64px);
+        }
+
+        .dashboard.sidebar-collapsed .sidebar {
+          width: 64px;
         }
       `}</style>
     </div>

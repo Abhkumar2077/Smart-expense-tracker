@@ -7,7 +7,6 @@ import {
   FaTachometerAlt, 
   FaMoneyBill, 
   FaChartPie, 
-  FaBell,
   FaCog, 
   FaSignOutAlt,
   FaCloudUploadAlt,
@@ -43,7 +42,7 @@ const Sidebar = () => {
       <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-top">
           <div className="sidebar-brand">
-            <h1></h1>
+            <h1>Analytix</h1>
           </div>
         </div>
       
@@ -62,61 +61,23 @@ const Sidebar = () => {
             to="/expenses" 
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
           >
-            <FaMoneyBill /> <span className="nav-text">Expenses</span>
+            <FaMoneyBill /> <span className="nav-text">Transactions</span>
           </NavLink>
         </li>
-        
-        <li className="nav-item">
-          <NavLink 
-            to="/reports" 
-            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-          >
-            <FaChartPie /> <span className="nav-text">Reports</span>
-          </NavLink>
-        </li>
-       
-        <li className="nav-item">
-          <NavLink 
-            to="/goals" 
-            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-          >
-            <FaBullseye /> <span className="nav-text">Savings Goals</span>
-          </NavLink>
-        </li>
-       
-        <li className="nav-item">
-          <NavLink 
-            to="/upload" 
-            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-          >
-            <FaCloudUploadAlt /> <span className="nav-text">Import CSV</span>
-          </NavLink>
-        </li>
-
-        <li className="nav-item">
-          <NavLink 
-            to="/notifications" 
-            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-          >
-            <FaBell /> <span className="nav-text">Notifications</span>
-          </NavLink>
-        </li>
-
-        <li className="nav-item">
+      </ul>
+            <div className="sidebar-footer">
+        <div className="nav-item">
           <NavLink 
             to="/settings" 
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
           >
             <FaCog /> <span className="nav-text">Settings</span>
           </NavLink>
-        </li>
-      </ul>
-            <div className="sidebar-footer">
-        <div className="user-card">
-          <p className="user-name">{user?.name || 'User'}</p>
-          <p className="user-email">{user?.email || 'user@example.com'}</p>
         </div>
-
+        
+        <button className="signout-btn" onClick={logout}>
+          <FaSignOutAlt /> <span>Log out</span>
+        </button>
       </div>
     </div>
     </>

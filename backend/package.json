@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "brain.js": "^2.0.0-beta.24",
+    "brain.js": "^1.6.1",
     "compromise": "^14.15.0",
     "cors": "^2.8.6",
     "csv-parser": "^3.2.0",
