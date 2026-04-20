@@ -3,7 +3,17 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const db = require('./config/db');
+const cron = require('node-cron');
+const { runDigestForAllUsers } = require('./services/weeklyDigestService');
 const app = express();
+
+// Start scheduler
+// Runs every Monday at 7:00 AM
+cron.schedule('0 7 * * 1', async () => {
+  console.log('Running weekly digest generation...');
+  await runDigestForAllUsers();
+  console.log('Weekly digest done.');
+});
 
 // Middleware
 app.use(cors());
@@ -24,11 +34,25 @@ app.use('/api/goals', require('./routes/goals'));
 app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/suggestions', require('./routes/suggestions'));
 
 // Test database connection
-db.getConnection()
-    .then(() => console.log('✅ Database connected successfully'))
-    .catch(err => console.error('❌ Database connection failed:', err));
+const testDBConnection = async () => {
+    try {
+        await db.query('SELECT 1 + 1 AS solution');
+        console.log('✅ Database connected successfully');
+        return true;
+    } catch (err) {
+        console.error('❌ Database connection failed:', err.message);
+        console.error('Please check:');
+        console.error('1. MySQL is running');
+        console.error('2. Database credentials in .env file');
+        console.error('3. Database "expense_tracker" exists');
+        return false;
+    }
+};
+
+testDBConnection();
 
 const PORT = process.env.PORT || 5000;
 

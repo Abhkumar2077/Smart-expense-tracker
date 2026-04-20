@@ -1,6 +1,5 @@
 // frontend/src/pages/Reports.js
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
 import { expenseAPI } from '../services/api';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
@@ -647,10 +646,7 @@ const Reports = () => {
 
     if (loading) {
         return (
-            <div className="dashboard">
-                <Sidebar />
-                <div className="main-content">
-                    <div style={{ textAlign: 'center', padding: '50px' }}>
+            <div style={{ textAlign: 'center', padding: '50px' }}>
                         <div className="loading-spinner" style={{
                             border: '4px solid #f3f3f3',
                             borderTop: '4px solid #667eea',
@@ -662,17 +658,13 @@ const Reports = () => {
                         }}></div>
                         <p>Loading financial reports...</p>
                     </div>
-                </div>
-            </div>
         );
     }
 
     return (
-        <div className="dashboard">
-            <Sidebar />
-            <div className="main-content">
-                {/* Header */}
-                <div style={{ 
+        <>
+            {/* Header */}
+            <div style={{ 
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'center', 
@@ -1034,15 +1026,15 @@ const Reports = () => {
                         </div>
                     </div>
                 )}
-            </div>
 
-            <style>{`
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 @keyframes spin {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
-            `}</style>
-        </div>
+            `}} />
+        </>
     );
 };
 

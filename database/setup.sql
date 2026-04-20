@@ -116,24 +116,7 @@ CREATE TABLE bill_reminders (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================
--- 7. RECEIPT SCANS TABLE
--- ============================================
-CREATE TABLE receipt_scans (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    merchant VARCHAR(255),
-    amount DECIMAL(10,2),
-    scan_date DATE,
-    image_url VARCHAR(500),
-    raw_text TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_scans (user_id),
-    INDEX idx_scan_date (scan_date)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- ============================================
--- 8. NOTIFICATION PREFERENCES TABLE
+-- 7. NOTIFICATION PREFERENCES TABLE
 -- ============================================
 CREATE TABLE notification_preferences (
     id INT PRIMARY KEY AUTO_INCREMENT,

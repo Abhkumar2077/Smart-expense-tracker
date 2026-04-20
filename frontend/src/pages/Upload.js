@@ -1,7 +1,6 @@
 // frontend/src/pages/Upload.js
 import React from 'react';
 import axios from 'axios';
-import Sidebar from '../components/Sidebar';
 import CSVUploader from '../components/CSVUploader';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
@@ -48,9 +47,7 @@ const Upload = () => {
     };
 
     return (
-        <div className="dashboard">
-            <Sidebar />
-            <div className="main-content">
+        <div>
                 <div style={{ marginBottom: '30px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
@@ -218,7 +215,6 @@ const Upload = () => {
                     </a>
                 </div>
             </div>
-        </div>
     );
 };
 

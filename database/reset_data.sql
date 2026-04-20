@@ -16,7 +16,6 @@ SET FOREIGN_KEY_CHECKS = 0;
 DELETE FROM expenses;
 DELETE FROM bill_reminders;
 DELETE FROM savings_goals;
-DELETE FROM receipt_scans;
 DELETE FROM email_logs;
 DELETE FROM notification_preferences;
 DELETE FROM categories WHERE is_default = FALSE; -- Delete only custom categories

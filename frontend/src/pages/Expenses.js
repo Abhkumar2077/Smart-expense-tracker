@@ -1,7 +1,6 @@
 // frontend/src/pages/Expenses.js
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
 import ExpenseForm from '../components/ExpenseForm';
 import { expenseAPI, categoryAPI } from '../services/api';
 import { useUpload } from '../context/UploadContext';
@@ -283,17 +282,15 @@ const Expenses = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="dashboard">
-        <Sidebar />
-        <div className="main-content">
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            height: '80vh',
-            flexDirection: 'column',
-            gap: '20px'
-          }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '80vh',
+          flexDirection: 'column',
+          gap: '20px'
+        }}>
+          <div>
             <div className="loading-spinner" style={{
               border: '4px solid #f3f3f3',
               borderTop: '4px solid #667eea',
@@ -305,26 +302,23 @@ const Expenses = () => {
             <p style={{ color: '#666' }}>Loading transactions...</p>
           </div>
         </div>
-      </div>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <div className="dashboard">
-        <Sidebar />
-        <div className="main-content">
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '50px',
-            background: '#f1466810',
-            borderRadius: '10px',
-            border: '1px solid #f14668',
-            marginTop: '50px'
-          }}>
-            <FaExclamationTriangle size={50} color="#f14668" />
-            <h3 style={{ margin: '20px 0', color: '#f14668' }}>Oops! Something went wrong</h3>
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '50px',
+        background: 'rgba(173, 216, 230, 0.1)',
+        borderRadius: '10px',
+        border: '1px solid #00A3E0',
+        marginTop: '50px'
+        }}>
+        <div>
+            <FaExclamationTriangle size={50} color="#00A3E0" />
+            <h3 style={{ margin: '20px 0', color: '#00A3E0' }}>Oops! Something went wrong</h3>
             <p style={{ color: '#666' }}>{error}</p>
             <button 
               onClick={fetchData}
@@ -340,59 +334,84 @@ const Expenses = () => {
             >
               Try Again
             </button>
-          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="dashboard">
-      <Sidebar />
-      <div className="main-content">
+    <div style={{
+      background: 'linear-gradient(135deg, #E6F3FF 0%, #B3D9FF 50%, #80BFFF 100%)',
+      padding: '32px'
+    }}>
         {/* Header */}
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center', 
-          marginBottom: '20px',
+          marginBottom: '40px',
+          marginTop: '50px',
           flexWrap: 'wrap',
-          gap: '15px'
+          gap: '15px',
+          background: 'linear-gradient(135deg, #001435 0%, #003087 50%, #00A3E0 100%)',
+          padding: '24px 32px',
+          borderRadius: '16px',
+          boxShadow: '0 12px 40px rgba(0, 3, 135, 0.3)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <FaMoneyBillWave style={{ color: '#667eea' }} />
-            Transaction Management
-            {expenses.length > 0 && (
-              <span style={{
-                fontSize: '14px',
-                background: '#667eea20',
-                color: '#667eea',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                marginLeft: '10px'
-              }}>
-                {expenses.length} total
-              </span>
-            )}
-          </h2>
+          <style>{`
+            .expenses-header::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.05) 100%);
+              pointer-events: none;
+            }
+          `}</style>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white' }}>
+              <FaMoneyBillWave style={{ color: '#ADD8E6' }} />
+              Transaction Management
+              {expenses.length > 0 && (
+                <span style={{
+                  fontSize: '14px',
+                  background: 'rgba(173, 216, 230, 0.8)',
+                  color: '#001435',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  marginLeft: '10px',
+                  backdropFilter: 'blur(5px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)'
+                }}>
+                  {expenses.length} total
+                </span>
+              )}
+            </h2>
+          </div>
           
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', position: 'relative', zIndex: 1 }}>
             {uploadedData && (
               <button 
                 onClick={handleSyncUploadedData}
                 className="btn"
                 disabled={syncing}
                 style={{
-                  background: 'linear-gradient(135deg, #48c774, #36a15e)',
-                  color: 'white',
+                  background: 'rgba(173, 216, 230, 0.8)',
+                  backdropFilter: 'blur(5px)',
+                  color: '#001435',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
                   padding: '10px 20px',
-                  border: 'none',
-                  borderRadius: '5px',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '8px',
                   cursor: syncing ? 'not-allowed' : 'pointer',
-                  opacity: syncing ? 0.7 : 1
+                  opacity: syncing ? 0.7 : 1,
+                  fontWeight: '500'
                 }}
               >
                 <FaSync className={syncing ? 'fa-spin' : ''} />
@@ -408,12 +427,14 @@ const Expenses = () => {
                 alignItems: 'center', 
                 gap: '8px', 
                 padding: '10px 20px',
-                background: expenses.length === 0 ? '#ccc' : 'linear-gradient(135deg, #003087, #00A3E0)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
+                background: expenses.length === 0 ? 'rgba(255, 255, 255, 0.5)' : 'rgba(173, 216, 230, 0.8)',
+                backdropFilter: 'blur(5px)',
+                color: expenses.length === 0 ? '#999' : '#001435',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '8px',
                 cursor: expenses.length === 0 ? 'not-allowed' : 'pointer',
-                opacity: expenses.length === 0 ? 0.7 : 1
+                opacity: expenses.length === 0 ? 0.7 : 1,
+                fontWeight: '500'
               }}
             >
               <FaDownload /> Export CSV
@@ -424,19 +445,40 @@ const Expenses = () => {
         {/* Summary Cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '15px',
-          marginBottom: '25px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '24px',
+          marginBottom: '48px',
+          background: 'linear-gradient(135deg, #001435 0%, #003087 50%, #00A3E0 100%)',
+          padding: '32px',
+          borderRadius: '16px',
+          boxShadow: '0 12px 40px rgba(0, 3, 135, 0.3)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
+          <style>{`
+            .summary-cards::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.05) 100%);
+              pointer-events: none;
+            }
+          `}</style>
           <div style={{
-            background: 'white',
-            padding: '20px',
-            borderRadius: '10px',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-            borderLeft: '4px solid #48c774'
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            padding: '24px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            position: 'relative',
+            zIndex: 1
           }}>
-            <div style={{ fontSize: '14px', color: '#666' }}>Total Income</div>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#48c774' }}>
+            <div style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>Total Income</div>
+            <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#003087', margin: '8px 0' }}>
               ₹{stats.totalIncome.toFixed(2)}
             </div>
             <div style={{ fontSize: '12px', color: '#999' }}>
@@ -445,14 +487,17 @@ const Expenses = () => {
           </div>
 
           <div style={{
-            background: 'white',
-            padding: '20px',
-            borderRadius: '10px',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-            borderLeft: '4px solid #f14668'
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            padding: '24px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            position: 'relative',
+            zIndex: 1
           }}>
-            <div style={{ fontSize: '14px', color: '#666' }}>Total Expenses</div>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#f14668' }}>
+            <div style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>Total Expenses</div>
+            <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#00A3E0', margin: '8px 0' }}>
               ₹{stats.totalExpenses.toFixed(2)}
             </div>
             <div style={{ fontSize: '12px', color: '#999' }}>
@@ -461,17 +506,21 @@ const Expenses = () => {
           </div>
 
           <div style={{
-            background: 'white',
-            padding: '20px',
-            borderRadius: '10px',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-            borderLeft: `4px solid ${stats.netBalance >= 0 ? '#48c774' : '#f14668'}`
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            padding: '24px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            position: 'relative',
+            zIndex: 1
           }}>
-            <div style={{ fontSize: '14px', color: '#666' }}>Net Balance</div>
-            <div style={{ 
-              fontSize: '24px', 
-              fontWeight: 'bold', 
-              color: stats.netBalance >= 0 ? '#48c774' : '#f14668' 
+            <div style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>Net Balance</div>
+            <div style={{
+              fontSize: '28px',
+              fontWeight: 'bold',
+              color: stats.netBalance >= 0 ? '#003087' : '#00A3E0',
+              margin: '8px 0'
             }}>
               ₹{Math.abs(stats.netBalance).toFixed(2)}
             </div>
@@ -484,33 +533,52 @@ const Expenses = () => {
         {/* CSV Banner - Show if there's uploaded data */}
         {uploadedData && (
           <div style={{
-            background: 'linear-gradient(135deg, #667eea20, #764ba220)',
-            border: '2px solid #667eea',
-            borderRadius: '10px',
-            padding: '15px 20px',
-            marginBottom: '25px',
+            background: 'linear-gradient(135deg, #001435 0%, #003087 50%, #00A3E0 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '16px',
+            padding: '24px 32px',
+            marginBottom: '48px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '15px'
+            gap: '15px',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 12px 40px rgba(0, 3, 135, 0.3)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <FaCloudUploadAlt size={30} color="#667eea" />
+            <style>{`
+              .csv-banner::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.05) 100%);
+                pointer-events: none;
+              }
+            `}</style>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', position: 'relative', zIndex: 1 }}>
+              <FaCloudUploadAlt size={30} color="#ADD8E6" />
               <div>
-                <h4 style={{ margin: 0, color: '#667eea' }}>CSV Data Active</h4>
-                <p style={{ margin: '5px 0 0', color: '#666' }}>
+                <h4 style={{ margin: 0, color: 'white', fontWeight: '600' }}>CSV Data Active</h4>
+                <p style={{ margin: '5px 0 0', color: 'rgba(255, 255, 255, 0.8)' }}>
                   {uploadedData.valid_records || 0} transactions from {uploadedData.fileName || 'CSV file'}
                 </p>
               </div>
             </div>
             <span style={{
-              background: '#48c774',
-              color: 'white',
-              padding: '5px 15px',
+              background: 'rgba(173, 216, 230, 0.9)',
+              backdropFilter: 'blur(5px)',
+              color: '#001435',
+              padding: '8px 16px',
               borderRadius: '20px',
               fontSize: '13px',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              position: 'relative',
+              zIndex: 1
             }}>
               ✓ Active
             </span>
@@ -518,18 +586,29 @@ const Expenses = () => {
         )}
 
         {/* Expense Form */}
-        <ExpenseForm
-          onSubmit={handleFormSubmit}
-          categories={categories}
-          editingExpense={editingExpense}
-          onCancel={() => setEditingExpense(null)}
-        />
+        <div style={{ marginBottom: '48px' }}>
+          <ExpenseForm
+            onSubmit={handleFormSubmit}
+            categories={categories}
+            editingExpense={editingExpense}
+            onCancel={() => setEditingExpense(null)}
+            embedded={true}
+          />
+        </div>
 
         {/* Filters */}
-        <div className="card">
-          <div className="card-header">
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '48px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          <div style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
-              <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#001435', fontWeight: '600' }}>
                 <FaFilter /> Filters
               </h3>
               
@@ -537,12 +616,14 @@ const Expenses = () => {
                 <button
                   onClick={() => setFilterType('all')}
                   style={{
-                    padding: '5px 15px',
-                    background: filterType === 'all' ? '#667eea' : 'white',
+                    padding: '8px 16px',
+                    background: filterType === 'all' ? 'rgba(0, 20, 53, 0.8)' : 'rgba(255, 255, 255, 0.7)',
+                    backdropFilter: 'blur(5px)',
                     color: filterType === 'all' ? 'white' : '#666',
-                    border: '1px solid #ddd',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
                     borderRadius: '20px',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    fontWeight: '500'
                   }}
                 >
                   All
@@ -550,15 +631,17 @@ const Expenses = () => {
                 <button
                   onClick={() => setFilterType('income')}
                   style={{
-                    padding: '5px 15px',
-                    background: filterType === 'income' ? '#48c774' : 'white',
+                    padding: '8px 16px',
+                    background: filterType === 'income' ? 'rgba(0, 20, 53, 0.8)' : 'rgba(255, 255, 255, 0.7)',
+                    backdropFilter: 'blur(5px)',
                     color: filterType === 'income' ? 'white' : '#666',
-                    border: '1px solid #ddd',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
                     borderRadius: '20px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px'
+                    gap: '4px',
+                    fontWeight: '500'
                   }}
                 >
                   <FaArrowDown /> Income
@@ -566,15 +649,17 @@ const Expenses = () => {
                 <button
                   onClick={() => setFilterType('expense')}
                   style={{
-                    padding: '5px 15px',
-                    background: filterType === 'expense' ? '#f14668' : 'white',
+                    padding: '8px 16px',
+                    background: filterType === 'expense' ? 'rgba(0, 20, 53, 0.8)' : 'rgba(255, 255, 255, 0.7)',
+                    backdropFilter: 'blur(5px)',
                     color: filterType === 'expense' ? 'white' : '#666',
-                    border: '1px solid #ddd',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
                     borderRadius: '20px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px'
+                    gap: '4px',
+                    fontWeight: '500'
                   }}
                 >
                   <FaArrowUp /> Expense
@@ -585,13 +670,15 @@ const Expenses = () => {
                 <button
                   onClick={clearFilters}
                   style={{
-                    padding: '4px 12px',
-                    background: '#f14668',
-                    color: 'black',
-                    border: 'none',
+                    padding: '6px 14px',
+                    background: 'rgba(0, 20, 53, 0.8)',
+                    backdropFilter: 'blur(5px)',
+                    color: 'white',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
                     borderRadius: '15px',
                     fontSize: '12px',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    fontWeight: '500'
                   }}
                 >
                   Clear Filters
@@ -600,43 +687,59 @@ const Expenses = () => {
             </div>
           </div>
           
-          <div className="form-row" style={{
+          <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-            gap: '15px',
-            padding: '20px'
+            gap: '15px'
           }}>
-            <div className="form-group">
-              <label>Start Date</label>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#001435', fontWeight: '500' }}>Start Date</label>
               <input
                 type="date"
-                className="form-control"
                 value={filters.startDate}
                 onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '5px' }}
+                style={{ 
+                  width: '100%', 
+                  padding: '10px', 
+                  border: '1px solid rgba(255, 255, 255, 0.3)', 
+                  borderRadius: '8px',
+                  background: 'rgba(255, 255, 255, 0.8)',
+                  backdropFilter: 'blur(5px)',
+                  color: '#001435',
+                  fontWeight: '500'
+                }}
               />
             </div>
-            <div className="form-group">
-              <label>End Date</label>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#001435', fontWeight: '500' }}>End Date</label>
               <input
                 type="date"
-                className="form-control"
                 value={filters.endDate}
                 onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '5px' }}
+                style={{ 
+                  width: '100%', 
+                  padding: '10px', 
+                  border: '1px solid rgba(255, 255, 255, 0.3)', 
+                  borderRadius: '8px',
+                  background: 'rgba(255, 255, 255, 0.8)',
+                  backdropFilter: 'blur(5px)',
+                  color: '#001435',
+                  fontWeight: '500'
+                }}
               />
             </div>
-            <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
               <button 
                 onClick={handleFilter} 
-                className="btn btn-primary"
                 style={{
-                  padding: '8px 16px',
-                  background: '#667eea',
+                  padding: '10px 20px',
+                  background: 'rgba(0, 20, 53, 0.8)',
+                  backdropFilter: 'blur(5px)',
                   color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer'
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: '500'
                 }}
               >
                 Apply Filters
@@ -646,30 +749,38 @@ const Expenses = () => {
         </div>
 
         {/* Transactions Table */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">
+        <div style={{
+          background: 'rgba(173, 216, 230, 0.3)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '48px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          <div style={{ marginBottom: '20px' }}>
+            <h3 style={{ color: '#001435', fontWeight: '600' }}>
               All Transactions
               <span style={{ 
-                marginLeft: '10px', 
+                marginLeft: '10px',
                 fontSize: '14px', 
                 fontWeight: 'normal',
-                color: '#666'
+                color: 'rgba(0, 20, 53, 0.8)'
               }}>
                 ({filteredExpenses.length} of {expenses.length})
               </span>
             </h3>
           </div>
           
-          <div className="table-container" style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto' }}>
             {filteredExpenses.length === 0 ? (
               <div style={{ 
                 textAlign: 'center', 
                 padding: '60px 20px',
-                color: '#666'
+                color: '#001435'
               }}>
-                <FaFileCsv size={50} style={{ color: '#ccc', marginBottom: '20px' }} />
-                <h3>No transactions found</h3>
+                <FaFileCsv size={50} style={{ color: 'rgba(0, 20, 53, 0.6)', marginBottom: '20px' }} />
+                <h3 style={{ color: '#001435' }}>No transactions found</h3>
                 <p>Add your first transaction or import a CSV file!</p>
                 <Link 
                   to="/upload" 
@@ -680,10 +791,13 @@ const Expenses = () => {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '12px 24px',
-                    background: 'linear-gradient(135deg, #003087, #00A3E0)',
-                    color: 'white',
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(5px)',
+                    color: '#001435',
                     textDecoration: 'none',
-                    borderRadius: '5px'
+                    borderRadius: '8px',
+                    border: '1px solid rgba(0, 20, 53, 0.2)',
+                    fontWeight: '500'
                   }}
                 >
                   <FaCloudUploadAlt /> Import CSV
@@ -693,49 +807,93 @@ const Expenses = () => {
               <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Date</th>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Category</th>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Description</th>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Type</th>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Amount</th>
-                    <th style={{ padding: '12px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #003087' }}>Actions</th>
+                    <th style={{ 
+                      padding: '16px 12px', 
+                      textAlign: 'left', 
+                      background: 'rgba(255, 255, 255, 0.5)', 
+                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
+                      color: '#001435',
+                      fontWeight: '600'
+                    }}>Date</th>
+                    <th style={{ 
+                      padding: '16px 12px', 
+                      textAlign: 'left', 
+                      background: 'rgba(255, 255, 255, 0.5)', 
+                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
+                      color: '#001435',
+                      fontWeight: '600'
+                    }}>Category</th>
+                    <th style={{ 
+                      padding: '16px 12px', 
+                      textAlign: 'left', 
+                      background: 'rgba(255, 255, 255, 0.5)', 
+                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
+                      color: '#001435',
+                      fontWeight: '600'
+                    }}>Description</th>
+                    <th style={{ 
+                      padding: '16px 12px', 
+                      textAlign: 'left', 
+                      background: 'rgba(255, 255, 255, 0.5)', 
+                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
+                      color: '#001435',
+                      fontWeight: '600'
+                    }}>Type</th>
+                    <th style={{ 
+                      padding: '16px 12px', 
+                      textAlign: 'left', 
+                      background: 'rgba(255, 255, 255, 0.5)', 
+                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
+                      color: '#001435',
+                      fontWeight: '600'
+                    }}>Amount</th>
+                    <th style={{ 
+                      padding: '16px 12px', 
+                      textAlign: 'left', 
+                      background: 'rgba(255, 255, 255, 0.5)', 
+                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
+                      color: '#001435',
+                      fontWeight: '600'
+                    }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredExpenses.map(expense => (
-                    <tr key={expense.id} style={{ borderBottom: '1px solid #eee' }}>
-                      <td style={{ padding: '12px' }}>{formatDisplayDate(expense.date)}</td>
-                      <td style={{ padding: '12px' }}>
-                        <span className="category-badge" style={{ 
-                          backgroundColor: expense.color || '#667eea',
-                          color: 'white',
-                          padding: '4px 12px',
+                    <tr key={expense.id} style={{ borderBottom: '1px solid rgba(0, 20, 53, 0.1)' }}>
+                      <td style={{ padding: '16px 12px', color: '#001435', fontWeight: '500' }}>{formatDisplayDate(expense.date)}</td>
+                      <td style={{ padding: '16px 12px' }}>
+                        <span style={{
+                          backgroundColor: 'rgba(0, 20, 53, 0.1)',
+                          color: '#001435',
+                          padding: '6px 12px',
                           borderRadius: '20px',
                           fontSize: '12px',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '4px'
+                          gap: '4px',
+                          fontWeight: '500',
+                          border: '1px solid rgba(0, 20, 53, 0.2)'
                         }}>
-                          <span className="category-icon">{expense.icon || '\uD83D\uDCCC'}</span>  {expense.category_name || 'Other'}
+                          <span>{expense.icon || '\uD83D\uDCCC'}</span>  {expense.category_name || 'Other'}
                         </span>
                       </td>
-                      <td style={{ padding: '12px' }}>{expense.description || '-'}</td>
+                      <td style={{ padding: '16px 12px', color: '#001435', fontWeight: '500' }}>{expense.description || '-'}</td>
                       <td style={{ padding: '12px' }}>
                         {expense.type === 'income' ? (
-                          <span style={{ 
-                            color: '#48c774', 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                          <span style={{
+                            color: '#003087',
+                            display: 'flex',
+                            alignItems: 'center',
                             gap: '4px',
                             fontWeight: 'bold'
                           }}>
                             <FaArrowDown /> Income
                           </span>
                         ) : (
-                          <span style={{ 
-                            color: '#f14668', 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                          <span style={{
+                            color: '#00A3E0',
+                            display: 'flex',
+                            alignItems: 'center',
                             gap: '4px',
                             fontWeight: 'bold'
                           }}>
@@ -743,45 +901,56 @@ const Expenses = () => {
                           </span>
                         )}
                       </td>
-                      <td style={{ 
-                        padding: '12px',
+                      <td style={{
+                        padding: '16px 12px',
                         fontWeight: 'bold',
-                        color: expense.type === 'income' ? '#48c774' : '#f14668'
+                        color: '#001435'
                       }}>
                         {expense.type === 'income' ? '+' : '-'} ₹{parseFloat(expense.amount).toFixed(2)}
                       </td>
-                      <td style={{ padding: '12px' }}>
-                        <button 
-                          onClick={() => handleEdit(expense)}
-                          className="btn"
-                          style={{ 
-                            marginRight: '8px', 
-                            background: '#ffdd57',
-                            color: '#2c3e50',
-                            border: 'none',
-                            padding: '6px 12px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          <FaEdit /> Edit
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(expense.id)}
-                          className="btn btn-danger"
-                          style={{
-                            background: '#f14668',
-                            color: 'white',
-                            border: 'none',
-                            padding: '6px 12px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          <FaTrash /> Delete
-                        </button>
+                      <td style={{ padding: '16px 12px' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            onClick={() => handleEdit(expense)}
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.8)',
+                              color: '#001435',
+                              border: '1px solid rgba(0, 20, 53, 0.2)',
+                              padding: '8px',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '36px',
+                              height: '36px',
+                              fontSize: '14px'
+                            }}
+                            title="Edit"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(expense.id)}
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.8)',
+                              color: '#001435',
+                              border: '1px solid rgba(0, 20, 53, 0.2)',
+                              padding: '8px',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '36px',
+                              height: '36px',
+                              fontSize: '14px'
+                            }}
+                            title="Delete"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -790,14 +959,6 @@ const Expenses = () => {
             )}
           </div>
         </div>
-      </div>
-
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 };

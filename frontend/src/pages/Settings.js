@@ -1,6 +1,5 @@
 // frontend/src/pages/Settings.js
 import React, { useState } from 'react';
-import Sidebar from '../components/Sidebar';
 import { useAuth } from '../context/AuthContext';
 import { expenseAPI } from '../services/api';
 import CategoryManager from '../components/CategoryManager';
@@ -19,9 +18,7 @@ const Settings = () => {
   ];
 
   return (
-    <div className="dashboard">
-      <Sidebar />
-      <div className="main-content">
+    <div className="main-content">
         <h2 style={{ marginBottom: '30px' }}>Settings</h2>
 
         <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
@@ -127,9 +124,6 @@ const Settings = () => {
             {activeTab === 'appearance' && (
               <AppearanceSettings />
             )}
-            {activeTab === 'appearance' && (
-              <AppearanceSettings />
-            )}
 
             {/* Privacy Tab */}
             {activeTab === 'privacy' && (
@@ -174,8 +168,8 @@ const Settings = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
+
 
 export default Settings;

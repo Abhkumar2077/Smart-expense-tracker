@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaPlus, FaTachometerAlt, FaChartPie, FaBullseye, FaUserCircle, FaCog, FaSignOutAlt, FaFileAlt } from 'react-icons/fa';
+import { FaPlus, FaUserCircle, FaCog, FaSignOutAlt, FaFileAlt, FaBell, FaBars } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
-const TopNav = () => {
+const TopNav = ({ toggleSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -16,28 +16,33 @@ const TopNav = () => {
   return (
     <header className="top-nav">
       <div className="top-nav-left">
+        <button className="sidebar-toggle-btn" onClick={toggleSidebar} title="Toggle sidebar">
+          <FaBars />
+        </button>
+
         <NavLink to="/dashboard" className="top-nav-logo">
           <span>Smart Expense Tracker</span>
-        </NavLink>
-
-        <NavLink to="/dashboard" className="top-nav-link">
-          <FaTachometerAlt /> Dashboard
-        </NavLink>
-        <NavLink to="/goals" className="top-nav-link">
-          <FaBullseye /> Savings Goals
-        </NavLink>
-        <NavLink to="/reports" className="top-nav-link">
-          <FaChartPie /> Reports
         </NavLink>
       </div>
 
       <div className="top-nav-right">
+        {/* Notification Bell */}
         <button
-          className="top-nav-btn top-nav-primary"
-          onClick={() => navigate('/expenses')}
-          title="Add transaction"
+          className="notification-btn"
+          onClick={() => navigate('/notifications')}
+          title="Notifications"
         >
-          <FaPlus /> Add Transaction
+          <FaBell />
+          <span className="notification-badge">3</span>
+        </button>
+
+        {/* Add Transaction Button - Now just + icon */}
+        <button
+          className="add-transaction-btn"
+          onClick={() => navigate('/expenses')}
+          title="Add Transaction"
+        >
+          <FaPlus />
         </button>
 
         <div className="user-dropdown-container" onMouseLeave={() => setDropdownOpen(false)}>
@@ -51,15 +56,29 @@ const TopNav = () => {
 
           {dropdownOpen && (
             <div className="user-dropdown-menu">
-              <div className="dropdown-item info">
-                <strong>ID:</strong> {user?.id || user?._id || 'n/a'}
+              <div className="dropdown-header">
+                <div className="user-info">
+                  <div className="user-avatar">
+                    <FaUserCircle />
+                  </div>
+                  <div className="user-details">
+                    <div className="user-name">{user?.name || 'User'}</div>
+                    <div className="user-id">ID: {user?.id || user?._id || 'n/a'}</div>
+                  </div>
+                </div>
               </div>
-              <NavLink to="/settings" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                <FaCog /> Settings
-              </NavLink>
-              <button className="dropdown-item" onClick={handleLogout}>
-                <FaSignOutAlt /> Logout
-              </button>
+              
+              <div className="dropdown-body">
+                <NavLink to="/settings" className="dropdown-item settings-item" onClick={() => setDropdownOpen(false)}>
+                  <FaCog /> Settings
+                </NavLink>
+              </div>
+              
+              <div className="dropdown-footer">
+                <button className="dropdown-item logout-item" onClick={handleLogout}>
+                  <FaSignOutAlt /> Logout
+                </button>
+              </div>
             </div>
           )}
         </div>

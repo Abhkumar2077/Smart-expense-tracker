@@ -5,6 +5,9 @@ const multer = require('multer');
 const auth = require('../middleware/auth');
 const CSVService = require('../services/csvService');
 const db = require('../config/db');
+const { buildCategorizationPrompt } = require('../services/promptBuilder');
+const Category = require('../models/Category');
+const geminiService = require('../services/geminiService');
 
 // Configure multer for memory storage
 const upload = multer({
@@ -191,6 +194,45 @@ router.get('/stats', auth, async (req, res) => {
             message: error.message 
         });
     }
+});
+
+// @route   POST api/upload/categorize-preview
+// @desc    Get AI suggestions for transaction categorization
+router.post('/categorize-preview', auth, async (req, res) => {
+  const { transactions } = req.body;
+  // transactions = [{ description, amount }, ...]
+
+  if (!transactions || transactions.length === 0) {
+    return res.status(400).json({ error: 'No transactions provided' });
+  }
+
+  try {
+    // Fetch this user's categories
+    const categories = await Category.findAll(req.user.id);
+
+    // Only send uncategorized ones to Gemini (max 20 at a time to manage tokens)
+    const batch = transactions.slice(0, 20);
+
+    const prompt = buildCategorizationPrompt(batch, categories);
+    const rawResponse = await geminiService.generateContent(prompt);
+    const cleaned = rawResponse.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    // Map results back to original transactions
+    const enriched = batch.map((t, i) => {
+      const match = parsed.categorizations.find(c => c.index === i);
+      return {
+        ...t,
+        suggested_category: match?.category_name || null,
+        suggested_category_id: match?.category_id || null,
+        confidence: match?.confidence || 'low'
+      };
+    });
+
+    res.json({ transactions: enriched });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

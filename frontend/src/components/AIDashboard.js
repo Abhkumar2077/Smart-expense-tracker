@@ -5,7 +5,8 @@ import {
     FaRobot, FaLightbulb, FaChartLine, FaExclamationTriangle, 
     FaPiggyBank, FaCalendarAlt, FaArrowUp, FaArrowDown,
     FaCheckCircle, FaInfoCircle, FaBell, FaChartPie,
-    FaBrain, FaFire, FaMedal, FaRocket
+    FaBrain, FaFire, FaMedal, FaRocket, FaSyncAlt,
+    FaWallet, FaCreditCard, FaChartBar, FaFilter
 } from 'react-icons/fa';
 
 const AIDashboard = () => {
@@ -13,6 +14,8 @@ const AIDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('all');
+    const [geminiInsights, setGeminiInsights] = useState(null);
+    const [geminiLoading, setGeminiLoading] = useState(false);
     const [summaryStats, setSummaryStats] = useState({
         patterns: 0,
         alerts: 0,
@@ -62,11 +65,39 @@ const AIDashboard = () => {
             console.log('✅ AI insights received:', res.data);
             setInsights(res.data);
             
+            // Check if Gemini is available and enhanced
+            if (res.data.geminiEnhanced) {
+                console.log('🚀 Gemini AI enhancement detected!');
+            }
+            
         } catch (error) {
             console.error('❌ Error fetching AI insights:', error);
             setError('Failed to load AI insights');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchGeminiInsights = async () => {
+        try {
+            setGeminiLoading(true);
+            console.log('🚀 Fetching Gemini AI insights...');
+            
+            const res = await axios.get('/api/ai/gemini-insights');
+            
+            if (res.data.success) {
+                console.log('✅ Gemini insights received:', res.data);
+                setGeminiInsights(res.data);
+            } else {
+                console.log('⚠️ Gemini not available:', res.data.message);
+                setGeminiInsights({ error: res.data.message });
+            }
+            
+        } catch (error) {
+            console.error('❌ Error fetching Gemini insights:', error);
+            setGeminiInsights({ error: 'Failed to load Gemini insights' });
+        } finally {
+            setGeminiLoading(false);
         }
     };
 
@@ -683,20 +714,189 @@ const AIDashboard = () => {
         );
     };
 
+    const renderGeminiInsights = () => {
+        if (geminiLoading) {
+            return (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                    <div style={{
+                        width: '50px',
+                        height: '50px',
+                        border: '4px solid #4285f420',
+                        borderTop: '4px solid #4285f4',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite',
+                        margin: '0 auto'
+                    }} />
+                    <p style={{ marginTop: '20px', color: '#666' }}>Gemini AI is analyzing your finances...</p>
+                </div>
+            );
+        }
+
+        if (!geminiInsights || geminiInsights.error) {
+            return (
+                <div className="card insight-section" style={{ marginBottom: '20px', border: '2px solid #4285f440' }}>
+                    <div className="card-header">
+                        <h3 className="card-title" style={{ color: '#4285f4' }}>
+                            🚀 Gemini AI Insights
+                        </h3>
+                    </div>
+                    <div style={{ padding: '30px', textAlign: 'center' }}>
+                        <FaRobot size={40} style={{ color: '#4285f4', marginBottom: '20px' }} />
+                        <p style={{ color: '#666', marginBottom: '20px' }}>
+                            {geminiInsights?.error === 'API quota exceeded' 
+                                ? '🚫 Gemini API quota exceeded. The free tier has been used up. Please try again later or consider upgrading to a paid plan.'
+                                : geminiInsights?.error === 'API key invalid'
+                                ? '🔑 Invalid Gemini API key. Please check your API key configuration.'
+                                : 'Advanced AI insights are not available. Please check your Gemini API configuration.'
+                            }
+                        </p>
+                        <button
+                            onClick={fetchGeminiInsights}
+                            style={{
+                                padding: '10px 20px',
+                                background: '#4285f4',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            🔄 Try Again
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="card insight-section" style={{ marginBottom: '20px', border: '2px solid #4285f440' }}>
+                <div className="card-header">
+                    <h3 className="card-title" style={{ color: '#4285f4' }}>
+                        🚀 Gemini AI Advanced Insights
+                        <span style={{
+                            marginLeft: '10px',
+                            padding: '2px 8px',
+                            background: '#4285f4',
+                            color: 'white',
+                            borderRadius: '10px',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                        }}>
+                            {geminiInsights.confidence || 'AI'}
+                        </span>
+                    </h3>
+                </div>
+                <div style={{ padding: '20px' }}>
+                    {geminiInsights.geminiInsights && geminiInsights.geminiInsights.length > 0 ? (
+                        <div style={{ display: 'grid', gap: '15px' }}>
+                            {geminiInsights.geminiInsights.map((insight, index) => (
+                                <div key={index} className="insight-card" style={{
+                                    padding: '20px',
+                                    background: 'linear-gradient(135deg, #4285f410, #34a85310)',
+                                    borderRadius: '12px',
+                                    border: '1px solid #4285f420',
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '4px',
+                                        height: '100%',
+                                        background: insight.type === 'pattern' ? '#4285f4' :
+                                                   insight.type === 'saving' ? '#34a853' :
+                                                   insight.type === 'alert' ? '#ea4335' : '#ff9f1c'
+                                    }} />
+
+                                    <div style={{ marginLeft: '20px' }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                            marginBottom: '10px'
+                                        }}>
+                                            <span style={{
+                                                fontSize: '18px',
+                                                fontWeight: 'bold',
+                                                color: insight.type === 'pattern' ? '#4285f4' :
+                                                       insight.type === 'saving' ? '#34a853' :
+                                                       insight.type === 'alert' ? '#ea4335' : '#ff9f1c'
+                                            }}>
+                                                {insight.type === 'pattern' ? '📊' :
+                                                 insight.type === 'saving' ? '💰' :
+                                                 insight.type === 'alert' ? '⚠️' : '💡'}
+                                            </span>
+                                            <h4 style={{
+                                                margin: 0,
+                                                color: '#333',
+                                                fontSize: '16px',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {insight.title}
+                                            </h4>
+                                            <span style={{
+                                                padding: '2px 8px',
+                                                background: insight.impact === 'high' ? '#ea433520' :
+                                                           insight.impact === 'medium' ? '#ff9f1c20' : '#34a85320',
+                                                color: insight.impact === 'high' ? '#ea4335' :
+                                                       insight.impact === 'medium' ? '#ff9f1c' : '#34a853',
+                                                borderRadius: '10px',
+                                                fontSize: '11px',
+                                                fontWeight: 'bold',
+                                                textTransform: 'uppercase'
+                                            }}>
+                                                {insight.impact}
+                                            </span>
+                                        </div>
+
+                                        <p style={{
+                                            margin: '10px 0',
+                                            color: '#555',
+                                            lineHeight: '1.5'
+                                        }}>
+                                            {insight.description}
+                                        </p>
+
+                                        <div style={{
+                                            marginTop: '15px',
+                                            padding: '10px 15px',
+                                            background: '#f8f9fa',
+                                            borderRadius: '8px',
+                                            borderLeft: '3px solid #4285f4'
+                                        }}>
+                                            <strong style={{ color: '#4285f4' }}>💡 Action:</strong> {insight.actionable}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                            <FaRobot size={40} style={{ color: '#4285f4', marginBottom: '20px' }} />
+                            <p>No advanced insights available at this time.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
     if (loading) {
         return (
-            <div style={{ textAlign: 'center', padding: '40px' }}>
-                <FaRobot size={50} style={{ color: '#667eea', animation: 'pulse 2s infinite' }} />
-                <p style={{ marginTop: '20px', color: '#666' }}>AI is analyzing your finances...</p>
+            <div className="empty-state">
+                <FaRobot size={50} className="empty-state-icon" style={{ color: '#667eea', animation: 'pulse 2s infinite' }} />
+                <h3 className="empty-state-title">AI is analyzing your finances...</h3>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#f14668' }}>
-                <FaExclamationTriangle size={50} />
-                <p style={{ marginTop: '20px' }}>{error}</p>
+            <div className="empty-state" style={{ borderColor: '#f14668' }}>
+                <FaExclamationTriangle size={50} className="empty-state-icon" style={{ color: '#f14668' }} />
+                <h3 className="empty-state-title" style={{ color: '#f14668' }}>{error}</h3>
                 <button 
                     onClick={fetchAIInsights}
                     style={{
@@ -719,16 +919,10 @@ const AIDashboard = () => {
         !insights.recommendations?.length && !insights.savings?.length && 
         !insights.anomalies?.length && !insights.forecast)) {
         return (
-            <div style={{ 
-                textAlign: 'center', 
-                padding: '40px',
-                background: '#f8f9fa',
-                borderRadius: '10px',
-                border: '1px solid #e0e0e0'
-            }}>
-                <FaRobot size={50} style={{ color: '#ccc' }} />
-                <h3 style={{ margin: '20px 0', color: '#666' }}>No AI Insights Available</h3>
-                <p style={{ color: '#999' }}>
+            <div className="empty-state">
+                <FaRobot size={50} className="empty-state-icon" />
+                <h3 className="empty-state-title">No AI Insights Available</h3>
+                <p className="empty-state-message">
                     Add more transactions to get personalized financial insights!
                 </p>
             </div>
@@ -744,7 +938,110 @@ const AIDashboard = () => {
     const hasForecast = insights.forecast;
 
     return (
-        <div className="ai-dashboard">
+        <div>
+            {/* Greeting Block */}
+            <div className="greeting-block">
+                <div className="greeting-content">
+                    <h1 className="greeting-title">AI Financial Assistant</h1>
+                    <p className="greeting-subtitle">Intelligent insights and personalized recommendations to optimize your finances.</p>
+                </div>
+                <div className="greeting-decoration">
+                    <div className="time-indicator">
+                        <FaBrain size={24} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Header Controls */}
+            <div className="dashboard-header">
+                <div className="header-controls">
+                    <div className="time-range-selector">
+                        <span style={{ fontSize: '14px', color: '#666', marginRight: '15px' }}>
+                            AI Analysis powered by advanced algorithms
+                        </span>
+                    </div>
+                    <div className="search-bar">
+                        <button
+                            onClick={fetchAIInsights}
+                            className="refresh-btn"
+                            style={{
+                                padding: '8px 16px',
+                                background: '#667eea',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                        >
+                            <FaSyncAlt /> Refresh AI Insights
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* KPI Cards */}
+            <div className="kpi-cards">
+                <div className="kpi-card">
+                    <div className="kpi-icon">
+                        <FaChartLine />
+                    </div>
+                    <div className="kpi-content">
+                        <div className="kpi-value">{summaryStats.patterns}</div>
+                        <div className="kpi-label">Patterns Detected</div>
+                        <div className="kpi-change">
+                            <span className="positive">AI Analyzed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="kpi-card">
+                    <div className="kpi-icon">
+                        <FaBell />
+                    </div>
+                    <div className="kpi-content">
+                        <div className="kpi-value">{summaryStats.alerts}</div>
+                        <div className="kpi-label">Active Alerts</div>
+                        <div className="kpi-change">
+                            {summaryStats.alerts > 0 ? 
+                                <span className="negative">⚠️ Attention Needed</span> : 
+                                <span className="positive">✅ All Clear</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div className="kpi-card">
+                    <div className="kpi-icon">
+                        <FaLightbulb />
+                    </div>
+                    <div className="kpi-content">
+                        <div className="kpi-value">{summaryStats.recommendations}</div>
+                        <div className="kpi-label">Smart Tips</div>
+                        <div className="kpi-change">
+                            <span className="positive">💡 Actionable</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="kpi-card">
+                    <div className="kpi-icon">
+                        <FaPiggyBank />
+                    </div>
+                    <div className="kpi-content">
+                        <div className="kpi-value">{summaryStats.savings}</div>
+                        <div className="kpi-label">Savings Opportunities</div>
+                        <div className="kpi-change">
+                            <span className="positive">🐷 Potential Savings</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="ai-dashboard">
             {/* AI Header */}
             <div style={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -998,6 +1295,27 @@ const AIDashboard = () => {
                         🔮 Forecast
                     </button>
                 )}
+                
+                <button
+                    onClick={() => {
+                        setActiveTab('gemini');
+                        if (!geminiInsights) fetchGeminiInsights();
+                    }}
+                    style={{
+                        padding: '10px 20px',
+                        borderRadius: '25px',
+                        border: activeTab === 'gemini' ? 'none' : '2px solid #4285f4',
+                        background: activeTab === 'gemini' ? '#4285f4' : 'white',
+                        color: activeTab === 'gemini' ? 'white' : '#4285f4',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                    }}
+                >
+                    🚀 Gemini AI {geminiLoading && <div className="spinner" style={{width: '12px', height: '12px'}}></div>}
+                </button>
             </div>
 
             {/* Content based on active tab */}
@@ -1008,39 +1326,12 @@ const AIDashboard = () => {
                 {(activeTab === 'all' || activeTab === 'savings') && renderSavings()}
                 {(activeTab === 'all' || activeTab === 'anomalies') && renderAnomalies()}
                 {(activeTab === 'all' || activeTab === 'forecast') && renderForecast()}
-            </div>
-
-            {/* Refresh Button */}
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                <button
-                    onClick={fetchAIInsights}
-                    className="refresh-btn"
-                    style={{
-                        padding: '8px 20px',
-                        background: 'white',
-                        border: '2px solid #667eea',
-                        color: '#667eea',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        transition: 'all 0.3s'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.target.style.background = '#667eea';
-                        e.target.style.color = 'white';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.background = 'white';
-                        e.target.style.color = '#667eea';
-                    }}
-                >
-                    🔄 Refresh AI Insights
-                </button>
+                {activeTab === 'gemini' && renderGeminiInsights()}
             </div>
 
             {/* Global Styles */}
-            <style>{`
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 @keyframes pulse {
                     0% { opacity: 0.5; }
                     50% { opacity: 0.8; }
@@ -1076,7 +1367,166 @@ const AIDashboard = () => {
                     transform: translateY(-2px);
                     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
                 }
-            `}</style>
+
+                /* Greeting Block */
+                .greeting-block {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 15px;
+                    padding: 25px;
+                    color: white;
+                    margin-bottom: 25px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    flex-wrap: wrap;
+                    gap: 20px;
+                }
+
+                .greeting-content h1 {
+                    margin: 0 0 10px 0;
+                    font-size: 28px;
+                    font-weight: 700;
+                }
+
+                .greeting-subtitle {
+                    margin: 0;
+                    opacity: 0.9;
+                    font-size: 16px;
+                }
+
+                .greeting-decoration {
+                    display: flex;
+                    align-items: center;
+                }
+
+                .time-indicator {
+                    background: rgba(255,255,255,0.2);
+                    padding: 12px 20px;
+                    border-radius: 25px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                /* Dashboard Header */
+                .dashboard-header {
+                    margin-bottom: 25px;
+                }
+
+                .header-controls {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    gap: 20px;
+                }
+
+                .time-range-selector {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    flex-wrap: wrap;
+                }
+
+                .search-bar {
+                    display: flex;
+                    align-items: center;
+                }
+
+                /* KPI Cards */
+                .kpi-cards {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                    margin-bottom: 30px;
+                }
+
+                .kpi-card {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 20px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                    border: 1px solid #e0e0e0;
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    position: relative;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                }
+
+                .kpi-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                }
+
+                .kpi-icon {
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    color: white;
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                }
+
+                .kpi-content {
+                    flex: 1;
+                }
+
+                .kpi-value {
+                    font-size: 28px;
+                    font-weight: 700;
+                    color: #2c3e50;
+                    margin-bottom: 5px;
+                }
+
+                .kpi-label {
+                    font-size: 14px;
+                    color: #666;
+                    margin-bottom: 5px;
+                }
+
+                .kpi-change {
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+
+                .kpi-change .positive {
+                    color: #48c774;
+                }
+
+                .kpi-change .negative {
+                    color: #f14668;
+                }
+
+                /* Responsive Design */
+                @media (max-width: 768px) {
+                    .greeting-block {
+                        flex-direction: column;
+                        text-align: center;
+                    }
+                    
+                    .header-controls {
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
+                    
+                    .kpi-cards {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .kpi-card {
+                        padding: 15px;
+                    }
+                }
+                `
+            }} />
+        </div>
         </div>
     );
 };

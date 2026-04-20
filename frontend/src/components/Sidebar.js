@@ -3,21 +3,21 @@ import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 
 
-import { 
-  FaTachometerAlt, 
-  FaMoneyBill, 
-  FaChartPie, 
-  FaCog, 
+import {
+  FaTachometerAlt,
+  FaMoneyBill,
+  FaCog,
   FaSignOutAlt,
   FaCloudUploadAlt,
+  FaBars,
+  FaRobot,
   FaBullseye,
-  FaBars
+  FaChartPie
 } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
-const Sidebar = () => {
+const Sidebar = ({ collapsed }) => {
   const { user, logout } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     const root = document.querySelector('.dashboard');
@@ -30,54 +30,71 @@ const Sidebar = () => {
     }
   }, [collapsed]);
 
-  const toggleSidebar = () => {
-    setCollapsed((value) => !value);
-  };
-
   return (
     <>
-      <button className="sidebar-toggle floating-toggle" onClick={toggleSidebar}>
-        <FaBars />
-      </button>
       <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-top">
           <div className="sidebar-brand">
-            <h1>Analytix</h1>
+            <h1></h1>
           </div>
         </div>
-      
+
         <ul className="nav-menu">
         <li className="nav-item">
-          <NavLink 
-            to="/dashboard" 
+          <NavLink
+            to="/dashboard"
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
           >
             <FaTachometerAlt /> <span className="nav-text">Dashboard</span>
           </NavLink>
         </li>
-        
+
         <li className="nav-item">
-          <NavLink 
-            to="/expenses" 
+          <NavLink
+            to="/expenses"
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
           >
             <FaMoneyBill /> <span className="nav-text">Transactions</span>
           </NavLink>
         </li>
-      </ul>
-            <div className="sidebar-footer">
-        <div className="nav-item">
-          <NavLink 
-            to="/settings" 
+
+        <li className="nav-item">
+          <NavLink
+            to="/ai"
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
           >
-            <FaCog /> <span className="nav-text">Settings</span>
+            <FaRobot /> <span className="nav-text">AI Insights</span>
           </NavLink>
-        </div>
-        
-        <button className="signout-btn" onClick={logout}>
-          <FaSignOutAlt /> <span>Log out</span>
-        </button>
+        </li>
+
+        <li className="nav-item">
+          <NavLink
+            to="/goals"
+            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+          >
+            <FaBullseye /> <span className="nav-text">Savings Goals</span>
+          </NavLink>
+        </li>
+
+        <li className="nav-item">
+          <NavLink
+            to="/reports"
+            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+          >
+            <FaChartPie /> <span className="nav-text">Reports</span>
+          </NavLink>
+        </li>
+
+        <li className="nav-item">
+          <NavLink
+            to="/upload"
+            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+          >
+            <FaCloudUploadAlt /> <span className="nav-text">Upload</span>
+          </NavLink>
+        </li>
+      </ul>
+            <div className="sidebar-footer">
       </div>
     </div>
     </>

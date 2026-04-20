@@ -394,7 +394,7 @@ class CSVService {
         if (!dateStr) return null;
 
         // Keep only the calendar date for timestamp-like values.
-        const timestampMatch = dateStr.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})(?:[T\s].*)?$/);
+        const timestampMatch = dateStr.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})(?:[T\s].*)?$/);
         if (timestampMatch) {
             const [, year, month, day] = timestampMatch;
             return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
@@ -423,23 +423,23 @@ class CSVService {
         }
         
         // Try YYYY-MM-DD, YYYY/MM/DD, or YYYY.MM.DD.
-        let match = dateStr.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})$/);
+        let match = dateStr.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/);
         if (match) {
-            let [_, y, m, d] = match;
+            let [, y, m, d] = match;
             return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
         }
 
         // Try DD/MM/YYYY.
         match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         if (match) {
-            let [_, d, m, y] = match;
+            let [, d, m, y] = match;
             return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
         }
 
         // Try DD/MM/YY or MM/DD/YY using a small heuristic.
         match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
         if (match) {
-            let [_, first, second, year] = match;
+            let [, first, second, year] = match;
             const firstNumber = parseInt(first, 10);
             const secondNumber = parseInt(second, 10);
             const fullYear = parseInt(year, 10) >= 70 ? `19${year}` : `20${year}`;
@@ -458,7 +458,7 @@ class CSVService {
         // Try DD-MM-YYYY or MM-DD-YYYY.
         match = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
         if (match) {
-            let [_, first, second, year] = match;
+            let [, first, second, year] = match;
             const firstNumber = parseInt(first, 10);
             const secondNumber = parseInt(second, 10);
 
@@ -476,7 +476,7 @@ class CSVService {
         // Try YYYY/MM/DD
         match = dateStr.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
         if (match) {
-            let [_, y, m, d] = match;
+            let [, y, m, d] = match;
             d = d.padStart(2, '0');
             m = m.padStart(2, '0');
             return `${y}-${m}-${d}`;
@@ -485,7 +485,7 @@ class CSVService {
         // Try DD.MM.YYYY
         match = dateStr.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
         if (match) {
-            let [_, d, m, y] = match;
+            let [, d, m, y] = match;
             d = d.padStart(2, '0');
             m = m.padStart(2, '0');
             return `${y}-${m}-${d}`;

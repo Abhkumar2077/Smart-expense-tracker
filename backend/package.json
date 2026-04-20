@@ -5,7 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "test": "jest"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -23,11 +27,17 @@
     "multer": "^2.1.1",
     "mysql2": "^3.20.0",
     "natural": "^8.1.1",
-    "simple-statistics": "^7.8.9",
-    "tesseract.js": "^7.0.0"
+    "node-cron": "^4.2.1",
+    "simple-statistics": "^7.8.9"
   },
   "devDependencies": {
     "axios": "^1.13.6",
-    "nodemon": "^3.1.14"
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-node": "^11.1.0",
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.3",
+    "supertest": "^7.2.2"
   }
 }

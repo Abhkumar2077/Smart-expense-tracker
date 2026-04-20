@@ -57,7 +57,7 @@ router.get('/summary', auth, async (req, res) => {
             let totalExpenses = 0;
             let activeMonths = 0;
 
-            results.forEach((res, index) => {
+            results.forEach((res, _index) => {
                 if (res && res.length > 0) {
                     const monthIncome = res.reduce((sum, cat) => sum + (parseFloat(cat.total_income) || 0), 0);
                     const monthExpense = res.reduce((sum, cat) => sum + (parseFloat(cat.total_expense || cat.total_amount) || 0), 0);

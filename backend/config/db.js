@@ -28,7 +28,7 @@ const promisePool = pool.promise();
 // Test database connection
 const testConnection = async () => {
     try {
-        const [rows] = await promisePool.query('SELECT 1 + 1 AS solution');
+        await promisePool.query('SELECT 1 + 1 AS solution');
         console.log('✅ Database connected successfully');
         console.log('📊 Database:', process.env.DB_NAME || 'expense_tracker');
         return true;

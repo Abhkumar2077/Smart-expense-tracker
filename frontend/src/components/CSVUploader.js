@@ -28,9 +28,48 @@ const CSVUploader = ({ onUploadComplete }) => {
     const [error, setError] = useState(null);
     const [preview, setPreview] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [categories, setCategories] = useState([]);
+    const [categorizedPreview, setCategorizedPreview] = useState(null);
+    const [selectedCategories, setSelectedCategories] = useState({});
     
     const { uploadedData, addUpload, clearUpload } = useUpload();
     const navigate = useNavigate();
+
+    // Fetch categories on mount
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    const fetchCategories = async () => {
+        try {
+            const res = await axios.get('/api/categories');
+            setCategories(res.data);
+        } catch (err) {
+            console.error('Failed to fetch categories:', err);
+        }
+    };
+
+    const getAISuggestedCategories = async (parsedRows) => {
+        try {
+            const res = await axios.post('/api/upload/categorize-preview', {
+                transactions: parsedRows.map(r => ({
+                    description: r.description,
+                    amount: r.amount
+                }))
+            });
+            return res.data.transactions;
+        } catch (err) {
+            console.error('AI categorization failed, using manual flow');
+            return parsedRows; // fall back to manual categorization
+        }
+    };
+
+    const handleCategoryChange = (index, categoryId) => {
+        setSelectedCategories(prev => ({
+            ...prev,
+            [index]: categoryId
+        }));
+    };
 
     // Listen for upload data changes
     useEffect(() => {
@@ -87,11 +126,19 @@ const CSVUploader = ({ onUploadComplete }) => {
 
             console.log('Validation response:', res.data);
             setPreview(res.data);
+
+            // Get AI suggestions for categorization
+            if (res.data.sample && res.data.sample.length > 0) {
+                const suggestions = await getAISuggestedCategories(res.data.sample);
+                setCategorizedPreview(suggestions);
+            }
+
             setError(null);
         } catch (err) {
             console.error('❌ Validation error:', err);
             setError(err.response?.data?.message || 'Invalid CSV file');
             setPreview(null);
+            setCategorizedPreview(null);
         } finally {
             setUploadProgress(0);
         }
@@ -554,28 +601,50 @@ const CSVUploader = ({ onUploadComplete }) => {
                             <li><MdLabel /> Category: {preview.column_mapping?.category || 'Auto-categorize'}</li>
                         </ul>
                         
-                        {preview.sample && preview.sample.length > 0 && (
+                        {preview.sample && preview.sample.length > 0 && categorizedPreview && (
                             <>
-                                <p><strong>Sample Data:</strong></p>
+                                <p><strong>Sample Data with AI Category Suggestions:</strong></p>
                                 <div style={{ overflowX: 'auto' }}>
                                     <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse' }}>
                                         <thead>
                                             <tr>
-                                                {Object.keys(preview.sample[0]).map(key => (
-                                                    <th key={key} style={{ padding: '8px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #ddd' }}>
-                                                        {key}
-                                                    </th>
-                                                ))}
+                                                <th style={{ padding: '8px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #ddd' }}>
+                                                    Description
+                                                </th>
+                                                <th style={{ padding: '8px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #ddd' }}>
+                                                    Amount
+                                                </th>
+                                                <th style={{ padding: '8px', textAlign: 'left', background: '#f8f9fa', borderBottom: '2px solid #ddd' }}>
+                                                    Category
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {preview.sample.map((row, i) => (
+                                            {categorizedPreview.map((row, i) => (
                                                 <tr key={i}>
-                                                    {Object.values(row).map((val, j) => (
-                                                        <td key={j} style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
-                                                            {val}
-                                                        </td>
-                                                    ))}
+                                                    <td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
+                                                        {row.description}
+                                                    </td>
+                                                    <td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
+                                                        ₹{row.amount}
+                                                    </td>
+                                                    <td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
+                                                        <select
+                                                            value={selectedCategories[i] || row.suggested_category_id || ''}
+                                                            onChange={(e) => handleCategoryChange(i, e.target.value)}
+                                                            style={{ width: '100%', padding: '4px' }}
+                                                        >
+                                                            <option value="">Select category</option>
+                                                            {categories.map(c => (
+                                                                <option key={c.id} value={c.id}>
+                                                                    {c.name}
+                                                                    {row.suggested_category_id === c.id
+                                                                        ? ` ← AI suggested (${row.confidence})`
+                                                                        : ''}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>

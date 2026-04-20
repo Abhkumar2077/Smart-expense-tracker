@@ -88,7 +88,8 @@ export const aiAPI = {
   getPatterns: () => API.get('/ai/patterns'),
   getForecast: () => API.get('/ai/forecast'),
   getAnomalies: () => API.get('/ai/anomalies'),
-  getSavings: () => API.get('/ai/savings')
+  getSavings: () => API.get('/ai/savings'),
+  getGeminiInsights: () => API.get('/ai/gemini-insights')
 };
 
 // Upload API
@@ -99,14 +100,6 @@ export const uploadAPI = {
     return API.post('/upload/csv', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    const API = axios.create({
-  baseURL: '/api',
-  headers: {
-    'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache',
-    'Expires': '0',
-  }
-});
   },
   validateCSV: (file) => {
     const formData = new FormData();

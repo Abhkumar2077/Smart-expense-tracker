@@ -2,9 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
-    FaPlus, FaTrash, FaEdit, FaCheckCircle, 
-    FaCircle, FaCalendarAlt, FaBullseye, FaChartLine,  // ✅ Changed from FaTarget to FaBullseye
-    FaMoneyBillWave, FaPiggyBank, FaRocket
+    FaPlus, FaTrash, FaCheckCircle, 
+    FaCalendarAlt, FaBullseye
 } from 'react-icons/fa';
 
 const SavingsGoals = () => {
@@ -199,7 +198,19 @@ const SavingsGoals = () => {
     }
 
     return (
-        <div className="card">
+        <div style={{
+            background: 'linear-gradient(135deg, #001435 0%, #003087 50%, #00A3E0 100%)',
+            padding: '32px',
+            borderRadius: '16px',
+            boxShadow: '0 12px 40px rgba(0, 3, 135, 0.3)',
+            position: 'relative',
+            overflow: 'hidden'
+        }}>
+
+            <div className="savings-goals-container" style={{
+                position: 'relative',
+                zIndex: 1
+            }}>
             {dialog && (
                 <div style={{
                     position: 'fixed',
@@ -274,15 +285,49 @@ const SavingsGoals = () => {
                 </div>
             )}
 
-            <div className="card-header">
-                <h3 className="card-title">
-                    <FaBullseye style={{ marginRight: '10px', color: '#667eea' }} /> {/* ✅ Changed here */}
-                    Savings Goals
-                </h3>
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '32px'
+            }}>
+                <div>
+                    <h3 style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        color: 'white',
+                        margin: '0 0 8px 0',
+                        fontSize: '24px',
+                        fontWeight: '600'
+                    }}>
+                        <FaBullseye style={{ color: '#ADD8E6' }} />
+                        Savings Goals
+                    </h3>
+                    <p style={{
+                        margin: 0,
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        fontSize: '16px'
+                    }}>
+                        Track your progress and stay motivated towards your financial goals.
+                    </p>
+                </div>
                 <button
                     onClick={() => setShowForm(!showForm)}
-                    className="btn btn-primary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                    style={{
+                        background: 'rgba(173, 216, 230, 0.8)',
+                        backdropFilter: 'blur(5px)',
+                        color: '#001435',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 24px',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        fontWeight: '500',
+                        fontSize: '14px'
+                    }}
                 >
                     <FaPlus /> New Goal
                 </button>
@@ -291,83 +336,195 @@ const SavingsGoals = () => {
             {/* Stats Overview */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '15px',
-                padding: '20px',
-                background: '#f8f9fa',
-                borderBottom: '1px solid #e0e0e0'
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '24px',
+                marginBottom: '32px'
             }}>
-                <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#667eea' }}>
+                <div style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    padding: '24px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    textAlign: 'center'
+                }}>
+                    <div style={{ fontSize: '14px', color: '#666', fontWeight: '500', marginBottom: '8px' }}>Total Goals</div>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#003087' }}>
                         {stats.total_goals || 0}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>Total Goals</div>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#48c774' }}>
+
+                <div style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    padding: '24px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    textAlign: 'center'
+                }}>
+                    <div style={{ fontSize: '14px', color: '#666', fontWeight: '500', marginBottom: '8px' }}>Completed</div>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#48c774' }}>
                         {stats.completed_goals || 0}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>Completed</div>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ff9f1c' }}>
+
+                <div style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    padding: '24px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    textAlign: 'center'
+                }}>
+                    <div style={{ fontSize: '14px', color: '#666', fontWeight: '500', marginBottom: '8px' }}>Left to Save</div>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#00A3E0' }}>
                         ₹{(stats.total_remaining || 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>Left to Save</div>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#f14668' }}>
+
+                <div style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    padding: '24px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    textAlign: 'center'
+                }}>
+                    <div style={{ fontSize: '14px', color: '#666', fontWeight: '500', marginBottom: '8px' }}>Avg Progress</div>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#f14668' }}>
                         {Math.round(stats.avg_progress || 0)}%
                     </div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>Avg Progress</div>
                 </div>
             </div>
 
             {/* Add/Edit Form */}
             {showForm && (
-                <div style={{ padding: '20px', borderBottom: '1px solid #e0e0e0' }}>
-                    <h4>{editingGoal ? 'Edit Goal' : 'Create New Goal'}</h4>
+                <div style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    marginBottom: '32px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                }}>
+                    <h4 style={{
+                        margin: '0 0 20px 0',
+                        color: '#001435',
+                        fontSize: '20px',
+                        fontWeight: '600'
+                    }}>
+                        {editingGoal ? 'Edit Goal' : 'Create New Goal'}
+                    </h4>
                     <form onSubmit={handleSubmit}>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Goal Name</label>
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                            gap: '20px',
+                            marginBottom: '20px'
+                        }}>
+                            <div>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '8px',
+                                    color: '#001435',
+                                    fontWeight: '500'
+                                }}>Goal Name</label>
                                 <input
                                     type="text"
-                                    className="form-control"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     placeholder="e.g., Emergency Fund, Vacation, New Car"
                                     required
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px 16px',
+                                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                                        borderRadius: '8px',
+                                        background: 'rgba(255, 255, 255, 0.8)',
+                                        backdropFilter: 'blur(5px)',
+                                        color: '#001435',
+                                        fontWeight: '500',
+                                        fontSize: '14px'
+                                    }}
                                 />
                             </div>
-                            <div className="form-group">
-                                <label>Target Amount (₹)</label>
+                            <div>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '8px',
+                                    color: '#001435',
+                                    fontWeight: '500'
+                                }}>Target Amount (₹)</label>
                                 <input
                                     type="number"
-                                    className="form-control"
                                     value={formData.target_amount}
                                     onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
                                     placeholder="50000"
                                     min="1"
                                     required
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px 16px',
+                                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                                        borderRadius: '8px',
+                                        background: 'rgba(255, 255, 255, 0.8)',
+                                        backdropFilter: 'blur(5px)',
+                                        color: '#001435',
+                                        fontWeight: '500',
+                                        fontSize: '14px'
+                                    }}
                                 />
                             </div>
-                            <div className="form-group">
-                                <label>Deadline</label>
+                            <div>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '8px',
+                                    color: '#001435',
+                                    fontWeight: '500'
+                                }}>Deadline</label>
                                 <input
                                     type="date"
-                                    className="form-control"
                                     value={formData.deadline}
                                     onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
                                     required
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px 16px',
+                                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                                        borderRadius: '8px',
+                                        background: 'rgba(255, 255, 255, 0.8)',
+                                        backdropFilter: 'blur(5px)',
+                                        color: '#001435',
+                                        fontWeight: '500',
+                                        fontSize: '14px'
+                                    }}
                                 />
                             </div>
                         </div>
 
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Icon</label>
-                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                            gap: '20px',
+                            marginBottom: '20px'
+                        }}>
+                            <div>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '12px',
+                                    color: '#001435',
+                                    fontWeight: '500'
+                                }}>Icon</label>
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(50px, 1fr))',
+                                    gap: '10px'
+                                }}>
                                     {icons.map(icon => (
                                         <button
                                             key={icon}
@@ -375,12 +532,15 @@ const SavingsGoals = () => {
                                             onClick={() => setFormData({ ...formData, icon })}
                                             style={{
                                                 fontSize: '24px',
-                                                padding: '8px',
-                                                background: formData.icon === icon ? formData.color : 'white',
-                                                border: '2px solid',
-                                                borderColor: formData.icon === icon ? formData.color : '#ddd',
+                                                padding: '12px',
+                                                background: formData.icon === icon ? formData.color : 'rgba(255, 255, 255, 0.8)',
+                                                backdropFilter: 'blur(5px)',
+                                                border: `2px solid ${formData.icon === icon ? formData.color : 'rgba(255, 255, 255, 0.3)'}`,
                                                 borderRadius: '8px',
-                                                cursor: 'pointer'
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
                                             }}
                                         >
                                             {icon}
@@ -388,22 +548,32 @@ const SavingsGoals = () => {
                                     ))}
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label>Color</label>
-                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            <div>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '12px',
+                                    color: '#001435',
+                                    fontWeight: '500'
+                                }}>Color</label>
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(50px, 1fr))',
+                                    gap: '10px'
+                                }}>
                                     {colors.map(color => (
                                         <button
                                             key={color}
                                             type="button"
                                             onClick={() => setFormData({ ...formData, color })}
                                             style={{
-                                                width: '40px',
-                                                height: '40px',
+                                                width: '50px',
+                                                height: '50px',
                                                 background: color,
                                                 border: formData.color === color ? '4px solid white' : 'none',
                                                 borderRadius: '8px',
                                                 cursor: 'pointer',
-                                                outline: formData.color === color ? `2px solid ${color}` : 'none'
+                                                outline: formData.color === color ? `2px solid ${color}` : 'none',
+                                                boxShadow: formData.color === color ? '0 0 0 2px rgba(0,0,0,0.2)' : 'none'
                                             }}
                                         />
                                     ))}
@@ -411,11 +581,41 @@ const SavingsGoals = () => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                            <button type="submit" className="btn btn-primary">
+                        <div style={{
+                            display: 'flex',
+                            gap: '12px',
+                            justifyContent: 'flex-end'
+                        }}>
+                            <button
+                                type="submit"
+                                style={{
+                                    padding: '12px 24px',
+                                    background: 'rgba(0, 20, 53, 0.8)',
+                                    backdropFilter: 'blur(5px)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: '500',
+                                    fontSize: '14px'
+                                }}
+                            >
                                 {editingGoal ? 'Update Goal' : 'Create Goal'}
                             </button>
-                            <button type="button" className="btn" onClick={() => setShowForm(false)}>
+                            <button
+                                type="button"
+                                onClick={() => setShowForm(false)}
+                                style={{
+                                    padding: '12px 24px',
+                                    background: 'transparent',
+                                    color: '#001435',
+                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: '500',
+                                    fontSize: '14px'
+                                }}
+                            >
                                 Cancel
                             </button>
                         </div>
@@ -424,12 +624,47 @@ const SavingsGoals = () => {
             )}
 
             {/* Goals List */}
-            <div style={{ padding: '20px' }}>
+            <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '16px',
+                padding: '24px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}>
+                <h4 style={{
+                    margin: '0 0 20px 0',
+                    color: '#001435',
+                    fontSize: '20px',
+                    fontWeight: '600'
+                }}>
+                    Your Goals
+                </h4>
                 {goals.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                        <FaBullseye size={50} style={{ color: '#ccc', marginBottom: '20px' }} /> {/* ✅ Changed here */}
-                        <h4>No savings goals yet</h4>
-                        <p style={{ marginTop: '10px' }}>Create your first goal to start saving!</p>
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '60px 20px',
+                        color: '#001435'
+                    }}>
+                        <FaBullseye size={60} style={{ color: 'rgba(0, 20, 53, 0.4)', marginBottom: '20px' }} />
+                        <h4 style={{ color: '#001435', margin: '0 0 10px 0' }}>No savings goals yet</h4>
+                        <p style={{ margin: '0 0 20px 0', color: 'rgba(0, 20, 53, 0.7)' }}>Create your first goal to start saving!</p>
+                        <button
+                            onClick={() => setShowForm(true)}
+                            style={{
+                                padding: '12px 24px',
+                                background: 'rgba(0, 20, 53, 0.8)',
+                                backdropFilter: 'blur(5px)',
+                                color: 'white',
+                                border: '1px solid rgba(255, 255, 255, 0.3)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontWeight: '500',
+                                fontSize: '14px'
+                            }}
+                        >
+                            Create Your First Goal
+                        </button>
                     </div>
                 ) : (
                     <div style={{ display: 'grid', gap: '20px' }}>
@@ -442,47 +677,95 @@ const SavingsGoals = () => {
                                 <div
                                     key={goal.id}
                                     style={{
-                                        padding: '20px',
-                                        background: '#f8f9fa',
-                                        borderRadius: '10px',
-                                        border: isCompleted ? '2px solid #48c774' : 'none'
+                                        padding: '24px',
+                                        background: 'rgba(255, 255, 255, 0.9)',
+                                        backdropFilter: 'blur(10px)',
+                                        borderRadius: '12px',
+                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                        border: isCompleted ? '2px solid #48c774' : '1px solid rgba(255, 255, 255, 0.2)',
+                                        position: 'relative',
+                                        overflow: 'hidden'
                                     }}
                                 >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '20px',
+                                        flexWrap: 'wrap',
+                                        gap: '15px'
+                                    }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                             <div style={{
-                                                width: '50px',
-                                                height: '50px',
-                                                borderRadius: '25px',
+                                                width: '60px',
+                                                height: '60px',
+                                                borderRadius: '30px',
                                                 background: goal.color,
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                fontSize: '24px'
+                                                fontSize: '28px',
+                                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
                                             }}>
                                                 {goal.icon}
                                             </div>
                                             <div>
-                                                <h4 style={{ margin: '0 0 5px 0' }}>{goal.name}</h4>
-                                                <div style={{ display: 'flex', gap: '15px', fontSize: '13px', color: '#666' }}>
-                                                    <span><FaCalendarAlt /> {new Date(goal.deadline).toLocaleDateString()}</span>
-                                                    <span>{daysLeft > 0 ? `${daysLeft} days left` : 'Deadline passed'}</span>
+                                                <h4 style={{
+                                                    margin: '0 0 8px 0',
+                                                    color: '#001435',
+                                                    fontSize: '18px',
+                                                    fontWeight: '600'
+                                                }}>{goal.name}</h4>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    gap: '20px',
+                                                    fontSize: '14px',
+                                                    color: 'rgba(0, 20, 53, 0.7)',
+                                                    flexWrap: 'wrap'
+                                                }}>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <FaCalendarAlt /> {new Date(goal.deadline).toLocaleDateString()}
+                                                    </span>
+                                                    <span style={{
+                                                        color: daysLeft < 0 ? '#f14668' : daysLeft < 7 ? '#ff9f1c' : 'rgba(0, 20, 53, 0.7)'
+                                                    }}>
+                                                        {daysLeft > 0 ? `${daysLeft} days left` : 'Deadline passed'}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', gap: '10px' }}>
                                             <button
                                                 onClick={() => handleAddSavings(goal)}
-                                                className="btn btn-primary"
-                                                style={{ padding: '8px 16px' }}
+                                                style={{
+                                                    padding: '10px 16px',
+                                                    background: 'rgba(0, 20, 53, 0.8)',
+                                                    backdropFilter: 'blur(5px)',
+                                                    color: 'white',
+                                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                                    borderRadius: '8px',
+                                                    cursor: isCompleted ? 'not-allowed' : 'pointer',
+                                                    fontWeight: '500',
+                                                    fontSize: '14px',
+                                                    opacity: isCompleted ? 0.6 : 1
+                                                }}
                                                 disabled={isCompleted}
                                             >
                                                 Add Savings
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(goal.id)}
-                                                className="btn btn-danger"
-                                                style={{ padding: '8px 16px' }}
+                                                style={{
+                                                    padding: '10px 16px',
+                                                    background: 'rgba(255, 255, 255, 0.8)',
+                                                    backdropFilter: 'blur(5px)',
+                                                    color: '#001435',
+                                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                                    borderRadius: '8px',
+                                                    cursor: 'pointer',
+                                                    fontWeight: '500',
+                                                    fontSize: '14px'
+                                                }}
                                             >
                                                 <FaTrash />
                                             </button>
@@ -490,44 +773,80 @@ const SavingsGoals = () => {
                                     </div>
 
                                     {/* Progress Bar */}
-                                    <div style={{ marginTop: '15px' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            marginBottom: '8px',
+                                            fontSize: '14px',
+                                            color: '#001435',
+                                            fontWeight: '500'
+                                        }}>
                                             <span>Progress</span>
-                                            <span style={{ fontWeight: 'bold', color: goal.color }}>
+                                            <span style={{
+                                                fontWeight: 'bold',
+                                                color: goal.color
+                                            }}>
                                                 ₹{goal.current_amount.toLocaleString()} / ₹{goal.target_amount.toLocaleString()}
                                             </span>
                                         </div>
                                         <div style={{
                                             width: '100%',
-                                            height: '12px',
-                                            background: '#e0e0e0',
-                                            borderRadius: '6px',
-                                            overflow: 'hidden'
+                                            height: '16px',
+                                            background: 'rgba(255, 255, 255, 0.5)',
+                                            borderRadius: '8px',
+                                            overflow: 'hidden',
+                                            border: '1px solid rgba(255, 255, 255, 0.3)'
                                         }}>
                                             <div style={{
-                                                width: `${progress}%`,
+                                                width: `${Math.min(progress, 100)}%`,
                                                 height: '100%',
                                                 background: `linear-gradient(90deg, ${goal.color}, ${goal.color}dd)`,
-                                                borderRadius: '6px',
-                                                transition: 'width 0.3s ease'
+                                                borderRadius: '8px',
+                                                transition: 'width 0.5s ease',
+                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                                             }} />
+                                        </div>
+                                        <div style={{
+                                            textAlign: 'center',
+                                            marginTop: '8px',
+                                            fontSize: '16px',
+                                            fontWeight: 'bold',
+                                            color: goal.color
+                                        }}>
+                                            {progress.toFixed(1)}% Complete
                                         </div>
                                     </div>
 
                                     {/* Milestone Celebration */}
                                     {isCompleted && (
                                         <div style={{
-                                            marginTop: '15px',
-                                            padding: '10px',
-                                            background: '#48c77420',
-                                            borderRadius: '5px',
+                                            padding: '16px',
+                                            background: 'linear-gradient(135deg, #48c77420, #48c77410)',
+                                            borderRadius: '8px',
+                                            border: '1px solid #48c77440',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: '10px',
-                                            color: '#48c774'
+                                            gap: '12px',
+                                            marginTop: '16px'
                                         }}>
-                                            <FaCheckCircle />
-                                            <span>🎉 Goal achieved! Congratulations!</span>
+                                            <FaCheckCircle size={24} color="#48c774" />
+                                            <div>
+                                                <div style={{
+                                                    fontWeight: 'bold',
+                                                    color: '#48c774',
+                                                    fontSize: '16px'
+                                                }}>
+                                                    🎉 Goal achieved! Congratulations!
+                                                </div>
+                                                <div style={{
+                                                    fontSize: '14px',
+                                                    color: 'rgba(72, 199, 116, 0.8)',
+                                                    marginTop: '4px'
+                                                }}>
+                                                    You've successfully reached your savings target.
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -536,6 +855,7 @@ const SavingsGoals = () => {
                     </div>
                 )}
             </div>
+        </div>
         </div>
     );
 };

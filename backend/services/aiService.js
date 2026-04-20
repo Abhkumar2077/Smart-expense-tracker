@@ -1,6 +1,10 @@
 // backend/services/aiService.js
 const Expense = require('../models/Expense');
 const User = require('../models/User');
+const AISuggestion = require('../models/AISuggestion');
+const geminiService = require('./geminiService');
+const { buildInsightPrompt } = require('./promptBuilder');
+const { validateAIResponse } = require('./responseValidator');
 
 class AIService {
     // AI Learning Database
@@ -48,9 +52,8 @@ class AIService {
                 ...savings.map(s => s.suggestion)
             ].filter(Boolean);
 
-            console.log(`✅ Generated: ${patterns.length} patterns, ${alerts.length} alerts, ${recommendations.length} recommendations`);
-
-            return {
+            // Create basic insights object
+            const basicInsights = {
                 success: true,
                 patterns,
                 recommendations,
@@ -63,6 +66,43 @@ class AIService {
                 suggestions: allSuggestions,
                 aiConfidence: expenses.length > 50 ? 'high' : expenses.length > 20 ? 'medium' : 'low'
             };
+
+            // Enhance with structured Gemini AI if available
+            console.log('🚀 Enhancing insights with structured Gemini AI...');
+            try {
+                const prompt = buildInsightPrompt({
+                    user,
+                    categoryTotals: categorySummary,
+                    patterns,
+                    anomalies,
+                    forecast
+                });
+
+                const rawGeminiResponse = await geminiService.generateContent(prompt);
+                const validated = validateAIResponse(rawGeminiResponse);
+
+                // Save structured suggestions to database
+                if (validated.suggestions && validated.suggestions.length > 0) {
+                    await AISuggestion.create(userId, validated.suggestions);
+                }
+
+                // Add structured AI insights
+                basicInsights.aiInsights = validated.insights;
+                basicInsights.aiSuggestions = validated.suggestions;
+                basicInsights.geminiStructured = true;
+
+                console.log(`🤖 Structured Gemini: ${validated.insights.length} insights, ${validated.suggestions.length} suggestions saved`);
+            } catch (err) {
+                console.error('Gemini structured call failed:', err.message);
+                basicInsights.aiInsights = [];
+                basicInsights.aiSuggestions = [];
+                basicInsights.geminiStructured = false;
+            }
+
+            console.log(`✅ Generated: ${basicInsights.patterns.length} patterns, ${basicInsights.alerts.length} alerts, ${basicInsights.recommendations.length} recommendations`);
+            console.log(`🤖 Gemini enhancement: ${basicInsights.geminiStructured ? 'Structured Active' : 'Fallback'}`);
+
+            return basicInsights;
             
         } catch (error) {
             console.error('❌ AI Insights Error:', error);
@@ -149,7 +189,7 @@ class AIService {
     // ============================================
     // 3. GENERATE PERSONALIZED RECOMMENDATIONS
     // ============================================
-    static async getRecommendations(user, insights, categorySummary, expenses = []) {
+    static getRecommendations(user, insights, categorySummary, expenses = []) {
         const recommendations = [];
 
         if (!insights || !insights.current_month) return recommendations;
@@ -325,8 +365,6 @@ class AIService {
                 return scoreB - scoreA;
             })
             .slice(0, 6);
-
-        return recommendations;
     }
 
     // ============================================
@@ -635,7 +673,7 @@ class AIService {
         return Math.abs(hash) % max;
     }
 
-    static async learnFromCSV(userId, csvData) {
+    static async learnFromCSV(_userId, _csvData) {
     try {
         console.log('🧠 AI Learning from CSV data...');
         // Your existing learning logic

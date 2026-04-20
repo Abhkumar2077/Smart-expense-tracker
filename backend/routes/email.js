@@ -8,7 +8,7 @@ const User = require('../models/User');
 router.post('/send-weekly-report', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const result = await EmailService.sendWeeklyReport(
+    await EmailService.sendWeeklyReport(
       req.user.id,
       user.email,
       user.name
