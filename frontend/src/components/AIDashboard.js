@@ -3,10 +3,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
     FaRobot, FaLightbulb, FaChartLine, FaExclamationTriangle, 
-    FaPiggyBank, FaCalendarAlt, FaArrowUp, FaArrowDown,
-    FaCheckCircle, FaInfoCircle, FaBell, FaChartPie,
-    FaBrain, FaFire, FaMedal, FaRocket, FaSyncAlt,
-    FaWallet, FaCreditCard, FaChartBar, FaFilter
+    FaPiggyBank, FaCalendarAlt,
+    FaBell,
+    FaBrain, FaFire, FaMedal, FaRocket, FaSyncAlt
 } from 'react-icons/fa';
 
 const AIDashboard = () => {
@@ -108,16 +107,6 @@ const AIDashboard = () => {
             case 'low': return '#48c774';
             case 'positive': return '#48c774';
             default: return '#667eea';
-        }
-    };
-
-    const getImpactIcon = (impact) => {
-        switch(impact) {
-            case 'high': return <FaExclamationTriangle />;
-            case 'medium': return <FaInfoCircle />;
-            case 'low': return <FaCheckCircle />;
-            case 'positive': return <FaCheckCircle />;
-            default: return <FaLightbulb />;
         }
     };
 

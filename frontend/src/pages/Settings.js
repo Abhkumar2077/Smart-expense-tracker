@@ -1,10 +1,9 @@
 // frontend/src/pages/Settings.js
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { expenseAPI } from '../services/api';
 import CategoryManager from '../components/CategoryManager';
 import AppearanceSettings from '../components/AppearanceSettings';
-import { FaUser, FaShieldAlt, FaPalette, FaDollarSign, FaTags } from 'react-icons/fa';
+import { FaUser, FaShieldAlt, FaPalette, FaTags } from 'react-icons/fa';
 
 const Settings = () => {
   const { user } = useAuth();

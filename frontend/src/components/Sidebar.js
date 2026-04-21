@@ -1,23 +1,18 @@
 // frontend/src/components/Sidebar.js
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 
 
 import {
   FaTachometerAlt,
   FaMoneyBill,
-  FaCog,
-  FaSignOutAlt,
   FaCloudUploadAlt,
-  FaBars,
   FaRobot,
   FaBullseye,
   FaChartPie
 } from 'react-icons/fa';
-import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ collapsed }) => {
-  const { user, logout } = useAuth();
 
   useEffect(() => {
     const root = document.querySelector('.dashboard');
@@ -33,12 +28,7 @@ const Sidebar = ({ collapsed }) => {
   return (
     <>
       <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-top">
-          <div className="sidebar-brand">
-            <h1></h1>
-          </div>
-        </div>
-
+        
         <ul className="nav-menu">
         <li className="nav-item">
           <NavLink

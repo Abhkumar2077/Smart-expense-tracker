@@ -1,5 +1,4 @@
 // frontend/src/services/dataSyncService.js
-import axios from 'axios';
 import { expenseAPI } from './api';
 
 class DataSyncService {

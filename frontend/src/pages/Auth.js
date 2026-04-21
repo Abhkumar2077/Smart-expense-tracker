@@ -1,8 +1,7 @@
 // frontend/src/pages/Auth.js
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import './Auth.css';
 
@@ -16,7 +15,6 @@ const Auth = () => {
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
 
   const { login, register } = useAuth();
-  const { showNotification } = useNotification();
   const navigate = useNavigate();
   const containerRef = useRef(null);
 

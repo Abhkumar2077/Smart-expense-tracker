@@ -5,6 +5,13 @@
 			"label": "start frontend",
 			"type": "shell",
 			"command": "npm"
+		},
+		{
+			"label": "Start Frontend",
+			"type": "shell",
+			"command": "npm start",
+			"isBackground": true,
+			"group": "build"
 		}
 	]
 }

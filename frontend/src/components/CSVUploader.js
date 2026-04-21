@@ -17,8 +17,8 @@ import {
     FaSync,
     FaUpload
 } from 'react-icons/fa';
-import { MdInsertDriveFile, MdBarChart, MdEvent, MdAttachMoney, MdDescription, MdLabel } from 'react-icons/md';
-import { Link, useNavigate } from 'react-router-dom';
+import { MdBarChart, MdEvent, MdAttachMoney, MdDescription, MdLabel } from 'react-icons/md';
+import { useNavigate } from 'react-router-dom';
 
 const CSVUploader = ({ onUploadComplete }) => {
     const { showNotification } = useNotification();
@@ -84,33 +84,6 @@ const CSVUploader = ({ onUploadComplete }) => {
         return () => window.removeEventListener('upload-data-cleared', handleDataChange);
     }, []);
 
-    const onDrop = useCallback(async (acceptedFiles) => {
-        const file = acceptedFiles[0];
-        if (!file) return;
-        
-        console.log('File selected:', file.name);
-        
-        setFile(file);
-        setError(null);
-        setResult(null);
-        setPreview(null);
-        setUploadProgress(0);
-        
-        await validateFile(file);
-    }, []);
-
-    const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
-        onDrop,
-        accept: {
-            'text/csv': ['.csv'],
-            'application/vnd.ms-excel': ['.csv']
-        },
-        maxFiles: 1,
-        maxSize: 10 * 1024 * 1024,
-        noClick: true,
-        noKeyboard: true
-    });
-
     const validateFile = async (file) => {
         try {
             const formData = new FormData();
@@ -143,6 +116,33 @@ const CSVUploader = ({ onUploadComplete }) => {
             setUploadProgress(0);
         }
     };
+
+    const onDrop = useCallback(async (acceptedFiles) => {
+        const file = acceptedFiles[0];
+        if (!file) return;
+        
+        console.log('File selected:', file.name);
+        
+        setFile(file);
+        setError(null);
+        setResult(null);
+        setPreview(null);
+        setUploadProgress(0);
+        
+        await validateFile(file);
+    }, [validateFile]);
+
+    const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+        onDrop,
+        accept: {
+            'text/csv': ['.csv'],
+            'application/vnd.ms-excel': ['.csv']
+        },
+        maxFiles: 1,
+        maxSize: 10 * 1024 * 1024,
+        noClick: true,
+        noKeyboard: true
+    });
 
     const handleUpload = async () => {
         if (!file) return;

@@ -4,15 +4,13 @@ import { useNotification } from '../context/NotificationContext';
 import axios from 'axios';
 import { 
     FaPlus, FaEdit, FaTrash, FaSave, FaTimes,
-    FaLightbulb, FaChartLine, FaMagic, FaCheck,
-    FaPalette
+    FaLightbulb, FaChartLine, FaMagic
 } from 'react-icons/fa';
 
 const CategoryManager = ({ onCategoryChange }) => {
     const { showNotification } = useNotification();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [suggestions, setSuggestions] = useState([]);
@@ -47,7 +45,6 @@ const CategoryManager = ({ onCategoryChange }) => {
             const res = await axios.get('/api/categories');
             setCategories(res.data);
         } catch (err) {
-            setError('Failed to load categories');
             console.error(err);
         } finally {
             setLoading(false);

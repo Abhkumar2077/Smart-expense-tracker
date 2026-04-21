@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaDownload, FaTimes, FaMobile } from 'react-icons/fa';
+import { FaDownload, FaTimes } from 'react-icons/fa';
 
 const InstallPWA = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);

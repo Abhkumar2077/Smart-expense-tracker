@@ -4,9 +4,8 @@ import axios from 'axios';
 import CSVUploader from '../components/CSVUploader';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
-import { FaUpload, FaHistory, FaTrash, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
+import { FaUpload, FaHistory, FaTrash, FaDownload } from 'react-icons/fa';
 import { MdPushPin, MdEvent, MdAttachMoney, MdDescription, MdSync } from 'react-icons/md';
-import { Link } from 'react-router-dom';
 
 const Upload = () => {
     const { uploadHistory, clearHistory, removeUpload, clearUpload } = useUpload();

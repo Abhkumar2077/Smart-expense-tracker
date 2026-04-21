@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
 
 const NotificationContext = createContext({
-  showNotification: (message, type) => {}
+  showNotification: (_message, _type) => {}
 });
 
 export const useNotification = () => useContext(NotificationContext);
@@ -10,12 +10,12 @@ export const NotificationProvider = ({ children }) => {
   const [notification, setNotification] = useState({ message: '', type: '' });
   const timerRef = useRef(null);
 
-  const showNotification = useCallback((message, type = 'info', duration = 3000) => {
+  const showNotification = useCallback((_message, _type = 'info', duration = 3000) => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
 
-    setNotification({ message, type });
+    setNotification({ message: _message, type: _type });
 
     timerRef.current = setTimeout(() => {
       setNotification({ message: '', type: '' });

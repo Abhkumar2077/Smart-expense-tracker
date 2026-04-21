@@ -429,3 +429,4 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
 };
 
 export default ExpenseForm;
+

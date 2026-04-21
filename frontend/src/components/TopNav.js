@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaPlus, FaUserCircle, FaCog, FaSignOutAlt, FaFileAlt, FaBell, FaBars } from 'react-icons/fa';
+import { FaPlus, FaUserCircle, FaCog, FaSignOutAlt, FaBell, FaBars } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
 const TopNav = ({ toggleSidebar }) => {

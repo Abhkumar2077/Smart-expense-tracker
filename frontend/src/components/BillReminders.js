@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaBell, FaCalendarCheck, FaRupeeSign, FaCheckCircle, FaTrash } from 'react-icons/fa';
+import { FaBell, FaCalendarCheck, FaCheckCircle, FaTrash } from 'react-icons/fa';
 
 const BillReminders = () => {
   const [reminders, setReminders] = useState([]);

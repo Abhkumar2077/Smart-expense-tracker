@@ -1,13 +1,13 @@
 // frontend/src/pages/Reports.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { expenseAPI } from '../services/api';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
 import {
     PieChart, Pie, Cell, BarChart, Bar,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
-    ResponsiveContainer, Sector, LineChart, Line,
-    AreaChart, Area, ComposedChart
+    ResponsiveContainer, Sector, Line,
+    ComposedChart
 } from 'recharts';
 import { 
     FaDownload, FaCalendarAlt, FaCloudUploadAlt, 
@@ -49,20 +49,33 @@ const Reports = () => {
     const INCOME_COLORS = ['#48c774', '#51cf66', '#69db7e', '#8ce99a', '#b2f2bb'];
     const COMBINED_COLORS = ['#667eea', '#764ba2', '#48c774', '#f14668', '#ff9f1c'];
 
-    useEffect(() => {
-        fetchReportData();
+    const fetchReportData = useCallback(async () => {
+        try {
+            setLoading(true);
+            
+            // Get summary from API
+            const summaryRes = await expenseAPI.getSummary(selectedMonth, selectedYear);
+            console.log('📊 FULL API RESPONSE:', summaryRes.data);
+            console.log('📊 Daily summary:', summaryRes.data?.daily_summary);
+            
+            setSummary(summaryRes.data);
+            
+            // Get insights
+            const insightsRes = await expenseAPI.getInsights();
+            setInsights(insightsRes.data);
+            
+        } catch (error) {
+            console.error('❌ Error fetching report data:', error);
+        } finally {
+            setLoading(false);
+        }
     }, [selectedMonth, selectedYear]);
 
     useEffect(() => {
-        if (summary?.category_summary) {
-            processCategoryData();
-        }
-        if (summary?.daily_summary) {
-            processDailyData();
-        }
-    }, [summary]);
+        fetchReportData();
+    }, [selectedMonth, selectedYear, fetchReportData]);
 
-    const processCategoryData = () => {
+    const processCategoryData = useCallback(() => {
         if (!summary?.category_summary) return;
         
         const expenses = [];
@@ -117,7 +130,7 @@ const Reports = () => {
         setTotalExpenses(totalExp);
         setTotalIncome(totalInc);
         setNetSavings(totalInc - totalExp);
-    };
+    }, [summary]);
 
     const getWeekNumber = (date) => {
         const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
@@ -125,7 +138,7 @@ const Reports = () => {
         return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
     };
 
-    const processDailyData = () => {
+    const processDailyData = useCallback(() => {
         if (!summary?.daily_summary || summary.daily_summary.length === 0) {
             console.log('⚠️ No daily summary data available');
             setDailyData([]);
@@ -184,29 +197,16 @@ const Reports = () => {
 
         console.log('📊 Processed weekly data:', weekly);
         setWeeklyData(weekly);
-    };
+    }, [summary]);
 
-    const fetchReportData = async () => {
-        try {
-            setLoading(true);
-            
-            // Get summary from API
-            const summaryRes = await expenseAPI.getSummary(selectedMonth, selectedYear);
-            console.log('📊 FULL API RESPONSE:', summaryRes.data);
-            console.log('📊 Daily summary:', summaryRes.data?.daily_summary);
-            
-            setSummary(summaryRes.data);
-            
-            // Get insights
-            const insightsRes = await expenseAPI.getInsights();
-            setInsights(insightsRes.data);
-            
-        } catch (error) {
-            console.error('❌ Error fetching report data:', error);
-        } finally {
-            setLoading(false);
+    useEffect(() => {
+        if (summary?.category_summary) {
+            processCategoryData();
         }
-    };
+        if (summary?.daily_summary) {
+            processDailyData();
+        }
+    }, [summary]);
 
     const handleExportReport = () => {
         if (combinedData.length === 0 && dailyData.length === 0) {
@@ -218,9 +218,11 @@ const Reports = () => {
         
         // Category breakdown
         csv += 'CATEGORY BREAKDOWN\n';
-        csv += 'Category,Expenses,Income,Net,Transactions\n';
+        csv += 'Category,Transactions,Expenses,Income,Net,Daily Avg\n';
         combinedData.forEach(item => {
-            csv += `${item.name},${item.expense.toFixed(2)},${item.income.toFixed(2)},${(item.income - item.expense).toFixed(2)},${item.count}\n`;
+            const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+            const dailyAvg = item.expense / daysInMonth;
+            csv += `${item.name},${item.count},${item.expense.toFixed(2)},${item.income.toFixed(2)},${(item.income - item.expense).toFixed(2)},${dailyAvg.toFixed(2)}\n`;
         });
         
         csv += '\n';
@@ -242,10 +244,10 @@ const Reports = () => {
         });
         
         csv += '\n';
-        csv += `SUMMARY,,,,,\n`;
-        csv += `Total Expenses,,${totalExpenses.toFixed(2)},,\n`;
-        csv += `Total Income,,${totalIncome.toFixed(2)},,\n`;
-        csv += `Net Savings,,${netSavings.toFixed(2)},,\n`;
+        csv += `SUMMARY\n`;
+        csv += `Total Expenses,${totalExpenses.toFixed(2)}\n`;
+        csv += `Total Income,${totalIncome.toFixed(2)}\n`;
+        csv += `Net Savings,${netSavings.toFixed(2)}\n`;
 
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);

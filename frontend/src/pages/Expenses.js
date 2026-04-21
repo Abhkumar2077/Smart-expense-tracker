@@ -1,5 +1,5 @@
 // frontend/src/pages/Expenses.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import ExpenseForm from '../components/ExpenseForm';
 import { expenseAPI, categoryAPI } from '../services/api';
@@ -10,7 +10,6 @@ import {
   FaSync, FaArrowDown, FaArrowUp, FaFilter,
   FaFileCsv, FaMoneyBillWave, FaExclamationTriangle
 } from 'react-icons/fa';
-import { MdPushPin } from 'react-icons/md';
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
@@ -67,6 +66,31 @@ const Expenses = () => {
     };
   }, []);
 
+  const calculateStats = useCallback(() => {
+    try {
+      const income = expenses
+        .filter(e => e && e.type === 'income')
+        .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+      
+      const expense = expenses
+        .filter(e => e && (e.type === 'expense' || !e.type))
+        .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+      
+      const incomeCount = expenses.filter(e => e && e.type === 'income').length;
+      const expenseCount = expenses.filter(e => e && (e.type === 'expense' || !e.type)).length;
+
+      setStats({
+        totalIncome: income,
+        totalExpenses: expense,
+        netBalance: income - expense,
+        incomeCount,
+        expenseCount
+      });
+    } catch (err) {
+      console.error('Error calculating stats:', err);
+    }
+  }, [expenses]);
+
   // Re-fetch when uploadedData changes (context update)
   useEffect(() => {
     console.log('📦 uploadedData changed in context:', uploadedData);
@@ -87,7 +111,7 @@ const Expenses = () => {
         expenseCount: 0
       });
     }
-  }, [expenses]);
+  }, [expenses, calculateStats]);
 
   const fetchData = async () => {
     try {
@@ -125,31 +149,6 @@ const Expenses = () => {
       setError('An unexpected error occurred. Please refresh the page.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const calculateStats = () => {
-    try {
-      const income = expenses
-        .filter(e => e && e.type === 'income')
-        .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-      
-      const expense = expenses
-        .filter(e => e && (e.type === 'expense' || !e.type))
-        .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-      
-      const incomeCount = expenses.filter(e => e && e.type === 'income').length;
-      const expenseCount = expenses.filter(e => e && (e.type === 'expense' || !e.type)).length;
-
-      setStats({
-        totalIncome: income,
-        totalExpenses: expense,
-        netBalance: income - expense,
-        incomeCount,
-        expenseCount
-      });
-    } catch (err) {
-      console.error('Error calculating stats:', err);
     }
   };
 
