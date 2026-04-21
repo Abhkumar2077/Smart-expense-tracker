@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { suggestionsAPI } from '../services/api';
 
 const confidenceColor = {
   high: '#22c55e',
@@ -17,7 +17,7 @@ export default function SuggestionsInbox() {
 
   const fetchSuggestions = async () => {
     try {
-      const res = await axios.get('/api/suggestions');
+      const res = await suggestionsAPI.getPending();
       setSuggestions(res.data.suggestions);
     } catch (err) {
       console.error(err);
@@ -28,7 +28,7 @@ export default function SuggestionsInbox() {
 
   const decide = async (id, status) => {
     try {
-      await axios.patch(`/api/suggestions/${id}/decide`, { status });
+      await suggestionsAPI.decide(id, status);
       setSuggestions(prev => prev.filter(s => s.id !== id));
     } catch (err) {
       console.error(err);

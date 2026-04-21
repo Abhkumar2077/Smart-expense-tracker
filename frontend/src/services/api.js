@@ -40,7 +40,6 @@ export const expenseAPI = {
   delete: (id) => API.delete(`/expenses/${id}`),
   getSummary: (month, year) => API.get('/expenses/summary', { params: { month, year } }),
   getInsights: () => API.get('/expenses/insights'),
-  updateBudget: (budget) => API.put('/expenses/budget', { monthly_budget: budget }),
   exportCSV: (startDate, endDate) => API.get('/expenses/export/csv', { 
     params: { startDate, endDate },
     responseType: 'blob'
@@ -49,7 +48,15 @@ export const expenseAPI = {
 
 // Categories API
 export const categoryAPI = {
-  getAll: () => API.get('/categories')
+  getAll: () => API.get('/categories'),
+  getSuggestions: () => API.get('/categories/suggestions'),
+  getPopular: () => API.get('/categories/popular'),
+  create: (data) => API.post('/categories', data),
+  update: (id, data) => API.put(`/categories/${id}`, data),
+  delete: (id) => API.delete(`/categories/${id}`),
+  initDefaults: () => API.post('/categories/init-defaults'),
+  checkMigration: () => API.get('/categories/migration/check'),
+  runMigration: () => API.post('/categories/migration/run')
 };
 
 // Goals API
@@ -70,9 +77,7 @@ export const remindersAPI = {
 
 // User API
 export const userAPI = {
-  getProfile: () => API.get('/auth/profile'),
-  updateProfile: (data) => API.put('/auth/profile', data),
-  updateBudget: (budget) => API.put('/auth/budget', { monthly_budget: budget })
+  getProfile: () => API.get('/auth/me')
 };
 
 // Dashboard API
@@ -89,7 +94,22 @@ export const aiAPI = {
   getForecast: () => API.get('/ai/forecast'),
   getAnomalies: () => API.get('/ai/anomalies'),
   getSavings: () => API.get('/ai/savings'),
-  getGeminiInsights: () => API.get('/ai/gemini-insights')
+  getGeminiInsights: () => API.get('/ai/gemini-insights'),
+  getWeeklyDigest: () => API.get('/ai/weekly-digest'),
+  getWeeklyDigests: () => API.get('/ai/weekly-digests'),
+  generateWeeklyDigest: () => API.post('/ai/generate-weekly-digest')
+};
+
+// Suggestions API
+export const suggestionsAPI = {
+  getPending: () => API.get('/suggestions'),
+  decide: (id, status) => API.patch(`/suggestions/${id}/decide`, { status }),
+  getHistory: () => API.get('/suggestions/history')
+};
+
+// Email API
+export const emailAPI = {
+  sendWeeklyReport: () => API.post('/email/send-weekly-report')
 };
 
 // Upload API
@@ -108,7 +128,10 @@ export const uploadAPI = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
-  downloadTemplate: () => API.get('/upload/template', { responseType: 'blob' })
+  downloadTemplate: () => API.get('/upload/template', { responseType: 'blob' }),
+  clearAll: () => API.delete('/upload/clear-all'),
+  getStats: () => API.get('/upload/stats'),
+  categorizePreview: (transactions) => API.post('/upload/categorize-preview', { transactions })
 };
 
 export default API;

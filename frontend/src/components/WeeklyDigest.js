@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { aiAPI } from '../services/api';
 
 const typeIcon = {
   increase: '↑',
@@ -13,7 +13,7 @@ export default function WeeklyDigest() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('/api/ai/weekly-digest')
+    aiAPI.getWeeklyDigest()
       .then(res => setDigest(res.data.digest))
       .catch(console.error)
       .finally(() => setLoading(false));

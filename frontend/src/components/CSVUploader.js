@@ -1,7 +1,7 @@
 // frontend/src/components/CSVUploader.js
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import axios from 'axios';
+import { categoryAPI, uploadAPI } from '../services/api';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
 import { 
@@ -42,7 +42,7 @@ const CSVUploader = ({ onUploadComplete }) => {
 
     const fetchCategories = async () => {
         try {
-            const res = await axios.get('/api/categories');
+            const res = await categoryAPI.getAll();
             setCategories(res.data);
         } catch (err) {
             console.error('Failed to fetch categories:', err);
@@ -51,12 +51,10 @@ const CSVUploader = ({ onUploadComplete }) => {
 
     const getAISuggestedCategories = async (parsedRows) => {
         try {
-            const res = await axios.post('/api/upload/categorize-preview', {
-                transactions: parsedRows.map(r => ({
-                    description: r.description,
-                    amount: r.amount
-                }))
-            });
+            const res = await uploadAPI.categorizePreview(parsedRows.map(r => ({
+                description: r.description,
+                amount: r.amount
+            })));
             return res.data.transactions;
         } catch (err) {
             console.error('AI categorization failed, using manual flow');
@@ -86,16 +84,7 @@ const CSVUploader = ({ onUploadComplete }) => {
 
     const validateFile = async (file) => {
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const res = await axios.post('/api/upload/validate', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-                onUploadProgress: (progressEvent) => {
-                    const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                    setUploadProgress(percent);
-                }
-            });
+            const res = await uploadAPI.validateCSV(file);
 
             console.log('Validation response:', res.data);
             setPreview(res.data);
@@ -152,16 +141,7 @@ const CSVUploader = ({ onUploadComplete }) => {
         setUploadProgress(0);
 
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const res = await axios.post('/api/upload/csv', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-                onUploadProgress: (progressEvent) => {
-                    const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                    setUploadProgress(percent);
-                }
-            });
+            const res = await uploadAPI.uploadCSV(file);
 
             console.log('Upload response:', res.data);
 
@@ -201,9 +181,7 @@ const CSVUploader = ({ onUploadComplete }) => {
 
     const downloadTemplate = async () => {
         try {
-            const res = await axios.get('/api/upload/template', {
-                responseType: 'blob'
-            });
+            const res = await uploadAPI.downloadTemplate();
             
             const url = window.URL.createObjectURL(new Blob([res.data]));
             const link = document.createElement('a');
@@ -230,7 +208,7 @@ const CSVUploader = ({ onUploadComplete }) => {
 
     const handleClearData = () => {
         if (window.confirm('Are you sure? This will delete all imported CSV transactions.')) {
-            axios.delete('/api/upload/clear-all')
+            uploadAPI.clearAll()
                 .then((res) => {
                     clearUpload();
                     localStorage.removeItem('uploadedData');

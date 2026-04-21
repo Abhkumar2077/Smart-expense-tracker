@@ -1,7 +1,7 @@
 // frontend/src/components/CategoryManager.js
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../context/NotificationContext';
-import axios from 'axios';
+import { categoryAPI } from '../services/api';
 import { 
     FaPlus, FaEdit, FaTrash, FaSave, FaTimes,
     FaLightbulb, FaChartLine, FaMagic
@@ -42,7 +42,7 @@ const CategoryManager = ({ onCategoryChange }) => {
     const fetchCategories = async () => {
         try {
             setLoading(true);
-            const res = await axios.get('/api/categories');
+            const res = await categoryAPI.getAll();
             setCategories(res.data);
         } catch (err) {
             console.error(err);
@@ -53,7 +53,7 @@ const CategoryManager = ({ onCategoryChange }) => {
 
     const fetchSuggestions = async () => {
         try {
-            const res = await axios.get('/api/categories/suggestions');
+            const res = await categoryAPI.getSuggestions();
             setSuggestions(res.data);
         } catch (err) {
             console.error('Failed to fetch suggestions:', err);
@@ -62,7 +62,7 @@ const CategoryManager = ({ onCategoryChange }) => {
 
     const fetchPopularCategories = async () => {
         try {
-            const res = await axios.get('/api/categories/popular');
+            const res = await categoryAPI.getPopular();
             setPopularCategories(res.data);
         } catch (err) {
             console.error('Failed to fetch popular categories:', err);
@@ -86,10 +86,10 @@ const CategoryManager = ({ onCategoryChange }) => {
 
         try {
             if (editingCategory) {
-                await axios.put(`/api/categories/${editingCategory.id}`, formData);
+                await categoryAPI.update(editingCategory.id, formData);
                 showNotification('Category updated successfully!', 'success');
             } else {
-                await axios.post('/api/categories', formData);
+                await categoryAPI.create(formData);
                 showNotification('Category created successfully!', 'success');
             }
             
@@ -105,7 +105,7 @@ const CategoryManager = ({ onCategoryChange }) => {
         if (!window.confirm('Are you sure? This category will be deleted.')) return;
         
         try {
-            await axios.delete(`/api/categories/${id}`);
+            await categoryAPI.delete(id);
             showNotification('Category deleted', 'success');
             fetchCategories();
             if (onCategoryChange) onCategoryChange();
