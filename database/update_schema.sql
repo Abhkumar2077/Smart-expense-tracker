@@ -240,3 +240,21 @@ CREATE TABLE IF NOT EXISTS weekly_digests (
     INDEX idx_user_week (user_id, week_start),
     UNIQUE KEY unique_user_week (user_id, week_start)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================
+-- 9. BUDGETS TABLE
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS budgets (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    category_id INT NOT NULL,
+    monthly_limit DECIMAL(10,2) NOT NULL,
+    month VARCHAR(7) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_category_month (user_id, category_id, month),
+    INDEX idx_budget_user_month (user_id, month),
+    INDEX idx_budget_category (category_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -73,6 +73,16 @@ class Expense {
     // Get all expenses for a user
     static async findByUserId(userId, startDate, endDate, limit = null) {
         try {
+            const normalizedUserId = Number(userId);
+            const hasValidUserId = Number.isInteger(normalizedUserId) && normalizedUserId > 0;
+            if (!hasValidUserId) {
+                throw new Error('Invalid userId provided to findByUserId');
+            }
+
+            const normalizedLimit = Number(limit);
+            const hasLimit = Number.isInteger(normalizedLimit) && normalizedLimit > 0;
+            const hasDateRange = Boolean(startDate && endDate);
+
             // Try the new query with expense_categories table first
             try {
                 let query = `
@@ -89,18 +99,17 @@ class Expense {
                     WHERE e.user_id = ?
                     GROUP BY e.id
                 `;
-                let params = [userId];
+                let params = [normalizedUserId];
 
-                if (startDate && endDate) {
+                if (hasDateRange) {
                     query += ' HAVING e.date BETWEEN ? AND ?';
                     params.push(startDate, endDate);
                 }
 
                 query += ' ORDER BY e.date DESC';
 
-                if (limit) {
-                    query += ' LIMIT ?';
-                    params.push(limit);
+                if (hasLimit) {
+                    query += ` LIMIT ${normalizedLimit}`;
                 }
 
                 const [rows] = await db.execute(query, params);
@@ -145,18 +154,17 @@ class Expense {
                 LEFT JOIN categories c ON e.category_id = c.id
                 WHERE e.user_id = ?
             `;
-            let params = [userId];
+            let params = [normalizedUserId];
 
-            if (startDate && endDate) {
+            if (hasDateRange) {
                 query += ' AND e.date BETWEEN ? AND ?';
                 params.push(startDate, endDate);
             }
 
             query += ' ORDER BY e.date DESC';
 
-            if (limit) {
-                query += ' LIMIT ?';
-                params.push(limit);
+            if (hasLimit) {
+                query += ` LIMIT ${normalizedLimit}`;
             }
 
             const [rows] = await db.execute(query, params);

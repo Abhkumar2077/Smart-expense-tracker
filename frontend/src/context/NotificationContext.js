@@ -27,7 +27,9 @@ export const NotificationProvider = ({ children }) => {
     ? '#48c774'
     : notification.type === 'error'
       ? '#f14668'
-      : '#40667f';
+      : notification.type === 'warning'
+        ? '#d4a017'
+        : '#40667f';
 
   return (
     <NotificationContext.Provider value={{ showNotification }}>

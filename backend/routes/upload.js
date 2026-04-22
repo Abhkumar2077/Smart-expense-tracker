@@ -57,20 +57,38 @@ router.post('/csv', auth, upload.single('file'), async (req, res) => {
         
         // Then process and save new CSV data
         const result = await CSVService.processCSV(req.file.buffer, req.user.id);
-        
+
+
+        // Invalidate AI insights cache for this user and trigger fresh insights
+        try {
+            const aiService = require('../services/aiService');
+            const cache = require('../utils/cache');
+            const cacheKey = `insights_${req.user.id}`;
+            cache.delete(cacheKey);
+            console.log(`🧹 Cleared AI insights cache for user ${req.user.id}`);
+            // Optionally, trigger fresh insights generation
+            aiService.generateInsights(req.user.id).then(() => {
+                console.log('🤖 AI insights regenerated after CSV upload');
+            }).catch(e => {
+                console.warn('AI insights regeneration failed:', e.message);
+            });
+        } catch (e) {
+            console.warn('Could not clear AI insights cache:', e.message);
+        }
+
         // Get new count for verification
         const [newCount] = await db.execute(
             'SELECT COUNT(*) as count FROM expenses WHERE user_id = ?', 
             [req.user.id]
         );
-        
+
         console.log(`📊 Final count: ${newCount[0].count} expenses in database`);
         console.log(`✅ Successfully processed ${result.valid_records} new records`);
-        
+
         // Add file info to result
         result.fileName = req.file.originalname;
         result.fileSize = req.file.size;
-        
+
         res.json(result);
         
     } catch (error) {

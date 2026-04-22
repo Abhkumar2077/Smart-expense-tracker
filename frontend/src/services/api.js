@@ -59,6 +59,12 @@ export const categoryAPI = {
   runMigration: () => API.post('/categories/migration/run')
 };
 
+// Budgets API
+export const budgetAPI = {
+  upsert: (data) => API.post('/budgets', data),
+  getStatus: (month) => API.get('/budgets/status', { params: { month } })
+};
+
 // Goals API
 export const goalsAPI = {
   getAll: () => API.get('/goals'),

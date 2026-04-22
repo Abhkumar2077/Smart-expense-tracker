@@ -61,7 +61,24 @@ CREATE TABLE expenses (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================
--- 4. DEFAULT CATEGORIES (including Income)
+-- 4. BUDGETS TABLE
+-- ============================================
+CREATE TABLE budgets (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    category_id INT NOT NULL,
+    monthly_limit DECIMAL(10,2) NOT NULL,
+    month VARCHAR(7) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_category_month (user_id, category_id, month),
+    INDEX idx_budget_user_month (user_id, month),
+    INDEX idx_budget_category (category_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================
+-- 5. DEFAULT CATEGORIES (including Income)
 -- ============================================
 INSERT INTO categories (name, icon, color, is_default) VALUES
 ('Food & Dining', '🍔', '#FF6B6B', TRUE),
@@ -77,7 +94,7 @@ INSERT INTO categories (name, icon, color, is_default) VALUES
 ('Other', '📌', '#B0B0B0', TRUE);
 
 -- ============================================
--- 5. SAVINGS GOALS TABLE
+-- 6. SAVINGS GOALS TABLE
 -- ============================================
 CREATE TABLE savings_goals (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -94,7 +111,7 @@ CREATE TABLE savings_goals (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================
--- 6. BILL REMINDERS TABLE
+-- 7. BILL REMINDERS TABLE
 -- ============================================
 CREATE TABLE bill_reminders (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -116,7 +133,7 @@ CREATE TABLE bill_reminders (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================
--- 7. NOTIFICATION PREFERENCES TABLE
+-- 8. NOTIFICATION PREFERENCES TABLE
 -- ============================================
 CREATE TABLE notification_preferences (
     id INT PRIMARY KEY AUTO_INCREMENT,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { FaPlus, FaUserCircle, FaCog, FaSignOutAlt, FaBell, FaBars } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +7,7 @@ const TopNav = ({ toggleSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   
   // For now, no notifications - this should be replaced with actual notification count
   // TODO: Implement notification system with real count from API
@@ -16,6 +17,28 @@ const TopNav = ({ toggleSidebar }) => {
     await logout();
     navigate('/login');
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
 
   return (
     <header className="top-nav">
@@ -51,11 +74,12 @@ const TopNav = ({ toggleSidebar }) => {
           <FaPlus />
         </button>
 
-        <div className="user-dropdown-container" onMouseLeave={() => setDropdownOpen(false)}>
+        <div className="user-dropdown-container" ref={dropdownRef}>
           <button
             className="top-nav-btn user-btn"
             onClick={() => setDropdownOpen((o) => !o)}
             title="User menu"
+            aria-expanded={dropdownOpen}
           >
             <FaUserCircle /> {user?.name || 'User'}
           </button>

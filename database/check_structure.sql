@@ -45,6 +45,14 @@ FROM expenses;
 -- ============================================
 -- 5. CHECK FOREIGN KEYS
 -- ============================================
+SELECT '\n=== BUDGETS TABLE STRUCTURE ===' as 'INFO';
+DESCRIBE budgets;
+SELECT '\n=== BUDGETS SUMMARY ===' as 'INFO';
+SELECT user_id, category_id, month, monthly_limit FROM budgets ORDER BY month DESC LIMIT 20;
+
+-- ============================================
+-- 6. CHECK FOREIGN KEYS
+-- ============================================
 SELECT '\n=== FOREIGN KEYS ===' as 'INFO';
 SELECT 
     CONSTRAINT_NAME,
@@ -57,7 +65,7 @@ WHERE CONSTRAINT_SCHEMA = DATABASE()
 AND REFERENCED_TABLE_NAME IS NOT NULL;
 
 -- ============================================
--- 6. DATABASE SIZE
+-- 7. DATABASE SIZE
 -- ============================================
 SELECT '\n=== DATABASE SIZE ===' as 'INFO';
 SELECT 

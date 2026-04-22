@@ -44,6 +44,8 @@ const Dashboard = () => {
   ];
 
   const [sparklineData, setSparklineData] = useState({});
+  const [typedGreeting, setTypedGreeting] = useState('');
+  const [typedSubtitle, setTypedSubtitle] = useState('');
 
   // Fetch sparkline data separately (always get monthly data for trends)
   const fetchSparklineData = async () => {
@@ -228,6 +230,59 @@ const Dashboard = () => {
     fetchDashboardData();
   };
 
+  // Get time-based greeting
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const greetingText = `${getTimeBasedGreeting()}, ${dashboardData?.user?.name || user?.name || 'User'}!`;
+  const subtitleText = `Welcome to your financial dashboard. Here's your overview for ${timeRange === 'month' ? `${months[selectedMonth - 1]} ${selectedYear}` : timeRange === 'year' ? selectedYear : 'all time'}.`;
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) {
+      setTypedGreeting(greetingText);
+      setTypedSubtitle(subtitleText);
+      return undefined;
+    }
+
+    setTypedGreeting('');
+    setTypedSubtitle('');
+
+    let greetingIndex = 0;
+    let subtitleIndex = 0;
+    let subtitleTimerId = null;
+
+    const greetingTimer = window.setInterval(() => {
+      greetingIndex += 1;
+      setTypedGreeting(greetingText.slice(0, greetingIndex));
+
+      if (greetingIndex >= greetingText.length) {
+        window.clearInterval(greetingTimer);
+
+        subtitleTimerId = window.setInterval(() => {
+          subtitleIndex += 1;
+          setTypedSubtitle(subtitleText.slice(0, subtitleIndex));
+
+          if (subtitleIndex >= subtitleText.length) {
+            window.clearInterval(subtitleTimerId);
+          }
+        }, 12);
+      }
+    }, 28);
+
+    return () => {
+      window.clearInterval(greetingTimer);
+      if (subtitleTimerId) {
+        window.clearInterval(subtitleTimerId);
+      }
+    };
+  }, [greetingText, subtitleText]);
+
   if (loading) {
     return (
       <div style={{ 
@@ -327,21 +382,13 @@ const Dashboard = () => {
     return ((current - previous) / previous) * 100;
   };
 
-  // Get time-based greeting
-  const getTimeBasedGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
-
   return (
     <div>
       {/* Greeting Block */}
         <div className="greeting-block">
           <div className="greeting-content">
-            <h1 className="greeting-title">{getTimeBasedGreeting()}, {dashboardData?.user?.name || user?.name || 'User'}!</h1>
-            <p className="greeting-subtitle">Welcome to your financial dashboard. Here's your overview for {timeRange === 'month' ? `${months[selectedMonth - 1]} ${selectedYear}` : timeRange === 'year' ? selectedYear : 'all time'}.</p>
+            <h1 className="greeting-title">{typedGreeting}<span className="typing-cursor">|</span></h1>
+            <p className="greeting-subtitle">{typedSubtitle}</p>
           </div>
           <div className="greeting-decoration">
             <div className="time-indicator">
@@ -784,6 +831,22 @@ const Dashboard = () => {
           margin: 0 0 12px 0;
           color: white;
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .typing-cursor {
+          display: inline-block;
+          margin-left: 2px;
+          animation: blink-cursor 1s steps(1) infinite;
+          opacity: 0.9;
+        }
+
+        @keyframes blink-cursor {
+          0%, 50% {
+            opacity: 1;
+          }
+          50.01%, 100% {
+            opacity: 0;
+          }
         }
 
         .greeting-subtitle {

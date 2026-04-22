@@ -23,22 +23,10 @@ const AIDashboard = () => {
         anomalies: 0
     });
 
+    // Remove auto-fetch. Only fetch on button click.
     useEffect(() => {
-        fetchAIInsights();
-        
-        const handleDataChange = () => {
-            fetchAIInsights();
-        };
-        
-        window.addEventListener('upload-data-changed', handleDataChange);
-        window.addEventListener('upload-data-cleared', handleDataChange);
-        window.addEventListener('storage', handleDataChange);
-        
-        return () => {
-            window.removeEventListener('upload-data-changed', handleDataChange);
-            window.removeEventListener('upload-data-cleared', handleDataChange);
-            window.removeEventListener('storage', handleDataChange);
-        };
+        // No auto-fetch on mount
+        return () => {};
     }, []);
 
     useEffect(() => {
@@ -914,8 +902,47 @@ const AIDashboard = () => {
                 <FaRobot size={50} className="empty-state-icon" />
                 <h3 className="empty-state-title">No AI Insights Available</h3>
                 <p className="empty-state-message">
-                    Add more transactions to get personalized financial insights!
+                    Click below to fetch insights from your data.
                 </p>
+                <button 
+                    onClick={fetchAIInsights}
+                    style={{
+                        marginTop: '20px',
+                        padding: '10px 30px',
+                        background: '#667eea',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                    }}
+                >
+                    Fetch Insights
+                </button>
+                {/* Gemini Button/Space */}
+                <div style={{ marginTop: '30px' }}>
+                    <button
+                        onClick={() => {
+                            setActiveTab('gemini');
+                            if (!geminiInsights) fetchGeminiInsights();
+                        }}
+                        style={{
+                            padding: '10px 20px',
+                            borderRadius: '25px',
+                            border: '2px solid #4285f4',
+                            background: '#fff',
+                            color: '#4285f4',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            marginRight: '10px'
+                        }}
+                    >
+                        Fetch Gemini Insights
+                    </button>
+                    <div style={{ marginTop: '10px', color: '#4285f4', fontWeight: 'bold' }}>
+                        Gemini API: Advanced insights on demand
+                    </div>
+                </div>
             </div>
         );
     }

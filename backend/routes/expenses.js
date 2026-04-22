@@ -5,6 +5,7 @@ const { body, validationResult } = require('express-validator');
 const auth = require('../middleware/auth');
 const Expense = require('../models/Expense');
 const User = require('../models/User');
+const Budget = require('../models/Budget');
 
 // @route   POST api/expenses
 // @desc    Create an expense or income
@@ -29,8 +30,28 @@ router.post('/', [
 
         const expenseId = await Expense.create(expenseData);
         const expense = await Expense.findById(expenseId, req.user.id);
+
+        let budgetStatus = null;
+        let alert = null;
+
+        if (expense && (expense.type === 'expense' || !expense.type)) {
+            let monthKey = Budget.getCurrentMonth();
+            if (expense.date instanceof Date && !Number.isNaN(expense.date.getTime())) {
+                monthKey = expense.date.toISOString().slice(0, 7);
+            } else if (typeof expense.date === 'string' && /^\d{4}-\d{2}/.test(expense.date)) {
+                monthKey = expense.date.slice(0, 7);
+            }
+            const month = Budget.normalizeMonth(monthKey);
+            budgetStatus = await Budget.getCategoryStatus(req.user.id, expense.category_id, month);
+            alert = budgetStatus?.alert || null;
+        }
         
-        res.json(expense);
+        res.json({
+            success: true,
+            expense,
+            alert,
+            budget_status: budgetStatus
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ message: 'Server error' });

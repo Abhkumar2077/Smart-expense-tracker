@@ -35,6 +35,7 @@ app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/suggestions', require('./routes/suggestions'));
+app.use('/api/budgets', require('./routes/budgets'));
 
 // Test database connection
 const testDBConnection = async () => {
