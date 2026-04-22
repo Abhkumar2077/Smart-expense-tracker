@@ -5,7 +5,7 @@ import CSVUploader from '../components/CSVUploader';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
 import { FaUpload, FaHistory, FaTrash, FaDownload } from 'react-icons/fa';
-import { MdPushPin, MdEvent, MdAttachMoney, MdDescription, MdSync } from 'react-icons/md';
+import { MdPushPin, MdEvent, MdAttachMoney, MdDescription, MdSync, MdSettings } from 'react-icons/md';
 
 const Upload = () => {
     const { uploadHistory, clearHistory, removeUpload, clearUpload } = useUpload();
@@ -192,6 +192,66 @@ const Upload = () => {
                     </div>
                 </div>
 
+                {/* Global Import Options */}
+                <div className="card" style={{ marginTop: '30px' }}>
+                    <div className="card-header">
+                        <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <MdSettings /> Global Import Settings
+                        </h3>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', padding: '10px 0' }}>
+                        
+                        <div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', cursor: 'pointer' }}>
+                                <input type="checkbox" defaultChecked />
+                                <span>Auto-categorize transactions with AI</span>
+                            </label>
+                            <p style={{ color: '#666', fontSize: '12px', paddingLeft: '26px' }}>Uses AI to automatically assign categories to imported transactions</p>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', cursor: 'pointer' }}>
+                                <input type="checkbox" defaultChecked />
+                                <span>Skip duplicate transactions</span>
+                            </label>
+                            <p style={{ color: '#666', fontSize: '12px', paddingLeft: '26px' }}>Automatically detect and ignore duplicate entries during import</p>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', cursor: 'pointer' }}>
+                                <input type="checkbox" />
+                                <span>Append instead of replace data</span>
+                            </label>
+                            <p style={{ color: '#666', fontSize: '12px', paddingLeft: '26px' }}>Add new transactions instead of replacing existing dataset</p>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', cursor: 'pointer' }}>
+                                <input type="checkbox" defaultChecked />
+                                <span>Validate dates and amounts</span>
+                            </label>
+                            <p style={{ color: '#666', fontSize: '12px', paddingLeft: '26px' }}>Validate CSV data formats before processing import</p>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', cursor: 'pointer' }}>
+                                <input type="checkbox" defaultChecked />
+                                <span>Run duplicate detection</span>
+                            </label>
+                            <p style={{ color: '#666', fontSize: '12px', paddingLeft: '26px' }}>Check for duplicate transactions across existing data</p>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', cursor: 'pointer' }}>
+                                <input type="checkbox" />
+                                <span>Include transfers as income/expense</span>
+                            </label>
+                            <p style={{ color: '#666', fontSize: '12px', paddingLeft: '26px' }}>Count internal account transfers in total calculations</p>
+                        </div>
+
+                    </div>
+                </div>
+
                 {/* Download Template Button */}
                 <div style={{ textAlign: 'center', marginTop: '20px' }}>
                     <a 
@@ -200,14 +260,14 @@ const Upload = () => {
                         style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '8px',
+                            gap: 'var(--spacing-sm)',
                             padding: '12px 24px',
                             background: 'white',
-                            border: '2px solid #667eea',
-                            color: '#667eea',
-                            borderRadius: '5px',
+                            border: '2px solid var(--color-primary)',
+                            color: 'var(--color-primary)',
+                            borderRadius: 'var(--border-radius)',
                             textDecoration: 'none',
-                            fontWeight: 'bold'
+                            fontWeight: 'var(--font-weight-bold)'
                         }}
                     >
                         <FaDownload /> Download Sample CSV Template
