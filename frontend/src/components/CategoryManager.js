@@ -2,10 +2,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../context/NotificationContext';
 import { categoryAPI } from '../services/api';
+import { normalizeCategoryIcon } from '../utils/categoryIcon';
 import { 
     FaPlus, FaEdit, FaTrash, FaSave, FaTimes,
     FaLightbulb, FaChartLine, FaMagic
 } from 'react-icons/fa';
+import {
+    MdFastfood, MdDirectionsCar, MdShoppingCart, MdMovie, MdDescription,
+    MdLocalHospital, MdMenuBook, MdStore, MdFlight, MdAttachMoney,
+    MdLocationPin, MdHome, MdLocalCafe, MdLocalPizza, MdVideogameAsset,
+    MdLightbulb, MdPhoneAndroid, MdCheckroom, MdMusicNote, MdDirectionsRun,
+    MdWork, MdSchool, MdLocalShipping, MdBuild,
+    MdHandyman, MdInventory, MdCardGiftcard, MdCreditCard, MdAccountBalance
+} from 'react-icons/md';
 
 const CategoryManager = ({ onCategoryChange }) => {
     const { showNotification } = useNotification();
@@ -18,7 +27,7 @@ const CategoryManager = ({ onCategoryChange }) => {
     const [formData, setFormData] = useState({
         name: '',
         color: '#667eea',
-        icon: '\uD83D\uDCCC'
+        icon: 'pin'
     });
 
     const presetColors = [
@@ -27,11 +36,39 @@ const CategoryManager = ({ onCategoryChange }) => {
         '#F14668', '#667EEA', '#ED8936', '#9F7AEA', '#F56565'
     ];
 
-    const presetIcons = [
-        '🍔', '🚗', '🛍️', '🎬', '📄', '🏥', '📚', '🛒', '✈️', '💰',
-        '📌', '🏠', '☕', '🍕', '🎮', '💡', '📱', '👕', '🎵', '🏃',
-        '💼', '🎓', '🏥', '🚑', '🔧', '🛠️', '📦', '🎁', '💳', '🏦'
-    ];
+    const iconMap = {
+        'fastfood': <MdFastfood />,
+        'car': <MdDirectionsCar />,
+        'shopping': <MdShoppingCart />,
+        'movie': <MdMovie />,
+        'document': <MdDescription />,
+        'hospital': <MdLocalHospital />,
+        'book': <MdMenuBook />,
+        'store': <MdStore />,
+        'flight': <MdFlight />,
+        'money': <MdAttachMoney />,
+        'pin': <MdLocationPin />,
+        'home': <MdHome />,
+        'cafe': <MdLocalCafe />,
+        'pizza': <MdLocalPizza />,
+        'game': <MdVideogameAsset />,
+        'lightbulb': <MdLightbulb />,
+        'phone': <MdPhoneAndroid />,
+        'clothes': <MdCheckroom />,
+        'music': <MdMusicNote />,
+        'run': <MdDirectionsRun />,
+        'work': <MdWork />,
+        'school': <MdSchool />,
+        'ambulance': <MdLocalShipping />,
+        'tools': <MdBuild />,
+        'handyman': <MdHandyman />,
+        'inventory': <MdInventory />,
+        'gift': <MdCardGiftcard />,
+        'card': <MdCreditCard />,
+        'bank': <MdAccountBalance />
+    };
+
+    const presetIcons = Object.keys(iconMap);
 
     useEffect(() => {
         fetchCategories();
@@ -119,7 +156,7 @@ const CategoryManager = ({ onCategoryChange }) => {
         setFormData({
             name: category.name,
             color: category.color || '#667eea',
-            icon: category.icon || '\uD83D\uDCCC'
+            icon: category.icon || 'pin'
         });
         setShowAddForm(true);
     };
@@ -128,7 +165,7 @@ const CategoryManager = ({ onCategoryChange }) => {
         setFormData({
             ...formData,
             name: suggestion.suggested_name.toLowerCase(),
-            icon: suggestion.icon || '\uD83D\uDCCC'
+            icon: suggestion.icon || 'pin'
         });
     };
 
@@ -136,7 +173,7 @@ const CategoryManager = ({ onCategoryChange }) => {
         setFormData({
             name: popular.name,
             color: popular.color || '#667eea',
-            icon: popular.icon || '\uD83D\uDCCC'
+            icon: popular.icon || 'pin'
         });
     };
 
@@ -146,7 +183,7 @@ const CategoryManager = ({ onCategoryChange }) => {
         setFormData({
             name: '',
             color: '#667eea',
-            icon: '\uD83D\uDCCC'
+            icon: 'pin'
         });
     };
 
@@ -262,15 +299,16 @@ const CategoryManager = ({ onCategoryChange }) => {
                                     borderRadius: '5px',
                                     background: formData.color + '20',
                                     minWidth: '50px',
-                                    textAlign: 'center'
+                                    textAlign: 'center',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                 }}>
-                                    {formData.icon}
+                                    {iconMap[formData.icon] || <MdLocationPin />}
                                 </div>
-                                <input
-                                    type="text"
+                                <select
                                     value={formData.icon}
                                     onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                                    placeholder="Enter emoji or icon"
                                     style={{
                                         padding: '10px',
                                         border: '2px solid var(--border-color)',
@@ -278,32 +316,39 @@ const CategoryManager = ({ onCategoryChange }) => {
                                         fontSize: '16px',
                                         flex: 1
                                     }}
-                                />
+                                >
+                                    {presetIcons.map(iconKey => (
+                                        <option key={iconKey} value={iconKey}>
+                                            {iconKey.charAt(0).toUpperCase() + iconKey.slice(1)}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div style={{
                                 display: 'grid',
                                 gridTemplateColumns: 'repeat(10, 1fr)',
                                 gap: '5px'
                             }}>
-                                {presetIcons.map(icon => (
+                                {presetIcons.map(iconKey => (
                                     <button
-                                        key={icon}
+                                        key={iconKey}
                                         type="button"
-                                        onClick={() => setFormData({ ...formData, icon })}
+                                        onClick={() => setFormData({ ...formData, icon: iconKey })}
                                         style={{
                                             fontSize: '18px',
                                             padding: '8px',
-                                            background: formData.icon === icon ? formData.color + '40' : 'white',
-                                            border: formData.icon === icon ? `2px solid ${formData.color}` : '2px solid var(--border-color)',
+                                            background: formData.icon === iconKey ? formData.color + '40' : 'white',
+                                            border: formData.icon === iconKey ? `2px solid ${formData.color}` : '2px solid var(--border-color)',
                                             borderRadius: '5px',
                                             cursor: 'pointer',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            justifyContent: 'center'
+                                            justifyContent: 'center',
+                                            color: formData.icon === iconKey ? formData.color : 'var(--text-color)'
                                         }}
-                                        title={icon}
+                                        title={iconKey.charAt(0).toUpperCase() + iconKey.slice(1)}
                                     >
-                                        {icon}
+                                        {iconMap[iconKey]}
                                     </button>
                                 ))}
                             </div>
@@ -407,9 +452,12 @@ const CategoryManager = ({ onCategoryChange }) => {
                                     background: category.color + '20',
                                     padding: '8px',
                                     borderRadius: '8px',
-                                    border: `2px solid ${category.color}40`
+                                    border: `2px solid ${category.color}40`,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                 }}>
-                                    {category.icon || '\uD83D\uDCCC'}
+                                    {iconMap[category.icon] || normalizeCategoryIcon(category.icon, category.name)}
                                 </div>
                                 <div style={{ flex: 1 }}>
                                     <h4 style={{ margin: 0, fontSize: '16px' }}>

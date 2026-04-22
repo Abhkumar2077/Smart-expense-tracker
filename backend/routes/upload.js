@@ -231,7 +231,23 @@ router.post('/categorize-preview', auth, async (req, res) => {
 
     res.json({ transactions: enriched });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Categorization error:', err.message);
+    
+    // If Gemini fails, return transactions without categorization
+    // This allows the upload to continue with manual categorization
+    const fallbackTransactions = transactions.map(t => ({
+      ...t,
+      suggested_category: null,
+      suggested_category_id: null,
+      confidence: 'none'
+    }));
+    
+    console.log('🔄 Using fallback categorization (no AI suggestions)');
+    res.json({ 
+      transactions: fallbackTransactions,
+      fallback: true,
+      message: 'AI categorization unavailable - please categorize manually'
+    });
   }
 });
 

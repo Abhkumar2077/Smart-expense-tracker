@@ -2,11 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { FaArrowDown, FaArrowUp, FaTimes, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { normalizeCategoryIcon } from '../utils/categoryIcon';
 import './ExpenseForm.css';
 
 const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded = false }) => {
+  const renderCategoryIcon = (icon, categoryName) => normalizeCategoryIcon(icon, categoryName);
+
   const [formData, setFormData] = useState({
     category_id: '',
+    category_ids: [], // For multiple categories (income)
     amount: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
@@ -16,11 +20,14 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
   const [errors, setErrors] = useState({});
   const [isIncomePanelActive, setIsIncomePanelActive] = useState(false);
   const navigate = useNavigate();
+  const transactionCategories = categories ? categories.filter(c => c.name !== 'Income') : [];
 
   useEffect(() => {
     if (editingExpense) {
+      const resolvedCategoryId = editingExpense.category_id || (editingExpense.categories && editingExpense.categories[0] ? editingExpense.categories[0].id : '');
       setFormData({
-        category_id: editingExpense.category_id || '',
+        category_id: resolvedCategoryId,
+        category_ids: editingExpense.categories ? editingExpense.categories.map(c => c.id) : [editingExpense.category_id].filter(Boolean),
         amount: editingExpense.amount || '',
         description: editingExpense.description || '',
         date: editingExpense.date || new Date().toISOString().split('T')[0],
@@ -93,6 +100,7 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
             if (!editingExpense) {
               setFormData({
                 category_id: '',
+                category_ids: [],
                 amount: '',
                 description: '',
                 date: new Date().toISOString().split('T')[0],
@@ -109,7 +117,6 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
                 </label>
 
                 {(() => {
-                  const filteredCategories = categories ? categories.filter(c => c.name !== 'Income') : [];
                   if (!categories || categories.length === 0) {
                     return (
                       <div className="no-categories">
@@ -122,7 +129,7 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
                         </button>
                       </div>
                     );
-                  } else if (filteredCategories.length === 0) {
+                  } else if (transactionCategories.length === 0) {
                     return (
                       <div className="no-categories">
                         <p>No expense categories available</p>
@@ -143,9 +150,9 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
                         required
                       >
                         <option value="">Select a category</option>
-                        {filteredCategories.map(category => (
+                        {transactionCategories.map(category => (
                           <option key={category.id} value={category.id}>
-                            {category.name}
+                            {renderCategoryIcon(category.icon, category.name)} {category.name}
                           </option>
                         ))}
                       </select>
@@ -222,7 +229,7 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
               <button
                 type="submit"
                 className="submit-btn"
-                disabled={!categories || categories.length === 0}
+                disabled={transactionCategories.length === 0}
               >
                 <FaArrowUp />
                 {editingExpense ? 'Update' : 'Add'} Expense
@@ -254,11 +261,15 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
               amount: parseFloat(formData.amount),
               type: 'income'
             };
+            if (isIncomePanelActive) {
+              submitData.category_ids = formData.category_id ? [parseInt(formData.category_id, 10)] : [];
+            }
             console.log('📝 Submitting income:', submitData);
             onSubmit(submitData);
             if (!editingExpense) {
               setFormData({
                 category_id: '',
+                category_ids: [],
                 amount: '',
                 description: '',
                 date: new Date().toISOString().split('T')[0],
@@ -272,12 +283,12 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
               <div className="field-group">
                 <label>
                   Category <span>*</span>
+                  <small style={{ display: 'block', color: '#666', marginTop: '4px' }}>
+                    Select a category
+                  </small>
                 </label>
 
                 {(() => {
-                  const filteredCategories = categories ? categories.filter(c =>
-                    c.name === 'Income' || c.name === 'Other'
-                  ) : [];
                   if (!categories || categories.length === 0) {
                     return (
                       <div className="no-categories">
@@ -290,7 +301,7 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
                         </button>
                       </div>
                     );
-                  } else if (filteredCategories.length === 0) {
+                  } else if (transactionCategories.length === 0) {
                     return (
                       <div className="no-categories">
                         <p>No income categories available</p>
@@ -311,9 +322,9 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
                         required
                       >
                         <option value="">Select a category</option>
-                        {filteredCategories.map(category => (
+                        {transactionCategories.map(category => (
                           <option key={category.id} value={category.id}>
-                            {category.name}
+                            {renderCategoryIcon(category.icon, category.name)} {category.name}
                           </option>
                         ))}
                       </select>
@@ -390,7 +401,7 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
               <button
                 type="submit"
                 className="submit-btn"
-                disabled={!categories || categories.length === 0}
+                disabled={transactionCategories.length === 0}
               >
                 <FaArrowDown />
                 {editingExpense ? 'Update' : 'Add'} Income

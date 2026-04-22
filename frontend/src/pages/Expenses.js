@@ -5,10 +5,11 @@ import ExpenseForm from '../components/ExpenseForm';
 import { expenseAPI, categoryAPI } from '../services/api';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
+import { resolveExpenseCategoryIcon } from '../utils/categoryIcon';
 import { 
   FaEdit, FaTrash, FaDownload, FaCloudUploadAlt, 
   FaSync, FaArrowDown, FaArrowUp, FaFilter,
-  FaFileCsv, FaMoneyBillWave, FaExclamationTriangle
+  FaFileCsv, FaMoneyBillWave, FaExclamationTriangle, FaTimes
 } from 'react-icons/fa';
 
 const Expenses = () => {
@@ -34,48 +35,117 @@ const Expenses = () => {
   const { uploadedData } = useUpload();
   const { showNotification } = useNotification();
 
-  // Initial data fetch
+  // Combined useEffect for data fetching and event listeners
   useEffect(() => {
-    fetchData();
-  }, []);
+    let isMounted = true;
 
-  // Listen for upload data changes
-  useEffect(() => {
+    const fetchData = async () => {
+      if (!isMounted) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        console.log('📊 Fetching expenses data...');
+
+        // Fetch categories first
+        let categoriesData = [];
+        try {
+          const categoriesRes = await categoryAPI.getAll();
+          categoriesData = categoriesRes.data || [];
+          console.log('✅ Categories loaded:', categoriesData.length);
+        } catch (catErr) {
+          console.error('Error fetching categories:', catErr);
+          // Don't set error for categories, just log it
+        }
+
+        if (!isMounted) return;
+        setCategories(categoriesData);
+
+        // Fetch expenses
+        let expensesData = [];
+        try {
+          const expensesRes = await expenseAPI.getAll();
+          expensesData = expensesRes.data || [];
+          console.log('✅ Expenses loaded:', expensesData.length, 'records');
+          if (expensesData.length > 0) {
+            console.log('📊 Sample expense:', expensesData[0]);
+          }
+        } catch (expErr) {
+          console.error('Error fetching expenses:', expErr);
+          setError('Failed to load expenses. Please try again.');
+          return;
+        }
+
+        if (!isMounted) return;
+        setExpenses(expensesData);
+
+      } catch (err) {
+        console.error('❌ Error in fetchData:', err);
+        if (isMounted) {
+          setError('An unexpected error occurred. Please refresh the page.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Initial data fetch
+    fetchData();
+
+    // Event handlers
     const handleUploadChange = () => {
       console.log('🔄 Upload data changed, refreshing expenses...');
-      fetchData();
+      if (isMounted) fetchData();
     };
-    
+
     const handleStorageChange = (e) => {
       if (e.key === 'uploadedData' || e.key === 'uploadHistory') {
         console.log('🔄 Storage changed, refreshing expenses...');
-        fetchData();
+        if (isMounted) fetchData();
       }
     };
-    
+
     // Add event listeners
     window.addEventListener('upload-data-changed', handleUploadChange);
     window.addEventListener('upload-data-cleared', handleUploadChange);
     window.addEventListener('storage', handleStorageChange);
-    
-    // Cleanup
+
+    // Cleanup function
     return () => {
+      isMounted = false;
       window.removeEventListener('upload-data-changed', handleUploadChange);
       window.removeEventListener('upload-data-cleared', handleUploadChange);
       window.removeEventListener('storage', handleStorageChange);
     };
+  }, []); // Empty dependency array - only run on mount
+
+  // Refetch function for manual refresh
+  const refetchData = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('upload-data-changed'));
   }, []);
+
+  // Separate useEffect for uploadedData changes (avoiding the fetchData redefinition)
+  useEffect(() => {
+    if (uploadedData) {
+      console.log('📦 uploadedData changed in context, refreshing...');
+      // Trigger a refresh by dispatching custom event
+      window.dispatchEvent(new CustomEvent('upload-data-changed'));
+    }
+  }, [uploadedData]);
 
   const calculateStats = useCallback(() => {
     try {
       const income = expenses
         .filter(e => e && e.type === 'income')
         .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-      
+
       const expense = expenses
         .filter(e => e && (e.type === 'expense' || !e.type))
         .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-      
+
       const incomeCount = expenses.filter(e => e && e.type === 'income').length;
       const expenseCount = expenses.filter(e => e && (e.type === 'expense' || !e.type)).length;
 
@@ -90,12 +160,6 @@ const Expenses = () => {
       console.error('Error calculating stats:', err);
     }
   }, [expenses]);
-
-  // Re-fetch when uploadedData changes (context update)
-  useEffect(() => {
-    console.log('📦 uploadedData changed in context:', uploadedData);
-    fetchData();
-  }, [uploadedData]);
 
   // Calculate stats whenever expenses change
   useEffect(() => {
@@ -113,45 +177,6 @@ const Expenses = () => {
     }
   }, [expenses, calculateStats]);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('📊 Fetching expenses data...');
-      
-      // Fetch categories first
-      let categoriesData = [];
-      try {
-        const categoriesRes = await categoryAPI.getAll();
-        categoriesData = categoriesRes.data || [];
-        console.log('✅ Categories loaded:', categoriesData.length);
-      } catch (catErr) {
-        console.error('Error fetching categories:', catErr);
-      }
-      setCategories(categoriesData);
-      
-      // Fetch expenses
-      let expensesData = [];
-      try {
-        const expensesRes = await expenseAPI.getAll();
-        expensesData = expensesRes.data || [];
-        console.log('✅ Expenses loaded:', expensesData.length);
-      } catch (expErr) {
-        console.error('Error fetching expenses:', expErr);
-        setError('Failed to load expenses. Please try again.');
-      }
-      
-      setExpenses(expensesData);
-      
-    } catch (err) {
-      console.error('❌ Error in fetchData:', err);
-      setError('An unexpected error occurred. Please refresh the page.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDelete = async (id) => {
     if (!id) return;
     
@@ -165,7 +190,7 @@ const Expenses = () => {
         console.error('Error deleting:', error);
         showNotification('Error deleting transaction', 'error');
         // Refresh to ensure consistency
-        fetchData();
+        refetchData();
       }
     }
   };
@@ -235,7 +260,7 @@ const Expenses = () => {
 
     setSyncing(true);
     try {
-      await fetchData();
+      refetchData();
       showNotification('Data refreshed!', 'success');
     } catch (error) {
       console.error('Sync error:', error);
@@ -273,7 +298,7 @@ const Expenses = () => {
   const clearFilters = () => {
     setFilters({ startDate: '', endDate: '' });
     setFilterType('all');
-    fetchData();
+    refetchData();
   };
 
   const filteredExpenses = getFilteredExpenses();
@@ -320,7 +345,7 @@ const Expenses = () => {
             <h3 style={{ margin: '20px 0', color: '#00A3E0' }}>Oops! Something went wrong</h3>
             <p style={{ color: '#666' }}>{error}</p>
             <button 
-              onClick={fetchData}
+              onClick={refetchData}
               style={{
                 marginTop: '20px',
                 padding: '10px 30px',
@@ -393,6 +418,29 @@ const Expenses = () => {
           </div>
           
           <div style={{ display: 'flex', gap: '10px', position: 'relative', zIndex: 1 }}>
+            <button
+              onClick={() => refetchData()}
+              disabled={loading}
+              style={{
+                background: 'rgba(173, 216, 230, 0.8)',
+                backdropFilter: 'blur(5px)',
+                color: '#001435',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '8px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+                fontWeight: '500'
+              }}
+              title="Refresh data"
+            >
+              <FaSync className={loading ? 'fa-spin' : ''} />
+              {loading ? 'Loading...' : 'Refresh'}
+            </button>
+
             {uploadedData && (
               <button 
                 onClick={handleSyncUploadedData}
@@ -441,90 +489,303 @@ const Expenses = () => {
           </div>
         </div>
 
-        {/* Summary Cards */}
+        {/* Summary Cards - Enhanced Design */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '24px',
-          marginBottom: '48px',
-          background: 'linear-gradient(135deg, #001435 0%, #003087 50%, #00A3E0 100%)',
-          padding: '32px',
-          borderRadius: '16px',
-          boxShadow: '0 12px 40px rgba(0, 3, 135, 0.3)',
-          position: 'relative',
-          overflow: 'hidden'
+          marginBottom: '48px'
         }}>
-          <style>{`
-            .summary-cards::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              bottom: 0;
-              background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.05) 100%);
-              pointer-events: none;
-            }
-          `}</style>
+          {/* Total Income Card */}
           <div style={{
-            background: 'rgba(255, 255, 255, 0.95)',
+            background: 'linear-gradient(135deg, rgba(0, 48, 135, 0.1) 0%, rgba(0, 163, 224, 0.1) 100%)',
             backdropFilter: 'blur(10px)',
-            padding: '24px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            padding: '32px',
+            borderRadius: '20px',
+            boxShadow: '0 8px 32px rgba(0, 48, 135, 0.15)',
+            border: '1px solid rgba(0, 48, 135, 0.2)',
             position: 'relative',
-            zIndex: 1
+            overflow: 'hidden'
           }}>
-            <div style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>Total Income</div>
-            <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#003087', margin: '8px 0' }}>
-              ₹{stats.totalIncome.toFixed(2)}
-            </div>
-            <div style={{ fontSize: '12px', color: '#999' }}>
-              {stats.incomeCount} transactions
-            </div>
-          </div>
-
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            padding: '24px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            position: 'relative',
-            zIndex: 1
-          }}>
-            <div style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>Total Expenses</div>
-            <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#00A3E0', margin: '8px 0' }}>
-              ₹{stats.totalExpenses.toFixed(2)}
-            </div>
-            <div style={{ fontSize: '12px', color: '#999' }}>
-              {stats.expenseCount} transactions
-            </div>
-          </div>
-
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            padding: '24px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            position: 'relative',
-            zIndex: 1
-          }}>
-            <div style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>Net Balance</div>
             <div style={{
-              fontSize: '28px',
-              fontWeight: 'bold',
-              color: stats.netBalance >= 0 ? '#003087' : '#00A3E0',
-              margin: '8px 0'
-            }}>
-              ₹{Math.abs(stats.netBalance).toFixed(2)}
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #003087, #00A3E0)',
+              opacity: 0.1
+            }}></div>
+            <div style={{
+              position: 'absolute',
+              top: '30px',
+              right: '30px',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #003087, #00A3E0)',
+              opacity: 0.2
+            }}></div>
+
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '16px'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #003087, #00A3E0)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(0, 48, 135, 0.3)'
+                }}>
+                  <FaArrowDown style={{ color: 'white', fontSize: '20px' }} />
+                </div>
+                <div>
+                  <h4 style={{
+                    color: '#003087',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    margin: '0 0 4px 0'
+                  }}>
+                    Total Income
+                  </h4>
+                  <p style={{
+                    color: 'rgba(0, 48, 135, 0.7)',
+                    fontSize: '12px',
+                    margin: '0',
+                    fontWeight: '500'
+                  }}>
+                    {stats.incomeCount} transactions
+                  </p>
+                </div>
+              </div>
+
+              <div style={{
+                fontSize: '32px',
+                fontWeight: '700',
+                color: '#003087',
+                marginBottom: '8px'
+              }}>
+                ₹{stats.totalIncome.toFixed(2)}
+              </div>
+
+              <div style={{
+                width: '100%',
+                height: '4px',
+                background: 'rgba(0, 48, 135, 0.1)',
+                borderRadius: '2px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: `${stats.totalIncome > 0 ? Math.min((stats.totalIncome / (stats.totalIncome + stats.totalExpenses)) * 100, 100) : 0}%`,
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #003087, #00A3E0)',
+                  borderRadius: '2px',
+                  transition: 'width 0.5s ease'
+                }}></div>
+              </div>
             </div>
-            <div style={{ fontSize: '12px', color: '#999' }}>
-              {stats.netBalance >= 0 ? 'Surplus' : 'Deficit'}
+          </div>
+
+          {/* Total Expenses Card */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(0, 163, 224, 0.1) 0%, rgba(0, 48, 135, 0.1) 100%)',
+            backdropFilter: 'blur(10px)',
+            padding: '32px',
+            borderRadius: '20px',
+            boxShadow: '0 8px 32px rgba(0, 163, 224, 0.15)',
+            border: '1px solid rgba(0, 163, 224, 0.2)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #00A3E0, #003087)',
+              opacity: 0.1
+            }}></div>
+            <div style={{
+              position: 'absolute',
+              top: '30px',
+              right: '30px',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #00A3E0, #003087)',
+              opacity: 0.2
+            }}></div>
+
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '16px'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #00A3E0, #003087)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(0, 163, 224, 0.3)'
+                }}>
+                  <FaArrowUp style={{ color: 'white', fontSize: '20px' }} />
+                </div>
+                <div>
+                  <h4 style={{
+                    color: '#00A3E0',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    margin: '0 0 4px 0'
+                  }}>
+                    Total Expenses
+                  </h4>
+                  <p style={{
+                    color: 'rgba(0, 163, 224, 0.7)',
+                    fontSize: '12px',
+                    margin: '0',
+                    fontWeight: '500'
+                  }}>
+                    {stats.expenseCount} transactions
+                  </p>
+                </div>
+              </div>
+
+              <div style={{
+                fontSize: '32px',
+                fontWeight: '700',
+                color: '#00A3E0',
+                marginBottom: '8px'
+              }}>
+                ₹{stats.totalExpenses.toFixed(2)}
+              </div>
+
+              <div style={{
+                width: '100%',
+                height: '4px',
+                background: 'rgba(0, 163, 224, 0.1)',
+                borderRadius: '2px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: `${stats.totalExpenses > 0 ? Math.min((stats.totalExpenses / (stats.totalIncome + stats.totalExpenses)) * 100, 100) : 0}%`,
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #00A3E0, #003087)',
+                  borderRadius: '2px',
+                  transition: 'width 0.5s ease'
+                }}></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Net Balance Card */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(173, 216, 230, 0.1) 100%)',
+            backdropFilter: 'blur(10px)',
+            padding: '32px',
+            borderRadius: '20px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            border: '2px solid rgba(0, 163, 224, 0.3)',
+            position: 'relative',
+            overflow: 'hidden',
+            gridColumn: '1 / -1'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              width: '80px',
+              height: '80px',
+              borderRadius: '50%',
+              background: stats.netBalance >= 0
+                ? 'linear-gradient(135deg, #003087, #00A3E0)'
+                : 'linear-gradient(135deg, #00A3E0, #003087)',
+              opacity: 0.1
+            }}></div>
+
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '16px'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '12px',
+                  background: stats.netBalance >= 0
+                    ? 'linear-gradient(135deg, #003087, #00A3E0)'
+                    : 'linear-gradient(135deg, #00A3E0, #003087)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: stats.netBalance >= 0
+                    ? '0 4px 12px rgba(0, 48, 135, 0.3)'
+                    : '0 4px 12px rgba(0, 163, 224, 0.3)'
+                }}>
+                  <FaMoneyBillWave style={{ color: 'white', fontSize: '20px' }} />
+                </div>
+                <div>
+                  <h4 style={{
+                    color: '#001435',
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    margin: '0 0 4px 0'
+                  }}>
+                    Net Balance
+                  </h4>
+                  <p style={{
+                    color: 'rgba(0, 20, 53, 0.7)',
+                    fontSize: '12px',
+                    margin: '0',
+                    fontWeight: '500'
+                  }}>
+                    {stats.netBalance >= 0 ? 'Positive balance' : 'Negative balance'}
+                  </p>
+                </div>
+              </div>
+
+              <div style={{
+                fontSize: '36px',
+                fontWeight: '800',
+                color: stats.netBalance >= 0 ? '#003087' : '#00A3E0',
+                marginBottom: '12px'
+              }}>
+                {stats.netBalance >= 0 ? '+' : ''}₹{Math.abs(stats.netBalance).toFixed(2)}
+              </div>
+
+              <div style={{
+                width: '100%',
+                height: '6px',
+                background: 'rgba(0, 20, 53, 0.1)',
+                borderRadius: '3px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: `${Math.min(Math.abs(stats.netBalance) / Math.max(stats.totalIncome, stats.totalExpenses, 1) * 100, 100)}%`,
+                  height: '100%',
+                  background: stats.netBalance >= 0
+                    ? 'linear-gradient(90deg, #003087, #00A3E0)'
+                    : 'linear-gradient(90deg, #00A3E0, #003087)',
+                  borderRadius: '3px',
+                  transition: 'width 0.5s ease'
+                }}></div>
+              </div>
             </div>
           </div>
         </div>
@@ -595,368 +856,488 @@ const Expenses = () => {
           />
         </div>
 
-        {/* Filters */}
+        {/* Filters Section - Modern Design */}
         <div style={{
           background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
-          padding: '24px',
-          marginBottom: '48px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          borderRadius: '20px',
+          padding: '32px',
+          marginBottom: '32px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
           border: '1px solid rgba(255, 255, 255, 0.2)'
         }}>
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#001435', fontWeight: '600' }}>
-                <FaFilter /> Filters
-              </h3>
-              
-              <div style={{ display: 'flex', gap: '5px' }}>
-                <button
-                  onClick={() => setFilterType('all')}
-                  style={{
-                    padding: '8px 16px',
-                    background: filterType === 'all' ? 'rgba(0, 20, 53, 0.8)' : 'rgba(255, 255, 255, 0.7)',
-                    backdropFilter: 'blur(5px)',
-                    color: filterType === 'all' ? 'white' : '#666',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    borderRadius: '20px',
-                    cursor: 'pointer',
-                    fontWeight: '500'
-                  }}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setFilterType('income')}
-                  style={{
-                    padding: '8px 16px',
-                    background: filterType === 'income' ? 'rgba(0, 20, 53, 0.8)' : 'rgba(255, 255, 255, 0.7)',
-                    backdropFilter: 'blur(5px)',
-                    color: filterType === 'income' ? 'white' : '#666',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    borderRadius: '20px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontWeight: '500'
-                  }}
-                >
-                  <FaArrowDown /> Income
-                </button>
-                <button
-                  onClick={() => setFilterType('expense')}
-                  style={{
-                    padding: '8px 16px',
-                    background: filterType === 'expense' ? 'rgba(0, 20, 53, 0.8)' : 'rgba(255, 255, 255, 0.7)',
-                    backdropFilter: 'blur(5px)',
-                    color: filterType === 'expense' ? 'white' : '#666',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    borderRadius: '20px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontWeight: '500'
-                  }}
-                >
-                  <FaArrowUp /> Expense
-                </button>
-              </div>
-
-              {(filters.startDate || filters.endDate || filterType !== 'all') && (
-                <button
-                  onClick={clearFilters}
-                  style={{
-                    padding: '6px 14px',
-                    background: 'rgba(0, 20, 53, 0.8)',
-                    backdropFilter: 'blur(5px)',
-                    color: 'white',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    borderRadius: '15px',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    fontWeight: '500'
-                  }}
-                >
-                  Clear Filters
-                </button>
-              )}
-            </div>
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{
+              color: '#001435',
+              fontWeight: '700',
+              fontSize: '20px',
+              marginBottom: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <div style={{
+                width: '6px',
+                height: '20px',
+                background: 'linear-gradient(135deg, #003087, #00A3E0)',
+                borderRadius: '3px'
+              }}></div>
+              Filter Transactions
+            </h3>
+            <p style={{ color: 'rgba(0, 20, 53, 0.6)', fontSize: '14px' }}>
+              Narrow down your transactions by type, category, or date range
+            </p>
           </div>
-          
+
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-            gap: '15px'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '20px',
+            alignItems: 'end'
           }}>
+            {/* Type Filter */}
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#001435', fontWeight: '500' }}>Start Date</label>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#001435',
+                marginBottom: '8px'
+              }}>
+                Transaction Type
+              </label>
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(0, 163, 224, 0.2)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  color: '#001435',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#00A3E0'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(0, 163, 224, 0.2)'}
+              >
+                <option value="all">All Types</option>
+                <option value="income">Income Only</option>
+                <option value="expense">Expenses Only</option>
+              </select>
+            </div>
+
+            {/* Start Date Filter */}
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#001435',
+                marginBottom: '8px'
+              }}>
+                Start Date
+              </label>
               <input
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                style={{ 
-                  width: '100%', 
-                  padding: '10px', 
-                  border: '1px solid rgba(255, 255, 255, 0.3)', 
-                  borderRadius: '8px',
-                  background: 'rgba(255, 255, 255, 0.8)',
-                  backdropFilter: 'blur(5px)',
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(0, 163, 224, 0.2)',
+                  background: 'rgba(255, 255, 255, 0.9)',
                   color: '#001435',
-                  fontWeight: '500'
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  outline: 'none'
                 }}
+                onFocus={(e) => e.target.style.borderColor = '#00A3E0'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(0, 163, 224, 0.2)'}
               />
             </div>
+
+            {/* End Date Filter */}
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#001435', fontWeight: '500' }}>End Date</label>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#001435',
+                marginBottom: '8px'
+              }}>
+                End Date
+              </label>
               <input
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                style={{ 
-                  width: '100%', 
-                  padding: '10px', 
-                  border: '1px solid rgba(255, 255, 255, 0.3)', 
-                  borderRadius: '8px',
-                  background: 'rgba(255, 255, 255, 0.8)',
-                  backdropFilter: 'blur(5px)',
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(0, 163, 224, 0.2)',
+                  background: 'rgba(255, 255, 255, 0.9)',
                   color: '#001435',
-                  fontWeight: '500'
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  outline: 'none'
                 }}
+                onFocus={(e) => e.target.style.borderColor = '#00A3E0'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(0, 163, 224, 0.2)'}
               />
             </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <button 
-                onClick={handleFilter} 
+
+            {/* Apply Filters Button */}
+            <div>
+              <button
+                onClick={handleFilter}
                 style={{
-                  padding: '10px 20px',
-                  background: 'rgba(0, 20, 53, 0.8)',
-                  backdropFilter: 'blur(5px)',
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(0, 163, 224, 0.3)',
+                  background: 'linear-gradient(135deg, #003087, #00A3E0)',
                   color: 'white',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
                   cursor: 'pointer',
-                  fontWeight: '500'
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(0, 48, 135, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = 'none';
                 }}
               >
+                <FaFilter size={14} />
                 Apply Filters
               </button>
             </div>
           </div>
+
+          {/* Clear Filters Button */}
+          {(filters.startDate || filters.endDate || filterType !== 'all') && (
+            <div style={{ marginTop: '20px', textAlign: 'center' }}>
+              <button
+                onClick={clearFilters}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(0, 163, 224, 0.3)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  color: '#001435',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(0, 163, 224, 0.1)';
+                  e.target.style.borderColor = '#00A3E0';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.9)';
+                  e.target.style.borderColor = 'rgba(0, 163, 224, 0.3)';
+                }}
+              >
+                <FaTimes size={14} />
+                Clear All Filters
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Transactions Table */}
+        {/* Transactions List - Modern Card Design */}
         <div style={{
-          background: 'rgba(173, 216, 230, 0.3)',
+          background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
-          padding: '24px',
+          borderRadius: '20px',
+          padding: '32px',
           marginBottom: '48px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
           border: '1px solid rgba(255, 255, 255, 0.2)'
         }}>
-          <div style={{ marginBottom: '20px' }}>
-            <h3 style={{ color: '#001435', fontWeight: '600' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{
+              color: '#001435',
+              fontWeight: '700',
+              fontSize: '24px',
+              marginBottom: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <div style={{
+                width: '8px',
+                height: '24px',
+                background: 'linear-gradient(135deg, #003087, #00A3E0)',
+                borderRadius: '4px'
+              }}></div>
               All Transactions
-              <span style={{ 
-                marginLeft: '10px',
-                fontSize: '14px', 
-                fontWeight: 'normal',
-                color: 'rgba(0, 20, 53, 0.8)'
+              <span style={{
+                fontSize: '14px',
+                fontWeight: '500',
+                color: 'rgba(0, 20, 53, 0.7)',
+                background: 'rgba(0, 163, 224, 0.1)',
+                padding: '4px 12px',
+                borderRadius: '12px',
+                border: '1px solid rgba(0, 163, 224, 0.2)'
               }}>
-                ({filteredExpenses.length} of {expenses.length})
+                {filteredExpenses.length} of {expenses.length}
               </span>
             </h3>
+            <p style={{ color: 'rgba(0, 20, 53, 0.6)', fontSize: '14px' }}>
+              Manage your income and expenses with detailed transaction tracking
+            </p>
           </div>
-          
-          <div style={{ overflowX: 'auto' }}>
-            {filteredExpenses.length === 0 ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '60px 20px',
-                color: '#001435'
+
+          {filteredExpenses.length === 0 ? (
+            <div style={{
+              textAlign: 'center',
+              padding: '80px 40px',
+              background: 'linear-gradient(135deg, rgba(173, 216, 230, 0.1) 0%, rgba(173, 216, 230, 0.05) 100%)',
+              borderRadius: '16px',
+              border: '2px dashed rgba(0, 163, 224, 0.3)'
+            }}>
+              <div style={{
+                width: '80px',
+                height: '80px',
+                background: 'linear-gradient(135deg, #003087, #00A3E0)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 24px',
+                boxShadow: '0 8px 24px rgba(0, 48, 135, 0.3)'
               }}>
-                <FaFileCsv size={50} style={{ color: 'rgba(0, 20, 53, 0.6)', marginBottom: '20px' }} />
-                <h3 style={{ color: '#001435' }}>No transactions found</h3>
-                <p>Add your first transaction or import a CSV file!</p>
-                <Link 
-                  to="/upload" 
-                  className="btn btn-primary" 
-                  style={{ 
-                    marginTop: '20px',
+                <FaFileCsv size={32} style={{ color: 'white' }} />
+              </div>
+              <h3 style={{ color: '#001435', marginBottom: '8px', fontSize: '20px' }}>No transactions yet</h3>
+              <p style={{ color: 'rgba(0, 20, 53, 0.6)', marginBottom: '24px' }}>
+                Start tracking your finances by adding your first transaction or importing a CSV file
+              </p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Link
+                  to="/upload"
+                  className="btn btn-primary"
+                  style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
                     padding: '12px 24px',
-                    background: 'rgba(255, 255, 255, 0.8)',
-                    backdropFilter: 'blur(5px)',
-                    color: '#001435',
+                    background: 'linear-gradient(135deg, #003087, #00A3E0)',
+                    color: 'white',
                     textDecoration: 'none',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(0, 20, 53, 0.2)',
-                    fontWeight: '500'
+                    borderRadius: '12px',
+                    fontWeight: '600',
+                    boxShadow: '0 4px 12px rgba(0, 48, 135, 0.3)',
+                    border: 'none',
+                    transition: 'all 0.3s ease'
                   }}
                 >
                   <FaCloudUploadAlt /> Import CSV
                 </Link>
+                <button
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 24px',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    color: '#001435',
+                    border: '2px solid rgba(0, 163, 224, 0.3)',
+                    borderRadius: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <FaMoneyBillWave /> Add Transaction
+                </button>
               </div>
-            ) : (
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    <th style={{ 
-                      padding: '16px 12px', 
-                      textAlign: 'left', 
-                      background: 'rgba(255, 255, 255, 0.5)', 
-                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
-                      color: '#001435',
-                      fontWeight: '600'
-                    }}>Date</th>
-                    <th style={{ 
-                      padding: '16px 12px', 
-                      textAlign: 'left', 
-                      background: 'rgba(255, 255, 255, 0.5)', 
-                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
-                      color: '#001435',
-                      fontWeight: '600'
-                    }}>Category</th>
-                    <th style={{ 
-                      padding: '16px 12px', 
-                      textAlign: 'left', 
-                      background: 'rgba(255, 255, 255, 0.5)', 
-                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
-                      color: '#001435',
-                      fontWeight: '600'
-                    }}>Description</th>
-                    <th style={{ 
-                      padding: '16px 12px', 
-                      textAlign: 'left', 
-                      background: 'rgba(255, 255, 255, 0.5)', 
-                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
-                      color: '#001435',
-                      fontWeight: '600'
-                    }}>Type</th>
-                    <th style={{ 
-                      padding: '16px 12px', 
-                      textAlign: 'left', 
-                      background: 'rgba(255, 255, 255, 0.5)', 
-                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
-                      color: '#001435',
-                      fontWeight: '600'
-                    }}>Amount</th>
-                    <th style={{ 
-                      padding: '16px 12px', 
-                      textAlign: 'left', 
-                      background: 'rgba(255, 255, 255, 0.5)', 
-                      borderBottom: '2px solid rgba(0, 20, 53, 0.3)',
-                      color: '#001435',
-                      fontWeight: '600'
-                    }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredExpenses.map(expense => (
-                    <tr key={expense.id} style={{ borderBottom: '1px solid rgba(0, 20, 53, 0.1)' }}>
-                      <td style={{ padding: '16px 12px', color: '#001435', fontWeight: '500' }}>{formatDisplayDate(expense.date)}</td>
-                      <td style={{ padding: '16px 12px' }}>
-                        <span style={{
-                          backgroundColor: 'rgba(0, 20, 53, 0.1)',
-                          color: '#001435',
-                          padding: '6px 12px',
-                          borderRadius: '20px',
-                          fontSize: '12px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          fontWeight: '500',
-                          border: '1px solid rgba(0, 20, 53, 0.2)'
-                        }}>
-                          <span>{expense.icon || '\uD83D\uDCCC'}</span>  {expense.category_name || 'Other'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '16px 12px', color: '#001435', fontWeight: '500' }}>{expense.description || '-'}</td>
-                      <td style={{ padding: '12px' }}>
-                        {expense.type === 'income' ? (
-                          <span style={{
-                            color: '#003087',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            fontWeight: 'bold'
-                          }}>
-                            <FaArrowDown /> Income
-                          </span>
-                        ) : (
-                          <span style={{
-                            color: '#00A3E0',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            fontWeight: 'bold'
-                          }}>
-                            <FaArrowUp /> Expense
-                          </span>
-                        )}
-                      </td>
-                      <td style={{
-                        padding: '16px 12px',
-                        fontWeight: 'bold',
-                        color: '#001435'
+            </div>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
+              gap: '20px'
+            }}>
+              {filteredExpenses.map(expense => (
+                <div key={expense.id} style={{
+                  background: expense.type === 'income'
+                    ? 'linear-gradient(135deg, rgba(0, 48, 135, 0.05) 0%, rgba(0, 163, 224, 0.05) 100%)'
+                    : 'linear-gradient(135deg, rgba(0, 163, 224, 0.05) 0%, rgba(0, 48, 135, 0.05) 100%)',
+                  border: expense.type === 'income'
+                    ? '1px solid rgba(0, 48, 135, 0.2)'
+                    : '1px solid rgba(0, 163, 224, 0.2)',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  {/* Type indicator */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '16px',
+                    right: '16px',
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    background: expense.type === 'income' ? '#003087' : '#00A3E0',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+                  }}></div>
+
+                  {/* Header */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <span style={{
+                        fontSize: '12px',
+                        color: 'rgba(0, 20, 53, 0.6)',
+                        fontWeight: '500',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
                       }}>
-                        {expense.type === 'income' ? '+' : '-'} ₹{parseFloat(expense.amount).toFixed(2)}
-                      </td>
-                      <td style={{ padding: '16px 12px' }}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <button
-                            onClick={() => handleEdit(expense)}
-                            style={{
-                              background: 'rgba(255, 255, 255, 0.8)',
-                              color: '#001435',
-                              border: '1px solid rgba(0, 20, 53, 0.2)',
-                              padding: '8px',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '36px',
-                              height: '36px',
-                              fontSize: '14px'
-                            }}
-                            title="Edit"
-                          >
-                            <FaEdit />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(expense.id)}
-                            style={{
-                              background: 'rgba(255, 255, 255, 0.8)',
-                              color: '#001435',
-                              border: '1px solid rgba(0, 20, 53, 0.2)',
-                              padding: '8px',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '36px',
-                              height: '36px',
-                              fontSize: '14px'
-                            }}
-                            title="Delete"
-                          >
-                            <FaTrash />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+                        {formatDisplayDate(expense.date)}
+                      </span>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: expense.type === 'income'
+                          ? 'rgba(0, 48, 135, 0.1)'
+                          : 'rgba(0, 163, 224, 0.1)',
+                        color: expense.type === 'income' ? '#003087' : '#00A3E0',
+                        padding: '4px 8px',
+                        borderRadius: '8px',
+                        fontSize: '11px',
+                        fontWeight: '600'
+                      }}>
+                        {expense.type === 'income' ? <FaArrowDown size={10} /> : <FaArrowUp size={10} />}
+                        {expense.type === 'income' ? 'Income' : 'Expense'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Category */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'rgba(255, 255, 255, 0.8)',
+                      padding: '6px 12px',
+                      borderRadius: '20px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      color: '#001435',
+                      border: '1px solid rgba(0, 20, 53, 0.1)'
+                    }}>
+                      <span style={{ fontSize: '14px' }}>{resolveExpenseCategoryIcon(expense)}</span>
+                      {expense.category_name || 'Other'}
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <p style={{
+                      color: '#001435',
+                      fontSize: '15px',
+                      fontWeight: '500',
+                      margin: '0',
+                      lineHeight: '1.4'
+                    }}>
+                      {expense.description || 'No description'}
+                    </p>
+                  </div>
+
+                  {/* Amount and Actions */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <div style={{
+                      fontSize: '20px',
+                      fontWeight: '700',
+                      color: expense.type === 'income' ? '#003087' : '#00A3E0'
+                    }}>
+                      {expense.type === 'income' ? '+' : '-'}₹{parseFloat(expense.amount).toFixed(2)}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => handleEdit(expense)}
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'rgba(255, 255, 255, 0.9)',
+                          color: '#003087',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                        }}
+                        title="Edit transaction"
+                      >
+                        <FaEdit size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(expense.id)}
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'rgba(255, 255, 255, 0.9)',
+                          color: '#f14668',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                        }}
+                        title="Delete transaction"
+                      >
+                        <FaTrash size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
     </div>
   );

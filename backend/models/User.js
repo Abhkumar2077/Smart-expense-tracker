@@ -45,6 +45,64 @@ class User {
         }
     }
 
+    // Update user profile
+    static async updateProfile(id, updates) {
+        try {
+            const fields = [];
+            const values = [];
+
+            if (updates.name !== undefined) {
+                fields.push('name = ?');
+                values.push(updates.name);
+            }
+
+            if (updates.email !== undefined) {
+                fields.push('email = ?');
+                values.push(updates.email);
+            }
+
+            if (fields.length === 0) {
+                throw new Error('No fields to update');
+            }
+
+            values.push(id);
+
+            const [result] = await db.execute(
+                `UPDATE users SET ${fields.join(', ')} WHERE id = ?`,
+                values
+            );
+
+            if (result.affectedRows === 0) {
+                return null;
+            }
+
+            // Return updated user
+            return await this.findById(id);
+        } catch (error) {
+            console.error('Error updating user profile:', error);
+            throw error;
+        }
+    }
+
+    // Update user password
+    static async updatePassword(id, newPasswordHash) {
+        try {
+            const [result] = await db.execute(
+                'UPDATE users SET password_hash = ? WHERE id = ?',
+                [newPasswordHash, id]
+            );
+
+            if (result.affectedRows === 0) {
+                throw new Error('User not found');
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error updating user password:', error);
+            throw error;
+        }
+    }
+
 }
 
 module.exports = User;

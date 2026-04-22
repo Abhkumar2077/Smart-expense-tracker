@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: '/api'
+  baseURL: 'http://localhost:5000/api'
 });
 
 // ✅ ADD THIS: Request interceptor to ensure token is always sent
@@ -77,7 +77,9 @@ export const remindersAPI = {
 
 // User API
 export const userAPI = {
-  getProfile: () => API.get('/auth/me')
+  getProfile: () => API.get('/auth/me'),
+  updateProfile: (data) => API.put('/auth/profile', data),
+  updatePassword: (data) => API.put('/auth/password', data)
 };
 
 // Dashboard API

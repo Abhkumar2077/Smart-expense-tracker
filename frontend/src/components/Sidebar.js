@@ -9,7 +9,8 @@ import {
   FaCloudUploadAlt,
   FaRobot,
   FaBullseye,
-  FaChartPie
+  FaChartPie,
+  FaBell
 } from 'react-icons/fa';
 
 const Sidebar = ({ collapsed }) => {
@@ -63,6 +64,15 @@ const Sidebar = ({ collapsed }) => {
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
           >
             <FaBullseye /> <span className="nav-text">Savings Goals</span>
+          </NavLink>
+        </li>
+
+        <li className="nav-item">
+          <NavLink
+            to="/reminders"
+            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+          >
+            <FaBell /> <span className="nav-text">Reminders</span>
           </NavLink>
         </li>
 

@@ -3,6 +3,7 @@ const Expense = require('../models/Expense');
 const User = require('../models/User');
 const AISuggestion = require('../models/AISuggestion');
 const geminiService = require('./geminiService');
+const cache = require('../utils/cache');
 const { buildInsightPrompt } = require('./promptBuilder');
 const { validateAIResponse } = require('./responseValidator');
 
@@ -21,27 +22,46 @@ class AIService {
     static async generateInsights(userId) {
         try {
             console.log('🤖 AI Generating insights for user:', userId);
-            
+
+            // Check cache first
+            const cacheKey = `insights_${userId}`;
+            const cachedInsights = cache.get(cacheKey);
+            if (cachedInsights) {
+                console.log('📋 Using cached AI insights for user:', userId);
+                return cachedInsights;
+            }
+
             const user = await User.findById(userId);
             const expenses = await Expense.findByUserId(userId);
             const insights = await Expense.getSpendingInsights(userId);
-            
+
             console.log(`📊 Found ${expenses.length} total transactions`);
-            
+
             // Get current month and year
             const now = new Date();
             const currentMonth = now.getMonth() + 1;
             const currentYear = now.getFullYear();
-            
+
             const categorySummary = await Expense.getCategorySummary(userId, currentMonth, currentYear);
 
             // Generate different types of insights - PASS expenses to all functions
             const patterns = this.detectPatterns(expenses, categorySummary);
             const recommendations = await this.getRecommendations(user, insights, categorySummary, expenses);
             const alerts = this.generateAlerts(user, insights, expenses); // ← FIXED: Pass expenses
-            const forecast = this.forecastSpending(expenses);
-            const anomalies = this.detectAnomalies(expenses);
+
+            // Calculate forecast
+            const forecast = this.forecastSpending(expenses, insights);
+
+            // Detect anomalies
+            const anomalies = this.detectAnomalies(expenses, insights);
+
+            // Calculate savings opportunities
             const savings = this.findSavingsOpportunities(categorySummary, insights);
+
+            // Determine if Gemini enhancement is needed
+            const shouldUseGemini = this.shouldUseGeminiAI(expenses, patterns, alerts, anomalies);
+
+            console.log(`🤖 Gemini AI usage: ${shouldUseGemini ? 'ENABLED' : 'DISABLED'} (transactions: ${expenses.length})`);
 
             // Combine all suggestions
             const allSuggestions = [
@@ -68,39 +88,50 @@ class AIService {
             };
 
             // Enhance with structured Gemini AI if available
-            console.log('🚀 Enhancing insights with structured Gemini AI...');
-            try {
-                const prompt = buildInsightPrompt({
-                    user,
-                    categoryTotals: categorySummary,
-                    patterns,
-                    anomalies,
-                    forecast
-                });
+            if (shouldUseGemini) {
+                console.log('🚀 Enhancing insights with structured Gemini AI...');
+                try {
+                    const prompt = buildInsightPrompt({
+                        user,
+                        categoryTotals: categorySummary,
+                        patterns,
+                        anomalies,
+                        forecast
+                    });
 
-                const rawGeminiResponse = await geminiService.generateContent(prompt);
-                const validated = validateAIResponse(rawGeminiResponse);
+                    const rawGeminiResponse = await geminiService.generateContent(prompt);
+                    const validated = validateAIResponse(rawGeminiResponse);
 
-                // Save structured suggestions to database
-                if (validated.suggestions && validated.suggestions.length > 0) {
-                    await AISuggestion.create(userId, validated.suggestions);
+                    // Save structured suggestions to database
+                    if (validated.suggestions && validated.suggestions.length > 0) {
+                        await AISuggestion.create(userId, validated.suggestions);
+                    }
+
+                    // Add structured AI insights
+                    basicInsights.aiInsights = validated.insights;
+                    basicInsights.aiSuggestions = validated.suggestions;
+                    basicInsights.geminiStructured = true;
+
+                    console.log(`🤖 Structured Gemini: ${validated.insights.length} insights, ${validated.suggestions.length} suggestions saved`);
+                } catch (err) {
+                    console.error('Gemini structured call failed:', err.message);
+                    basicInsights.aiInsights = [];
+                    basicInsights.aiSuggestions = [];
+                    basicInsights.geminiStructured = false;
                 }
-
-                // Add structured AI insights
-                basicInsights.aiInsights = validated.insights;
-                basicInsights.aiSuggestions = validated.suggestions;
-                basicInsights.geminiStructured = true;
-
-                console.log(`🤖 Structured Gemini: ${validated.insights.length} insights, ${validated.suggestions.length} suggestions saved`);
-            } catch (err) {
-                console.error('Gemini structured call failed:', err.message);
+            } else {
+                // Use fallback AI insights without Gemini
                 basicInsights.aiInsights = [];
                 basicInsights.aiSuggestions = [];
                 basicInsights.geminiStructured = false;
+                console.log('🤖 Using fallback AI insights (Gemini not needed)');
             }
 
             console.log(`✅ Generated: ${basicInsights.patterns.length} patterns, ${basicInsights.alerts.length} alerts, ${basicInsights.recommendations.length} recommendations`);
-            console.log(`🤖 Gemini enhancement: ${basicInsights.geminiStructured ? 'Structured Active' : 'Fallback'}`);
+            console.log(`🤖 Gemini enhancement: ${basicInsights.geminiStructured ? 'Structured Active' : 'Fallback (not needed)'}`);
+
+            // Cache the results for 1 hour
+            cache.set(cacheKey, basicInsights, 3600000);
 
             return basicInsights;
             
@@ -682,7 +713,30 @@ class AIService {
         console.error('AI Learning Error:', error);
         return { success: false, error: error.message };
     }
-}
+    }
+
+    // Determine if Gemini AI should be used based on data quality and needs
+    static shouldUseGeminiAI(expenses, patterns, alerts, anomalies) {
+        // Only use Gemini for users with sufficient data and meaningful insights
+        const minTransactions = 15; // Minimum transactions needed
+        const hasSignificantPatterns = patterns.length >= 2;
+        const hasAlerts = alerts.length > 0;
+        const hasAnomalies = anomalies.length > 0;
+
+        // Use Gemini if:
+        // 1. User has enough transaction history (>15 transactions)
+        // 2. AND has either significant patterns OR alerts/anomalies
+        // 3. OR has very high transaction volume (>50 transactions)
+
+        const shouldUse = (
+            (expenses.length >= minTransactions && (hasSignificantPatterns || hasAlerts || hasAnomalies)) ||
+            expenses.length > 50
+        );
+
+        console.log(`🤖 Gemini AI decision: ${shouldUse ? 'YES' : 'NO'} | Transactions: ${expenses.length} | Patterns: ${patterns.length} | Alerts: ${alerts.length} | Anomalies: ${anomalies.length}`);
+
+        return shouldUse;
+    }
 }
 
 module.exports = AIService;

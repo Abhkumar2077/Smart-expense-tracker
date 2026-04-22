@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaBell, FaCalendarCheck, FaCheckCircle, FaTrash } from 'react-icons/fa';
+import { normalizeCategoryIcon } from '../utils/categoryIcon';
 
 const BillReminders = () => {
   const [reminders, setReminders] = useState([]);
@@ -172,7 +173,7 @@ const BillReminders = () => {
                       justifyContent: 'center',
                       fontSize: '20px'
                     }}>
-                      {reminder.icon || '📄'}
+                      {normalizeCategoryIcon(reminder.icon, reminder.category_name || reminder.bill_name)}
                     </div>
                     <div>
                       <h4 style={{ margin: '0 0 5px 0' }}>{reminder.bill_name}</h4>

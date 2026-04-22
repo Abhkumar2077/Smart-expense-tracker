@@ -1,50 +1,150 @@
 // backend/models/Expense.js
 const db = require('../config/db');
+const cache = require('../utils/cache');
 
 class Expense {
     // Create new expense/income
     static async create(expenseData) {
         console.log('📝 Creating transaction with data:', expenseData);
-        
-        const { user_id, category_id, amount, description, date, type = 'expense' } = expenseData;
-        
+
+        const { user_id, category_id, category_ids, amount, description, date, type = 'expense' } = expenseData;
+
         // Validate required fields
         if (!user_id) throw new Error('user_id is required');
-        if (!category_id) throw new Error('category_id is required');
         if (!amount || amount <= 0) throw new Error('amount must be greater than 0');
         if (!date) throw new Error('date is required');
-        
+
+        // For backward compatibility, support both category_id and category_ids
+        const categoriesToUse = category_ids || (category_id ? [category_id] : []);
+        if (categoriesToUse.length === 0) throw new Error('At least one category is required');
+
+        const connection = await db.getConnection();
         try {
-            const [result] = await db.execute(
+            await connection.beginTransaction();
+
+            // Insert main expense record (use first category for backward compatibility)
+            const [result] = await connection.execute(
                 'INSERT INTO expenses (user_id, category_id, amount, description, date, type) VALUES (?, ?, ?, ?, ?, ?)',
-                [user_id, category_id, amount, description, date, type]
+                [user_id, categoriesToUse[0], amount, description, date, type]
             );
-            
-            console.log(`✅ Transaction created with ID: ${result.insertId}, Type: ${type}`);
-            
-            // Update category usage count
-            try {
-                await db.execute(
-                    'UPDATE categories SET usage_count = usage_count + 1, last_used = CURDATE() WHERE id = ?',
-                    [category_id]
-                );
-            } catch (updateError) {
-                console.error('⚠️ Failed to update category usage:', updateError.message);
+
+            const expenseId = result.insertId;
+            console.log(`✅ Transaction created with ID: ${expenseId}, Type: ${type}`);
+
+            // Insert multiple categories if provided
+            if (categoriesToUse.length > 1 || type === 'income') {
+                // For income, always use multiple categories approach
+                const categoryInserts = categoriesToUse.map(catId => [expenseId, catId, 100.00 / categoriesToUse.length]);
+                for (const [expId, catId, percentage] of categoryInserts) {
+                    await connection.execute(
+                        'INSERT INTO expense_categories (expense_id, category_id, percentage) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE percentage = VALUES(percentage)',
+                        [expId, catId, percentage]
+                    );
+                }
             }
-            
-            return result.insertId;
+
+            // Update category usage counts
+            for (const catId of categoriesToUse) {
+                try {
+                    await connection.execute(
+                        'UPDATE categories SET usage_count = usage_count + 1, last_used = CURDATE() WHERE id = ?',
+                        [catId]
+                    );
+                } catch (updateError) {
+                    console.error('⚠️ Failed to update category usage:', updateError.message);
+                }
+            }
+
+            await connection.commit();
+
+            // Clear AI insights cache for this user
+            cache.delete(`insights_${user_id}`);
+
+            return expenseId;
         } catch (error) {
+            await connection.rollback();
             console.error('❌ Database error creating expense:', error);
             throw error;
+        } finally {
+            connection.release();
         }
     }
 
     // Get all expenses for a user
     static async findByUserId(userId, startDate, endDate, limit = null) {
         try {
-            let query = 'SELECT e.*, c.name as category_name, c.icon, c.color FROM expenses e ' +
-                       'JOIN categories c ON e.category_id = c.id ' +
-                       'WHERE e.user_id = ?';
+            // Try the new query with expense_categories table first
+            try {
+                let query = `
+                    SELECT
+                        e.*,
+                        GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') as category_names,
+                        GROUP_CONCAT(DISTINCT c.icon ORDER BY c.name SEPARATOR ', ') as category_icons,
+                        GROUP_CONCAT(DISTINCT c.color ORDER BY c.name SEPARATOR ', ') as category_colors,
+                        GROUP_CONCAT(DISTINCT ec.category_id ORDER BY ec.category_id SEPARATOR ',') as category_ids,
+                        GROUP_CONCAT(DISTINCT ec.percentage ORDER BY ec.category_id SEPARATOR ',') as category_percentages
+                    FROM expenses e
+                    LEFT JOIN expense_categories ec ON e.id = ec.expense_id
+                    LEFT JOIN categories c ON ec.category_id = c.id
+                    WHERE e.user_id = ?
+                    GROUP BY e.id
+                `;
+                let params = [userId];
+
+                if (startDate && endDate) {
+                    query += ' HAVING e.date BETWEEN ? AND ?';
+                    params.push(startDate, endDate);
+                }
+
+                query += ' ORDER BY e.date DESC';
+
+                if (limit) {
+                    query += ' LIMIT ?';
+                    params.push(limit);
+                }
+
+                const [rows] = await db.execute(query, params);
+
+                if (rows && rows.length > 0) {
+                    // Process the results to format category data properly
+                    const processedRows = rows.map(row => ({
+                        ...row,
+                        categories: row.category_ids ? row.category_ids.split(',').map((id, index) => ({
+                            id: parseInt(id),
+                            name: row.category_names.split(', ')[index],
+                            icon: row.category_icons.split(', ')[index],
+                            color: row.category_colors.split(', ')[index],
+                            percentage: parseFloat(row.category_percentages.split(',')[index]) || 100
+                        })) : [row.category_id ? {
+                            id: row.category_id,
+                            name: row.category_name,
+                            icon: row.icon,
+                            color: row.color,
+                            percentage: 100
+                        } : null].filter(Boolean),
+                        // Keep backward compatibility
+                        category_name: row.category_names || row.category_name,
+                        category_icon: row.category_icons || row.icon,
+                        category_color: row.category_colors || row.color
+                    }));
+
+                    return processedRows;
+                }
+            } catch (newQueryError) {
+                // Fallback to old query without expense_categories table
+            }
+
+            // Fallback query
+            let query = `
+                SELECT
+                    e.*,
+                    c.name as category_name,
+                    c.icon,
+                    c.color
+                FROM expenses e
+                LEFT JOIN categories c ON e.category_id = c.id
+                WHERE e.user_id = ?
+            `;
             let params = [userId];
 
             if (startDate && endDate) {
@@ -53,17 +153,35 @@ class Expense {
             }
 
             query += ' ORDER BY e.date DESC';
-            
+
             if (limit) {
                 query += ' LIMIT ?';
                 params.push(limit);
             }
-            
+
             const [rows] = await db.execute(query, params);
-            console.log(`📊 Found ${rows.length} transactions for user ${userId}${limit ? ` (limited to ${limit})` : ''}`);
-            return rows;
+
+            // Process the results for backward compatibility
+            const processedRows = rows.map(row => ({
+                ...row,
+                categories: [{
+                    id: row.category_id,
+                    name: row.category_name,
+                    icon: row.icon,
+                    color: row.color,
+                    percentage: 100
+                }],
+                category_ids: [row.category_id],
+                // Keep backward compatibility
+                category_name: row.category_name,
+                category_icon: row.icon,
+                category_color: row.color
+            }));
+
+            return processedRows;
+
         } catch (error) {
-            console.error('Error finding expenses:', error);
+            console.error('Error in findByUserId:', error);
             throw error;
         }
     }
@@ -71,13 +189,46 @@ class Expense {
     // Get expense by ID
     static async findById(id, userId) {
         try {
-            const [rows] = await db.execute(
+            // Get main expense data
+            const [expenseRows] = await db.execute(
                 'SELECT e.*, c.name as category_name, c.icon, c.color FROM expenses e ' +
                 'JOIN categories c ON e.category_id = c.id ' +
                 'WHERE e.id = ? AND e.user_id = ?',
                 [id, userId]
             );
-            return rows[0];
+
+            if (expenseRows.length === 0) return null;
+
+            const expense = expenseRows[0];
+
+            // Get all categories for this expense
+            const [categoryRows] = await db.execute(
+                'SELECT c.id, c.name, c.icon, c.color, ec.percentage ' +
+                'FROM expense_categories ec ' +
+                'JOIN categories c ON ec.category_id = c.id ' +
+                'WHERE ec.expense_id = ? ' +
+                'ORDER BY c.name',
+                [id]
+            );
+
+            // If no categories in junction table, use the main category (backward compatibility)
+            const categories = categoryRows.length > 0 ? categoryRows : [{
+                id: expense.category_id,
+                name: expense.category_name,
+                icon: expense.icon,
+                color: expense.color,
+                percentage: 100
+            }];
+
+            return {
+                ...expense,
+                categories,
+                category_ids: categories.map(c => c.id),
+                // Keep backward compatibility
+                category_name: categories.map(c => c.name).join(', '),
+                category_icon: categories.map(c => c.icon).join(', '),
+                category_color: categories.map(c => c.color).join(', ')
+            };
         } catch (error) {
             console.error('Error finding expense by ID:', error);
             throw error;
@@ -86,31 +237,55 @@ class Expense {
 
     // Update expense
     static async update(id, userId, expenseData) {
-        const { category_id, amount, description, date, type } = expenseData;
+        const { category_id, category_ids, amount, description, date, type } = expenseData;
+
+        // For backward compatibility, support both category_id and category_ids
+        const categoriesToUse = category_ids || (category_id ? [category_id] : []);
+
+        const connection = await db.getConnection();
         try {
-            const [result] = await db.execute(
+            await connection.beginTransaction();
+
+            // Update main expense record
+            const [result] = await connection.execute(
                 'UPDATE expenses SET category_id = ?, amount = ?, description = ?, date = ?, type = ? WHERE id = ? AND user_id = ?',
-                [category_id, amount, description, date, type, id, userId]
+                [categoriesToUse[0] || category_id, amount, description, date, type, id, userId]
             );
-            
-            if (result.affectedRows > 0) {
-                console.log(`✅ Updated transaction ${id} with type: ${type}`);
-                
-                // Update category usage count
-                try {
-                    await db.execute(
-                        'UPDATE categories SET usage_count = usage_count + 1, last_used = CURDATE() WHERE id = ?',
-                        [category_id]
-                    );
-                } catch (updateError) {
-                    console.error('⚠️ Failed to update category usage:', updateError.message);
+
+            if (result.affectedRows === 0) {
+                await connection.rollback();
+                return null;
+            }
+
+            // Update multiple categories if provided
+            if (categoriesToUse.length > 0) {
+                // Delete existing category associations
+                await connection.execute('DELETE FROM expense_categories WHERE expense_id = ?', [id]);
+
+                // Insert new category associations
+                if (categoriesToUse.length > 1 || type === 'income') {
+                    const categoryInserts = categoriesToUse.map(catId => [id, catId, 100.00 / categoriesToUse.length]);
+                    for (const [expId, catId, percentage] of categoryInserts) {
+                        await connection.execute(
+                            'INSERT INTO expense_categories (expense_id, category_id, percentage) VALUES (?, ?, ?)',
+                            [expId, catId, percentage]
+                        );
+                    }
                 }
             }
-            
-            return result.affectedRows > 0;
+
+            await connection.commit();
+
+            // Clear AI insights cache for this user
+            cache.delete(`insights_${userId}`);
+
+            return { id, ...expenseData };
         } catch (error) {
-            console.error('Error updating expense:', error);
+            await connection.rollback();
+            console.error('❌ Database error updating expense:', error);
             throw error;
+        } finally {
+            connection.release();
         }
     }
 
@@ -130,6 +305,9 @@ class Expense {
             
             if (result.affectedRows > 0 && expense.length > 0) {
                 console.log(`✅ Deleted transaction ${id}`);
+                
+                // Clear AI insights cache for this user
+                cache.delete(`insights_${userId}`);
                 
                 // Decrease category usage count
                 try {

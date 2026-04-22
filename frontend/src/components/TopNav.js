@@ -7,6 +7,10 @@ const TopNav = ({ toggleSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  
+  // For now, no notifications - this should be replaced with actual notification count
+  // TODO: Implement notification system with real count from API
+  const notificationCount = 0;
 
   const handleLogout = async () => {
     await logout();
@@ -33,7 +37,9 @@ const TopNav = ({ toggleSidebar }) => {
           title="Notifications"
         >
           <FaBell />
-          <span className="notification-badge">3</span>
+          {notificationCount > 0 && (
+            <span className="notification-badge">{notificationCount}</span>
+          )}
         </button>
 
         {/* Add Transaction Button - Now just + icon */}

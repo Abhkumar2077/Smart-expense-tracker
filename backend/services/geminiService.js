@@ -197,7 +197,8 @@ Be specific, actionable, and encouraging.`;
             }, {
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                timeout: 30000 // 30 second timeout
             });
 
             if (response.data && response.data.candidates && response.data.candidates[0]) {
@@ -207,6 +208,16 @@ Be specific, actionable, and encouraging.`;
             throw new Error('No response from Gemini API');
         } catch (error) {
             console.error('❌ Gemini API Error in generateContent:', error.response?.data || error.message);
+
+            // Handle specific error types
+            if (error.response?.status === 429) {
+                const retryAfter = error.response.headers['retry-after'] || 'unknown';
+                throw new Error(`API quota exceeded - retry after ${retryAfter} seconds`);
+            } else if (error.response?.status >= 400 && error.response?.status < 500) {
+                throw new Error(`Gemini API client error: ${error.response.status} - ${error.response.data?.error?.message || error.message}`);
+            }
+
+            // Re-throw other errors (server errors, network issues, etc.)
             throw error;
         }
     }

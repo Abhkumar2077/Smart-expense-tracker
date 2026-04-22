@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { categoryAPI, uploadAPI } from '../services/api';
+import { normalizeCategoryIcon } from '../utils/categoryIcon';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
 import { 
@@ -55,6 +56,12 @@ const CSVUploader = ({ onUploadComplete }) => {
                 description: r.description,
                 amount: r.amount
             })));
+            
+            if (res.data.fallback) {
+                console.log('🔄 AI categorization unavailable, using manual mode');
+                showNotification('AI categorization unavailable - please categorize manually', 'warning');
+            }
+            
             return res.data.transactions;
         } catch (err) {
             console.error('AI categorization failed, using manual flow');
@@ -615,7 +622,7 @@ const CSVUploader = ({ onUploadComplete }) => {
                                                             <option value="">Select category</option>
                                                             {categories.map(c => (
                                                                 <option key={c.id} value={c.id}>
-                                                                    {c.name}
+                                                                    {normalizeCategoryIcon(c.icon, c.name)} {c.name}
                                                                     {row.suggested_category_id === c.id
                                                                         ? ` ← AI suggested (${row.confidence})`
                                                                         : ''}

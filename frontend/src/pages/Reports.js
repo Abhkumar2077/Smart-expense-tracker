@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { expenseAPI } from '../services/api';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
+import { normalizeCategoryIcon } from '../utils/categoryIcon';
 import {
     PieChart, Pie, Cell, BarChart, Bar,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
@@ -935,7 +936,7 @@ const Reports = () => {
                                                         alignItems: 'center',
                                                         gap: '5px'
                                                     }}>
-                                                        <span className="category-icon">{item.icon || '\uD83D\uDCCC'}</span>
+                                                        <span className="category-icon">{normalizeCategoryIcon(item.icon, item.name)}</span>
                                                         {item.name}
                                                     </span>
                                                 </td>
@@ -992,7 +993,7 @@ const Reports = () => {
                 {insights?.suggestions?.length > 0 && (
                     <div className="card">
                         <div className="card-header">
-                            <h3 className="card-title">🤖 AI Financial Insights</h3>
+                            <h3 className="card-title"><FaChartLine /> AI Financial Insights</h3>
                         </div>
                         <div style={{ padding: '20px' }}>
                             {insights.suggestions.map((suggestion, index) => (

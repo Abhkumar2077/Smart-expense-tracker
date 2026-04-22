@@ -1,6 +1,6 @@
 // frontend/src/components/SavingsGoals.js
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { goalsAPI } from '../services/api';
 import { 
     FaPlus, FaTrash, FaCheckCircle, 
     FaCalendarAlt, FaBullseye
@@ -36,7 +36,7 @@ const SavingsGoals = () => {
     const fetchGoals = async () => {
         try {
             setLoading(true);
-            const res = await axios.get('/api/goals');
+            const res = await goalsAPI.getAll();
             setGoals(res.data.goals || []);
             setStats(res.data.stats || {});
         } catch (error) {
@@ -95,11 +95,11 @@ const SavingsGoals = () => {
         e.preventDefault();
         try {
             if (editingGoal) {
-                await axios.put(`/api/goals/${editingGoal.id}`, {
+                await goalsAPI.update(editingGoal.id, {
                     current_amount: formData.current_amount || editingGoal.current_amount
                 });
             } else {
-                await axios.post('/api/goals', formData);
+                await goalsAPI.create(formData);
             }
             setShowForm(false);
             setEditingGoal(null);
@@ -130,7 +130,7 @@ const SavingsGoals = () => {
             cancelText: 'Cancel',
             onConfirm: async () => {
                 try {
-                    await axios.delete(`/api/goals/${id}`);
+                    await goalsAPI.delete(id);
                     fetchGoals();
                 } catch (error) {
                     console.error('Error deleting goal:', error);
@@ -161,21 +161,21 @@ const SavingsGoals = () => {
                     return;
                 }
 
-                const newAmount = parseFloat(goal.current_amount) + amount;
-                if (newAmount >= goal.target_amount) {
+                const current = parseFloat(goal.current_amount) || 0;
+                const target = parseFloat(goal.target_amount) || 0;
+                const newAmount = current + amount;
+                const cappedAmount = target > 0 ? Math.min(newAmount, target) : newAmount;
+
+                await goalsAPI.update(goal.id, { current_amount: cappedAmount });
+                fetchGoals();
+
+                if (newAmount >= target && target > 0) {
                     openDialog({
                         title: 'Goal reached!',
-                        message: `🎉 Congratulations! You've reached your goal. Mark it as complete?`,
-                        confirmText: 'Yes',
-                        cancelText: 'No',
-                        onConfirm: async () => {
-                            await axios.put(`/api/goals/${goal.id}`, { current_amount: goal.target_amount });
-                            fetchGoals();
-                        }
+                        message: '🎉 Great job! You have reached your savings goal.',
+                        confirmText: 'OK',
+                        showCancel: false
                     });
-                } else {
-                    await axios.put(`/api/goals/${goal.id}`, { current_amount: newAmount });
-                    fetchGoals();
                 }
             }
         });

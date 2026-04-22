@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { resolveExpenseCategoryIcon } from '../utils/categoryIcon';
 
 import { dashboardAPI } from '../services/api';
 import SuggestionsInbox from '../components/SuggestionsInbox';
@@ -662,6 +663,7 @@ const Dashboard = () => {
                       <td>{expense.description || 'No description'}</td>
                       <td>
                         <span className="category-badge" style={{ backgroundColor: expense.color || '#667eea' }}>
+                          {resolveExpenseCategoryIcon(expense)}{' '}
                           {expense.category_name || 'Other'}
                         </span>
                       </td>
@@ -1555,10 +1557,6 @@ const Dashboard = () => {
           .search-bar {
             width: 100%;
             min-width: unset;
-          }
-          .time-range-select, .month-select, .year-select {
-            min-width: 100px;
-            font-size: 13px;
           }
           .greeting-block {
             flex-direction: column;

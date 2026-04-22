@@ -9,7 +9,11 @@ class Goal {
                 'SELECT * FROM savings_goals WHERE user_id = ? ORDER BY deadline ASC',
                 [userId]
             );
-            return rows;
+            return rows.map((row) => ({
+                ...row,
+                icon: row.icon || '🎯',
+                color: row.color || '#48c774'
+            }));
         } catch (error) {
             console.error('Error fetching goals:', error);
             throw error;
@@ -21,11 +25,23 @@ class Goal {
         const { user_id, name, target_amount, current_amount = 0, deadline, icon = '🎯', color = '#48c774' } = goalData;
         
         try {
-            const [result] = await db.execute(
-                'INSERT INTO savings_goals (user_id, name, target_amount, current_amount, deadline, icon, color) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [user_id, name, target_amount, current_amount, deadline, icon, color]
-            );
-            return result.insertId;
+            try {
+                const [result] = await db.execute(
+                    'INSERT INTO savings_goals (user_id, name, target_amount, current_amount, deadline, icon, color) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    [user_id, name, target_amount, current_amount, deadline, icon, color]
+                );
+                return result.insertId;
+            } catch (insertError) {
+                // Backward compatibility for schemas that don't yet have icon/color columns.
+                if (insertError.code === 'ER_BAD_FIELD_ERROR' || insertError.message.includes('Unknown column')) {
+                    const [legacyResult] = await db.execute(
+                        'INSERT INTO savings_goals (user_id, name, target_amount, current_amount, deadline) VALUES (?, ?, ?, ?, ?)',
+                        [user_id, name, target_amount, current_amount, deadline]
+                    );
+                    return legacyResult.insertId;
+                }
+                throw insertError;
+            }
         } catch (error) {
             console.error('Error creating goal:', error);
             throw error;

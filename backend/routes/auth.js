@@ -153,4 +153,96 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
     }
 });
 
+// @route   PUT api/auth/profile
+// @desc    Update user profile
+router.put('/profile', [
+    require('../middleware/auth'),
+    body('name').optional().notEmpty().withMessage('Name cannot be empty'),
+    body('email').optional().isEmail().withMessage('Please include a valid email')
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { name, email } = req.body;
+
+    try {
+        console.log('📝 Profile update attempt:', req.user.id);
+
+        // Check if email is already taken by another user
+        if (email) {
+            const existingUser = await User.findByEmail(email);
+            if (existingUser && existingUser.id !== req.user.id) {
+                console.log('❌ Email already exists:', email);
+                return res.status(400).json({ message: 'Email already in use' });
+            }
+        }
+
+        // Update user
+        const updatedUser = await User.updateProfile(req.user.id, { name, email });
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log('✅ Profile updated:', req.user.id);
+        res.json({
+            user: {
+                id: updatedUser.id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                monthly_budget: updatedUser.monthly_budget
+            }
+        });
+    } catch (err) {
+        console.error('❌ Profile update error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// @route   PUT api/auth/password
+// @desc    Change user password
+router.put('/password', [
+    require('../middleware/auth'),
+    body('currentPassword').exists().withMessage('Current password is required'),
+    body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    try {
+        console.log('🔒 Password change attempt:', req.user.id);
+
+        // Get user
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Check current password
+        const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+        if (!isMatch) {
+            console.log('❌ Invalid current password for:', req.user.id);
+            return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const newPasswordHash = await bcrypt.hash(newPassword, salt);
+
+        // Update password
+        await User.updatePassword(req.user.id, newPasswordHash);
+
+        console.log('✅ Password updated:', req.user.id);
+        res.json({ message: 'Password updated successfully' });
+    } catch (err) {
+        console.error('❌ Password update error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 module.exports = router;

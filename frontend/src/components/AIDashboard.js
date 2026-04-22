@@ -142,7 +142,7 @@ const AIDashboard = () => {
                 <div className="card-header">
                     <h3 className="card-title">
                         <FaChartLine style={{ marginRight: '10px', color: '#667eea' }} />
-                        📊 Spending Patterns
+                        Spending Patterns
                         <span style={{
                             marginLeft: '10px',
                             padding: '2px 8px',
@@ -240,7 +240,7 @@ const AIDashboard = () => {
                 <div className="card-header">
                     <h3 className="card-title" style={{ color: '#f14668' }}>
                         <FaBell style={{ marginRight: '10px', color: '#f14668' }} />
-                        ⚠️ Active Alerts
+                        Active Alerts
                         <span style={{
                             marginLeft: '10px',
                             padding: '2px 8px',
@@ -336,7 +336,7 @@ const AIDashboard = () => {
                 <div className="card-header">
                     <h3 className="card-title">
                         <FaLightbulb style={{ marginRight: '10px', color: '#ff9f1c' }} />
-                        💡 Smart Recommendations
+                        Smart Recommendations
                         <span style={{
                             marginLeft: '10px',
                             padding: '2px 8px',
@@ -448,7 +448,7 @@ const AIDashboard = () => {
                 <div className="card-header">
                     <h3 className="card-title">
                         <FaPiggyBank style={{ marginRight: '10px', color: '#48c774' }} />
-                        🐷 Savings Opportunities
+                        Savings Opportunities
                         <span style={{
                             marginLeft: '10px',
                             padding: '2px 8px',
@@ -538,7 +538,7 @@ const AIDashboard = () => {
                 <div className="card-header">
                     <h3 className="card-title">
                         <FaCalendarAlt style={{ marginRight: '10px', color: '#667eea' }} />
-                        🔮 Spending Forecast
+                        Spending Forecast
                         {forecast.confidence && getConfidenceBadge(forecast.confidence)}
                     </h3>
                 </div>
@@ -637,7 +637,7 @@ const AIDashboard = () => {
                 <div className="card-header">
                     <h3 className="card-title" style={{ color: '#ff9f1c' }}>
                         <FaExclamationTriangle style={{ marginRight: '10px', color: '#ff9f1c' }} />
-                        🔍 Unusual Transactions Detected
+                        Unusual Transactions Detected
                         <span style={{
                             marginLeft: '10px',
                             padding: '2px 8px',
@@ -726,7 +726,8 @@ const AIDashboard = () => {
                 <div className="card insight-section" style={{ marginBottom: '20px', border: '2px solid #4285f440' }}>
                     <div className="card-header">
                         <h3 className="card-title" style={{ color: '#4285f4' }}>
-                            🚀 Gemini AI Insights
+                            <FaRobot style={{ marginRight: '10px', color: '#4285f4' }} />
+                            Gemini AI Insights
                         </h3>
                     </div>
                     <div style={{ padding: '30px', textAlign: 'center' }}>
@@ -762,7 +763,8 @@ const AIDashboard = () => {
             <div className="card insight-section" style={{ marginBottom: '20px', border: '2px solid #4285f440' }}>
                 <div className="card-header">
                     <h3 className="card-title" style={{ color: '#4285f4' }}>
-                        🚀 Gemini AI Advanced Insights
+                        <FaRobot style={{ marginRight: '10px', color: '#4285f4' }} />
+                        Gemini AI Advanced Insights
                         <span style={{
                             marginLeft: '10px',
                             padding: '2px 8px',

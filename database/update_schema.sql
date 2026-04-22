@@ -223,4 +223,20 @@ SELECT
     COUNT(*) as total_categories, 
     SUM(CASE WHEN is_default = TRUE THEN 1 ELSE 0 END) as system_categories,
     SUM(CASE WHEN user_id IS NOT NULL THEN 1 ELSE 0 END) as custom_categories 
-FROM categories;
+-- ============================================
+-- 8. WEEKLY DIGESTS TABLE
+-- ============================================
+
+-- Create weekly_digests table if it doesn't exist
+CREATE TABLE IF NOT EXISTS weekly_digests (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    week_start DATE NOT NULL,
+    week_end DATE NOT NULL,
+    insights JSON NOT NULL,
+    summary_text TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_week (user_id, week_start),
+    UNIQUE KEY unique_user_week (user_id, week_start)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

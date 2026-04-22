@@ -261,6 +261,11 @@
   border: 2px solid #fff;
 }
 
+.notification-badge:empty,
+.notification-badge[data-count="0"] {
+  display: none;
+}
+
 /* Sidebar Toggle Button in TopNav */
 .sidebar-toggle-btn {
   background: rgba(255, 255, 255, 0.15);
@@ -1862,4 +1867,118 @@ body, .App, .main-content, .card, .table-container, .form-control, .btn, .sideba
     color: black !important;
     background: white !important;
   }
+}
+
+/* ===== Settings Page ===== */
+.settings-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 30px;
+}
+
+.settings-nav-bar {
+  display: flex;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 40px;
+  overflow: hidden;
+  border: 2px solid #e1e5e9;
+}
+
+.nav-tab {
+  flex: 1;
+  padding: 18px 24px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  font-weight: 600;
+  position: relative;
+}
+
+.nav-tab:hover {
+  background: #f8fafc;
+  color: #334155;
+  transform: translateY(-2px);
+}
+
+.nav-tab.active {
+  background: linear-gradient(135deg, #003087, #00A3E0);
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 48, 135, 0.3);
+}
+
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: white;
+  border-radius: 2px 2px 0 0;
+}
+
+.tab-text {
+  font-size: 15px;
+}
+
+.settings-content {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 20px;
+  }
+  
+  .settings-nav-bar {
+    margin-bottom: 30px;
+  }
+
+  .nav-tab {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+
+  .tab-text {
+    display: none; /* Hide text on mobile, show only icons */
+  }
+
+  .settings-content {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* Dark mode settings */
+.dark-mode .settings-nav-bar {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .nav-tab {
+  color: #94a3b8;
+}
+
+.dark-mode .nav-tab:hover {
+  background: #334155;
+  color: #f1f5f9;
+}
+
+.dark-mode .nav-tab.active {
+  background: linear-gradient(135deg, #003087, #00A3E0);
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 48, 135, 0.4);
 }

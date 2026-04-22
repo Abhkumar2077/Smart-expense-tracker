@@ -15,6 +15,7 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Upload from './pages/Upload';
 import Notifications from './pages/Notifications';
+import Reminders from './pages/Reminders';
 import Auth from './pages/Auth'; // ✅ Single import from pages
 import AIDashboard from './components/AIDashboard';
 import './App.css';
@@ -70,6 +71,7 @@ const AppContent = () => {
         <Route path="/dashboard" element={privateRoute(<Dashboard />, sidebarCollapsed, toggleSidebar)} />
         <Route path="/goals" element={privateRoute(<Goals />, sidebarCollapsed, toggleSidebar)} />
         <Route path="/expenses" element={privateRoute(<Expenses />, sidebarCollapsed, toggleSidebar)} />
+        <Route path="/reminders" element={privateRoute(<Reminders />, sidebarCollapsed, toggleSidebar)} />
         <Route path="/reports" element={privateRoute(<Reports />, sidebarCollapsed, toggleSidebar)} />
         <Route path="/ai" element={privateRoute(<AIDashboard />, sidebarCollapsed, toggleSidebar)} />
         <Route path="/notifications" element={privateRoute(<Notifications />, sidebarCollapsed, toggleSidebar)} />

@@ -11,6 +11,9 @@ const UserModel = require('../models/User');
 const geminiService = require('../services/geminiService');
 const db = require('../config/db');
 
+const isMissingTableError = (err) =>
+    err && (err.code === 'ER_NO_SUCH_TABLE' || String(err.message || '').includes("doesn't exist"));
+
 console.log('AI routes loading...');
 console.log('User model:', typeof UserModel, UserModel ? 'loaded' : 'not loaded');
 
@@ -185,6 +188,9 @@ router.get('/weekly-digest', auth, async (req, res) => {
       }
     });
   } catch (err) {
+        if (isMissingTableError(err)) {
+            return res.json({ digest: null, message: 'Weekly digest storage not initialized yet' });
+        }
     res.status(500).json({ error: err.message });
   }
 });
@@ -196,6 +202,9 @@ router.get('/weekly-digests', auth, async (req, res) => {
         const digests = await WeeklyDigest.getForUser(req.user.id);
         res.json(digests);
     } catch (err) {
+        if (isMissingTableError(err)) {
+            return res.json([]);
+        }
         res.status(500).json({ error: err.message });
     }
 });
@@ -207,6 +216,9 @@ router.post('/generate-weekly-digest', auth, async (req, res) => {
         await generateDigestForUser(req.user.id);
         res.json({ success: true, message: 'Weekly digest generated' });
     } catch (err) {
+        if (isMissingTableError(err)) {
+            return res.json({ success: false, message: 'Weekly digest storage not initialized yet' });
+        }
         res.status(500).json({ error: err.message });
     }
 });

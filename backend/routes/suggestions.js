@@ -4,12 +4,18 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const AISuggestion = require('../models/AISuggestion');
 
+const isMissingTableError = (err) =>
+  err && (err.code === 'ER_NO_SUCH_TABLE' || String(err.message || '').includes("doesn't exist"));
+
 // Get all pending suggestions
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const suggestions = await AISuggestion.getPending(req.user.id);
     res.json({ suggestions });
   } catch (err) {
+    if (isMissingTableError(err)) {
+      return res.json({ suggestions: [] });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -27,6 +33,9 @@ router.patch('/:id/decide', authMiddleware, async (req, res) => {
     if (!success) return res.status(404).json({ error: 'Suggestion not found' });
     res.json({ success: true, status });
   } catch (err) {
+    if (isMissingTableError(err)) {
+      return res.status(404).json({ error: 'Suggestion storage not initialized yet' });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -37,6 +46,9 @@ router.get('/history', authMiddleware, async (req, res) => {
     const history = await AISuggestion.getHistory(req.user.id);
     res.json({ history });
   } catch (err) {
+    if (isMissingTableError(err)) {
+      return res.json({ history: [] });
+    }
     res.status(500).json({ error: err.message });
   }
 });
