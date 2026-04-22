@@ -47,10 +47,10 @@ const Upload = () => {
 
     return (
         <div>
-                <div style={{ marginBottom: '30px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
-                            <FaUpload style={{ color: '#667eea' }} />
+                <div style={{ marginBottom: 'var(--spacing-2xl)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--spacing-lg)', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <h2 style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', margin: 0, fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)' }}>
+                            <FaUpload style={{ color: 'var(--color-primary)' }} />
                             Import Expenses from CSV
                         </h2>
                         <button

@@ -671,13 +671,13 @@ const Reports = () => {
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'center', 
-                    marginBottom: '30px',
+                    marginBottom: 'var(--spacing-2xl)',
                     flexWrap: 'wrap',
-                    gap: '15px'
+                    gap: 'var(--spacing-lg)'
                 }}>
                     <div>
-                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                            <FaChartPie style={{ color: '#667eea' }} />
+                        <h2 style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xs)', fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)' }}>
+                            <FaChartPie style={{ color: 'var(--color-primary)' }} />
                             Financial Reports
                         </h2>
                         {uploadedData && (

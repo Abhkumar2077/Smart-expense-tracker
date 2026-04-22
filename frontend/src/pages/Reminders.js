@@ -162,24 +162,26 @@ const Reminders = () => {
   }
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ padding: 'var(--spacing-xl)' }}>
       {/* Header */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '30px',
+        marginBottom: 'var(--spacing-2xl)',
         flexWrap: 'wrap',
-        gap: '15px'
+        gap: 'var(--spacing-lg)'
       }}>
         <h2 style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '10px',
+          gap: 'var(--spacing-md)',
           margin: 0,
-          color: '#001435'
+          color: '#001435',
+          fontSize: 'var(--font-size-2xl)',
+          fontWeight: 'var(--font-weight-bold)'
         }}>
-          <FaBell style={{ color: '#667eea' }} />
+          <FaBell style={{ color: 'var(--color-primary)' }} />
           Bill Reminders
           {reminders.length > 0 && (
             <span style={{
