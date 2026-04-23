@@ -16,7 +16,6 @@ router.get('/summary', auth, async (req, res) => {
         const currentMonth = month ? parseInt(month) : new Date().getMonth() + 1;
         const currentYear = year ? parseInt(year) : new Date().getFullYear();
 
-        console.log(`📊 Fetching dashboard summary for user ${req.user.id}, timeRange: ${timeRange}, month: ${currentMonth}, year: ${currentYear}`);
 
         let summary = {};
         let insights = {};
@@ -102,7 +101,6 @@ router.get('/summary', auth, async (req, res) => {
             const goalsData = await Goal.findByUserId(req.user.id);
             goals = goalsData || [];
         } catch (err) {
-            console.log('⚠️ Goals not available:', err.message);
         }
 
         // Get upcoming reminders
@@ -110,14 +108,12 @@ router.get('/summary', auth, async (req, res) => {
             const remindersData = await Reminder.findByUserId(req.user.id);
             reminders = remindersData.filter(r => !r.is_paid && new Date(r.due_date) >= new Date()) || [];
         } catch (err) {
-            console.log('⚠️ Reminders not available:', err.message);
         }
 
         // Get AI insights
         try {
             aiInsights = await AIService.generateInsights(req.user.id);
         } catch (err) {
-            console.log('⚠️ AI insights not available:', err.message);
             aiInsights = { suggestions: [], patterns: [], forecast: {} };
         }
 
@@ -129,7 +125,6 @@ router.get('/summary', auth, async (req, res) => {
         try {
             recentExpenses = await Expense.findByUserId(req.user.id, null, null, 5);
         } catch (err) {
-            console.log('⚠️ Recent expenses not available:', err.message);
         }
 
         const dashboardData = {
@@ -149,7 +144,6 @@ router.get('/summary', auth, async (req, res) => {
             timestamp: new Date().toISOString()
         };
 
-        console.log('✅ Dashboard summary generated successfully');
         res.json(dashboardData);
 
     } catch (err) {

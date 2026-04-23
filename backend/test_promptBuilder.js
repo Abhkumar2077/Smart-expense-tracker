@@ -14,9 +14,6 @@ function testPromptBuilder() {
     };
 
     const prompt = buildInsightPrompt(mockData);
-    console.log('Prompt generated successfully');
-    console.log('Length:', prompt.length);
-    console.log('Contains JSON format:', prompt.includes('REQUIRED OUTPUT FORMAT'));
 }
 
 testPromptBuilder();

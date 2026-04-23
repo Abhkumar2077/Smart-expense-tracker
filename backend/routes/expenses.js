@@ -79,7 +79,6 @@ router.get('/summary', auth, async (req, res) => {
         const currentMonth = month ? parseInt(month) : new Date().getMonth() + 1;
         const currentYear = year ? parseInt(year) : new Date().getFullYear();
 
-        console.log(`📊 Fetching summary for user ${req.user.id}, month ${currentMonth}, year ${currentYear}`);
 
         const categorySummary = await Expense.getCategorySummary(req.user.id, currentMonth, currentYear);
         const monthlySummary = await Expense.getMonthlySummary(req.user.id, currentYear);
@@ -89,7 +88,6 @@ router.get('/summary', auth, async (req, res) => {
         try {
             dailySummary = await Expense.getDailySummary(req.user.id, currentMonth, currentYear);
         } catch (err) {
-            console.log('⚠️ Daily summary not available:', err.message);
         }
         
         res.json({

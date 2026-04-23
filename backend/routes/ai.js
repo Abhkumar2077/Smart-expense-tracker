@@ -14,8 +14,6 @@ const db = require('../config/db');
 const isMissingTableError = (err) =>
     err && (err.code === 'ER_NO_SUCH_TABLE' || String(err.message || '').includes("doesn't exist"));
 
-console.log('AI routes loading...');
-console.log('User model:', typeof UserModel, UserModel ? 'loaded' : 'not loaded');
 
 // @route   GET api/ai/insights
 // @desc    Get AI-powered spending insights
@@ -104,15 +102,7 @@ router.get('/savings', auth, async (req, res) => {
 // @desc    Get advanced Gemini AI-powered insights
 router.get('/gemini-insights', auth, async (req, res) => {
     try {
-        console.log('Gemini insights route called');
-        console.log('User model available:', typeof User);
-        console.log('req.user:', req.user);
-        console.log('req.user.id:', req.user?.id);
-        
-        console.log('About to call UserModel.findById');
         const user = await UserModel.findById(req.user.id);
-        console.log('UserModel.findById completed successfully');
-        console.log('User found:', user ? 'yes' : 'no');
         const expenses = await Expense.findByUserId(req.user.id);
         const insights = await Expense.getSpendingInsights(req.user.id);
 
@@ -120,19 +110,30 @@ router.get('/gemini-insights', auth, async (req, res) => {
         const currentYear = new Date().getFullYear();
         const categorySummary = await Expense.getCategorySummary(req.user.id, currentMonth, currentYear);
 
-        const geminiResult = await geminiService.generateFinancialInsights({
+        // Validate data structure before sending to Gemini
+        if (!expenses || expenses.length === 0) {
+            return res.json({
+                success: false,
+                message: 'No expense data available for AI analysis',
+                fallback: 'Basic AI insights available at /api/ai/insights'
+            });
+        }
+
+        const geminiData = {
             expenses,
-            categorySummary,
-            user,
-            insights
-        });
+            categorySummary: categorySummary || [],
+            user: user || {},
+            insights: insights || {}
+        };
+
+        const geminiResult = await geminiService.generateFinancialInsights(geminiData);
 
         if (geminiResult) {
             // Check if there's an error in the result
             if (geminiResult.error) {
                 res.json({
                     success: false,
-                    message: geminiResult.error === 'API quota exceeded' 
+                    message: geminiResult.error === 'API quota exceeded'
                         ? 'Gemini API quota exceeded. Please try again later or upgrade your plan.'
                         : 'Gemini API key configuration issue. Please check your API key.',
                     fallback: 'Basic AI insights available at /api/ai/insights',
@@ -154,11 +155,11 @@ router.get('/gemini-insights', auth, async (req, res) => {
         }
     } catch (err) {
         console.error('Gemini insights error:', err);
-        console.error('Error stack:', err.stack);
         res.status(500).json({
+            success: false,
             message: 'Error generating Gemini insights',
             error: err.message,
-            stack: err.stack
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
         });
     }
 });

@@ -7,7 +7,6 @@ class Category {
     // ============================================
     static async getAll(userId = null) {
         try {
-            console.log(`Category.getAll called for user: ${userId}`);
             
             let query;
             let params = [];
@@ -28,8 +27,6 @@ class Category {
             
             query += ' ORDER BY is_default DESC, name ASC';
             
-            console.log('Query:', query);
-            console.log('Params:', params);
             
             const [rows] = await db.execute(query, params);
             
@@ -46,7 +43,6 @@ class Category {
                 created_at: row.created_at
             }));
             
-            console.log(`Found ${categories.length} categories`);
             return categories;
             
         } catch (error) {
@@ -60,14 +56,12 @@ class Category {
     // ============================================
     static async getUserCategories(userId) {
         try {
-            console.log(`Getting custom categories for user: ${userId}`);
             
             // Check if user_id column exists
             const [columns] = await db.execute('SHOW COLUMNS FROM categories');
             const hasUserId = columns.some(col => col.Field === 'user_id');
             
             if (!hasUserId) {
-                console.log('user_id column does not exist, returning empty array');
                 return [];
             }
             
@@ -88,7 +82,6 @@ class Category {
                 created_at: row.created_at
             }));
             
-            console.log(`Found ${categories.length} custom categories`);
             return categories;
             
         } catch (error) {
@@ -104,7 +97,6 @@ class Category {
         try {
             const { user_id, name, color = '#808080', icon = '\uD83D\uDCCC' } = categoryData;
             
-            console.log(`Creating category "${name}" for user ${user_id}`);
             
             // Validate input
             if (!name || name.trim() === '') {
@@ -139,7 +131,6 @@ class Category {
                 [user_id, name.trim(), color, icon]
             );
             
-            console.log(`Category created with ID: ${result.insertId}`);
             
             // Return the created category
             return {
@@ -166,7 +157,6 @@ class Category {
         try {
             const { name, color, icon } = categoryData;
             
-            console.log(`Updating category ${id} for user ${userId}`);
             
             // Validate input
             if (!name || name.trim() === '') {
@@ -199,7 +189,6 @@ class Category {
                 [name.trim(), color, icon, id, userId]
             );
             
-            console.log(`Category updated: ${result.affectedRows > 0}`);
             
             // Return updated category
             return {
@@ -221,7 +210,6 @@ class Category {
     // ============================================
     static async delete(id, userId) {
         try {
-            console.log(`Deleting category ${id} for user ${userId}`);
             
             // Check if category exists and belongs to user
             const [category] = await db.execute(
@@ -249,7 +237,6 @@ class Category {
                 [id, userId]
             );
             
-            console.log(`Category deleted: ${result.affectedRows > 0}`);
             return result.affectedRows > 0;
             
         } catch (error) {
@@ -277,7 +264,6 @@ class Category {
                 'UPDATE categories SET usage_count = usage_count + 1, last_used = CURDATE() WHERE id = ?',
                 [categoryId]
             );
-            console.log(`Incremented usage for category ${categoryId}`);
             
         } catch (error) {
             console.error('Error in incrementUsage:', error);
@@ -290,7 +276,6 @@ class Category {
     // ============================================
     static async getSuggestions(userId) {
         try {
-            console.log(`Getting suggestions for user ${userId}`);
             
             const [suggestions] = await db.execute(`
                 SELECT 
@@ -308,7 +293,6 @@ class Category {
                 LIMIT 10
             `, [userId]);
             
-            console.log(`✅ Found ${suggestions.length} suggestions`);
             return suggestions;
             
         } catch (error) {
@@ -322,7 +306,6 @@ class Category {
     // ============================================
     static async getPopularCategories() {
         try {
-            console.log('Getting popular categories');
             
             // Check if required columns exist
             const [columns] = await db.execute('SHOW COLUMNS FROM categories');
@@ -330,7 +313,6 @@ class Category {
             const hasUsageCount = columns.some(col => col.Field === 'usage_count');
             
             if (!hasUserId || !hasUsageCount) {
-                console.log('Required columns missing for popular categories');
                 return [];
             }
             
@@ -348,7 +330,6 @@ class Category {
                 LIMIT 5
             `);
             
-            console.log(`✅ Found ${popular.length} popular categories`);
             return popular;
             
         } catch (error) {
@@ -413,7 +394,6 @@ class Category {
     // ============================================
     static async initializeDefaults() {
         try {
-            console.log('Initializing default categories...');
             
             const defaultCategories = [
                 { name: 'Food & Dining', color: '#FF6B6B' },
@@ -445,13 +425,11 @@ class Category {
                         [cat.name, cat.color]
                     );
                     inserted++;
-                    console.log(`✅ Inserted: ${cat.name}`);
                 } else {
                     existing++;
                 }
             }
             
-            console.log(`📊 Default categories: ${inserted} inserted, ${existing} existing`);
             return { inserted, existing };
             
         } catch (error) {
@@ -488,23 +466,19 @@ class Category {
     // ============================================
     static async runMigration() {
         try {
-            console.log('Running category table migration...');
             
             const migrationNeeded = await this.checkMigrationNeeded();
             
             if (migrationNeeded.user_id) {
                 await db.execute('ALTER TABLE categories ADD COLUMN user_id INT NULL AFTER id');
-                console.log('Added user_id column');
             }
             
             if (migrationNeeded.usage_count) {
                 await db.execute('ALTER TABLE categories ADD COLUMN usage_count INT DEFAULT 0 AFTER color');
-                console.log('Added usage_count column');
             }
             
             if (migrationNeeded.last_used) {
                 await db.execute('ALTER TABLE categories ADD COLUMN last_used DATE NULL AFTER usage_count');
-                console.log('Added last_used column');
             }
             
             // Add foreign key if user_id column was added
@@ -523,19 +497,15 @@ class Category {
                         await db.execute(
                             'ALTER TABLE categories ADD CONSTRAINT fk_categories_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE'
                         );
-                        console.log('Added foreign key constraint');
                     } else {
-                        console.log('Foreign key already exists');
                     }
                 } catch (fkError) {
-                    console.log('Could not add foreign key:', fkError.message);
                 }
             }
             
             // Update system categories to have NULL user_id
             await db.execute('UPDATE categories SET user_id = NULL WHERE is_default = TRUE');
             
-            console.log('Migration completed successfully');
             return { success: true };
             
         } catch (error) {

@@ -5,7 +5,6 @@ const cache = require('../utils/cache');
 class Expense {
     // Create new expense/income
     static async create(expenseData) {
-        console.log('📝 Creating transaction with data:', expenseData);
 
         const { user_id, category_id, category_ids, amount, description, date, type = 'expense' } = expenseData;
 
@@ -29,7 +28,6 @@ class Expense {
             );
 
             const expenseId = result.insertId;
-            console.log(`✅ Transaction created with ID: ${expenseId}, Type: ${type}`);
 
             // Insert multiple categories if provided
             if (categoriesToUse.length > 1 || type === 'income') {
@@ -312,7 +310,6 @@ class Expense {
             );
             
             if (result.affectedRows > 0 && expense.length > 0) {
-                console.log(`✅ Deleted transaction ${id}`);
                 
                 // Clear AI insights cache for this user
                 cache.delete(`insights_${userId}`);
@@ -338,7 +335,6 @@ class Expense {
     // Get category-wise summary
 static async getCategorySummary(userId, month, year) {
     try {
-        console.log(`🔍 Getting category summary for user ${userId}, month ${month}, year ${year}`);
         
         const [rows] = await db.execute(
             `SELECT 
@@ -359,7 +355,6 @@ static async getCategorySummary(userId, month, year) {
             [userId, month, year]
         );
         
-        console.log(`✅ Found ${rows.length} categories with data`);
         
         return rows.map(row => ({
             ...row,
@@ -401,7 +396,6 @@ static async getCategorySummary(userId, month, year) {
     // ============================================
     static async getDailySummary(userId, month, year) {
         try {
-            console.log(`📊 Fetching daily summary for user ${userId}, month ${month}, year ${year}`);
             
             const [rows] = await db.execute(
                 `SELECT 
@@ -418,7 +412,6 @@ static async getCategorySummary(userId, month, year) {
                 [userId, month, year]
             );
             
-            console.log(`✅ Found ${rows.length} days with transactions`);
             return rows;
         } catch (error) {
             console.error('❌ Error getting daily summary:', error);

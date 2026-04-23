@@ -58,7 +58,6 @@ const CSVUploader = ({ onUploadComplete }) => {
             })));
             
             if (res.data.fallback) {
-                console.log('🔄 AI categorization unavailable, using manual mode');
                 showNotification('AI categorization unavailable - please categorize manually', 'warning');
             }
             
@@ -89,11 +88,10 @@ const CSVUploader = ({ onUploadComplete }) => {
         return () => window.removeEventListener('upload-data-cleared', handleDataChange);
     }, []);
 
-    const validateFile = async (file) => {
+    const validateFile = useCallback(async (file) => {
         try {
             const res = await uploadAPI.validateCSV(file);
 
-            console.log('Validation response:', res.data);
             setPreview(res.data);
 
             // Get AI suggestions for categorization
@@ -111,13 +109,12 @@ const CSVUploader = ({ onUploadComplete }) => {
         } finally {
             setUploadProgress(0);
         }
-    };
+    }, []);
 
     const onDrop = useCallback(async (acceptedFiles) => {
         const file = acceptedFiles[0];
         if (!file) return;
         
-        console.log('File selected:', file.name);
         
         setFile(file);
         setError(null);
@@ -150,7 +147,6 @@ const CSVUploader = ({ onUploadComplete }) => {
         try {
             const res = await uploadAPI.uploadCSV(file);
 
-            console.log('Upload response:', res.data);
 
             // Clear old data first
             clearUpload();
@@ -205,7 +201,6 @@ const CSVUploader = ({ onUploadComplete }) => {
     };
 
     const resetUpload = () => {
-        console.log('Resetting upload form...');
         setFile(null);
         setResult(null);
         setPreview(null);

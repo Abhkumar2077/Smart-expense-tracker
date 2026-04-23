@@ -7,7 +7,6 @@ const Category = require('../models/Category');
 // @desc    Get all categories for user
 router.get('/', auth, async (req, res) => {
     try {
-        console.log('Fetching categories for user:', req.user.id);
         const categories = await Category.getAll(req.user.id);
         res.json(categories);
     } catch (err) {
@@ -44,7 +43,6 @@ router.get('/popular', auth, async (req, res) => {
 // @desc    Create a custom category
 router.post('/', auth, async (req, res) => {
     try {
-        console.log('Creating category with data:', req.body);
         
         const { name, color, icon } = req.body;
         
@@ -59,11 +57,9 @@ router.post('/', auth, async (req, res) => {
             icon: icon || '\uD83D\uDCCC'
         };
         
-        console.log('Category data:', categoryData);
         
         const category = await Category.create(categoryData);
         
-        console.log('Category created:', category);
         res.status(201).json(category);
         
     } catch (err) {

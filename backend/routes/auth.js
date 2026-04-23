@@ -21,19 +21,16 @@ router.post('/register', [
     const { name, email, password } = req.body;
 
     try {
-        console.log('📝 Registration attempt:', email);
 
         // Check if user exists
         let user = await User.findByEmail(email);
         if (user) {
-            console.log('❌ User already exists:', email);
             return res.status(400).json({ message: 'User already exists' });
         }
 
         // Hash password
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(password, salt);
-        console.log('✅ Password hashed');
 
         // Create user
         const userId = await User.create({
@@ -42,7 +39,6 @@ router.post('/register', [
             password_hash,
             monthly_budget: 0
         });
-        console.log('✅ User created with ID:', userId);
 
         // Create token
         const payload = {
@@ -60,7 +56,6 @@ router.post('/register', [
                     console.error('❌ JWT error:', err);
                     throw err;
                 }
-                console.log('✅ Token generated');
                 res.json({
                     token,
                     user: {
@@ -95,19 +90,16 @@ router.post('/login', [
     const { email, password } = req.body;
 
     try {
-        console.log('📝 Login attempt:', email);
 
         // Check if user exists
         let user = await User.findByEmail(email);
         if (!user) {
-            console.log('❌ User not found:', email);
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
         // Check password
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
-            console.log('❌ Invalid password for:', email);
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
@@ -124,7 +116,6 @@ router.post('/login', [
             { expiresIn: '7d' },
             (err, token) => {
                 if (err) throw err;
-                console.log('✅ Login successful:', email);
                 res.json({
                     token,
                     user: {
@@ -168,13 +159,11 @@ router.put('/profile', [
     const { name, email } = req.body;
 
     try {
-        console.log('📝 Profile update attempt:', req.user.id);
 
         // Check if email is already taken by another user
         if (email) {
             const existingUser = await User.findByEmail(email);
             if (existingUser && existingUser.id !== req.user.id) {
-                console.log('❌ Email already exists:', email);
                 return res.status(400).json({ message: 'Email already in use' });
             }
         }
@@ -185,7 +174,6 @@ router.put('/profile', [
             return res.status(404).json({ message: 'User not found' });
         }
 
-        console.log('✅ Profile updated:', req.user.id);
         res.json({
             user: {
                 id: updatedUser.id,
@@ -215,7 +203,6 @@ router.put('/password', [
     const { currentPassword, newPassword } = req.body;
 
     try {
-        console.log('🔒 Password change attempt:', req.user.id);
 
         // Get user
         const user = await User.findById(req.user.id);
@@ -226,7 +213,6 @@ router.put('/password', [
         // Check current password
         const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
         if (!isMatch) {
-            console.log('❌ Invalid current password for:', req.user.id);
             return res.status(400).json({ message: 'Current password is incorrect' });
         }
 
@@ -237,7 +223,6 @@ router.put('/password', [
         // Update password
         await User.updatePassword(req.user.id, newPasswordHash);
 
-        console.log('✅ Password updated:', req.user.id);
         res.json({ message: 'Password updated successfully' });
     } catch (err) {
         console.error('❌ Password update error:', err);

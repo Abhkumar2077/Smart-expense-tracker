@@ -14,7 +14,6 @@ const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
     fileFilter: (req, file, cb) => {
-        console.log('📁 File received:', file.originalname, file.mimetype);
         
         // Accept CSV files
         if (file.mimetype === 'text/csv' || 
@@ -31,7 +30,6 @@ const upload = multer({
 // @desc    Upload and process CSV file (replaces old data)
 router.post('/csv', auth, upload.single('file'), async (req, res) => {
     try {
-        console.log('🟢 CSV upload endpoint called');
         
         if (!req.file) {
             return res.status(400).json({ 
@@ -40,19 +38,16 @@ router.post('/csv', auth, upload.single('file'), async (req, res) => {
             });
         }
 
-        console.log(`📄 Processing: ${req.file.originalname} (${req.file.size} bytes)`);
         
         // First, get count of existing expenses for logging
         const [existingCount] = await db.execute(
             'SELECT COUNT(*) as count FROM expenses WHERE user_id = ?', 
             [req.user.id]
         );
-        console.log(`🗑️ Found ${existingCount[0].count} existing expenses for user ${req.user.id}`);
         
         // Delete all existing expenses for this user
         if (existingCount[0].count > 0) {
             await db.execute('DELETE FROM expenses WHERE user_id = ?', [req.user.id]);
-            console.log(`✅ Deleted ${existingCount[0].count} old expenses`);
         }
         
         // Then process and save new CSV data
@@ -65,10 +60,8 @@ router.post('/csv', auth, upload.single('file'), async (req, res) => {
             const cache = require('../utils/cache');
             const cacheKey = `insights_${req.user.id}`;
             cache.delete(cacheKey);
-            console.log(`🧹 Cleared AI insights cache for user ${req.user.id}`);
             // Optionally, trigger fresh insights generation
             aiService.generateInsights(req.user.id).then(() => {
-                console.log('🤖 AI insights regenerated after CSV upload');
             }).catch(e => {
                 console.warn('AI insights regeneration failed:', e.message);
             });
@@ -82,8 +75,6 @@ router.post('/csv', auth, upload.single('file'), async (req, res) => {
             [req.user.id]
         );
 
-        console.log(`📊 Final count: ${newCount[0].count} expenses in database`);
-        console.log(`✅ Successfully processed ${result.valid_records} new records`);
 
         // Add file info to result
         result.fileName = req.file.originalname;
@@ -166,7 +157,6 @@ router.delete('/clear-all', auth, async (req, res) => {
         // Delete all expenses
         await db.execute('DELETE FROM expenses WHERE user_id = ?', [req.user.id]);
         
-        console.log(`🗑️ Deleted ${existingCount[0].count} expenses for user ${req.user.id}`);
         
         res.json({ 
             success: true, 
@@ -260,7 +250,6 @@ router.post('/categorize-preview', auth, async (req, res) => {
       confidence: 'none'
     }));
     
-    console.log('🔄 Using fallback categorization (no AI suggestions)');
     res.json({ 
       transactions: fallbackTransactions,
       fallback: true,

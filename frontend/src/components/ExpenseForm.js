@@ -1,4 +1,4 @@
-﻿// frontend/src/components/ExpenseForm.js
+// frontend/src/components/ExpenseForm.js
 import React, { useState, useEffect } from 'react';
 import { FaArrowDown, FaArrowUp, FaTimes, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
@@ -38,7 +38,6 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
   }, [editingExpense]);
 
   useEffect(() => {
-    console.log('📋 Available categories in ExpenseForm:', categories);
   }, [categories]);
 
   const handleChange = (e) => {
@@ -95,7 +94,6 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
               amount: parseFloat(formData.amount),
               type: 'expense'
             };
-            console.log('📝 Submitting expense:', submitData);
             onSubmit(submitData);
             if (!editingExpense) {
               setFormData({
@@ -108,7 +106,7 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
               });
             }
           }}>
-            <h1>{editingExpense ? '✏️ Edit Expense' : '💰 Add Expense'}</h1>
+            <h1>{editingExpense ? '?? Edit Expense' : '?? Add Expense'}</h1>
 
             <div className="grid">
               <div className="field-group">
@@ -120,7 +118,7 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
                   if (!categories || categories.length === 0) {
                     return (
                       <div className="no-categories">
-                        <p>⚠️ No categories found!</p>
+                        <p>?? No categories found!</p>
                         <button
                           type="button"
                           onClick={goToSettings}
@@ -177,10 +175,10 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
 
               <div className="field-group">
                 <label>
-                  Amount (₹) <span>*</span>
+                  Amount (?) <span>*</span>
                 </label>
                 <div className="amount-input">
-                  <span>₹</span>
+                  <span>?</span>
                   <input
                     type="number"
                     name="amount"
@@ -264,7 +262,6 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
             if (isIncomePanelActive) {
               submitData.category_ids = formData.category_id ? [parseInt(formData.category_id, 10)] : [];
             }
-            console.log('📝 Submitting income:', submitData);
             onSubmit(submitData);
             if (!editingExpense) {
               setFormData({
@@ -277,7 +274,7 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
               });
             }
           }}>
-            <h1>{editingExpense ? '✏️ Edit Income' : '💰 Add Income'}</h1>
+            <h1>{editingExpense ? '?? Edit Income' : '?? Add Income'}</h1>
 
             <div className="grid">
               <div className="field-group">
@@ -292,7 +289,7 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
                   if (!categories || categories.length === 0) {
                     return (
                       <div className="no-categories">
-                        <p>⚠️ No categories found!</p>
+                        <p>?? No categories found!</p>
                         <button
                           type="button"
                           onClick={goToSettings}
@@ -349,10 +346,10 @@ const ExpenseForm = ({ onSubmit, categories, editingExpense, onCancel, embedded 
 
               <div className="field-group">
                 <label>
-                  Amount (₹) <span>*</span>
+                  Amount (?) <span>*</span>
                 </label>
                 <div className="amount-input">
-                  <span>₹</span>
+                  <span>?</span>
                   <input
                     type="number"
                     name="amount"

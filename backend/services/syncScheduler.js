@@ -8,17 +8,14 @@ class SyncScheduler {
     static init() {
         // Run sync every day at 2 AM
         cron.schedule('0 2 * * *', async () => {
-            console.log('🔄 Running scheduled bank sync at', new Date().toISOString());
             await this.syncAllUsers();
         });
 
         // Run cleanup every Sunday at 3 AM
         cron.schedule('0 3 * * 0', async () => {
-            console.log('🧹 Running cleanup task at', new Date().toISOString());
             await this.cleanupOldLogs();
         });
 
-        console.log('✅ Sync scheduler started');
     }
 
     // Sync all active accounts for all users
@@ -32,7 +29,6 @@ class SyncScheduler {
                  AND last_sync IS NULL OR last_sync < DATE_SUB(NOW(), INTERVAL 23 HOUR)`
             );
 
-            console.log(`📊 Found ${users.length} users to sync`);
 
             for (const user of users) {
                 try {
@@ -44,7 +40,6 @@ class SyncScheduler {
                 }
             }
 
-            console.log('✅ Scheduled sync completed');
         } catch (error) {
             console.error('❌ Error in scheduled sync:', error);
         }
@@ -57,7 +52,6 @@ class SyncScheduler {
                 `DELETE FROM bank_sync_logs 
                  WHERE started_at < DATE_SUB(NOW(), INTERVAL 30 DAY)`
             );
-            console.log(`🧹 Cleaned up ${result.affectedRows} old sync logs`);
         } catch (error) {
             console.error('❌ Error cleaning up logs:', error);
         }

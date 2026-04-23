@@ -13,8 +13,7 @@ const Upload = () => {
     const [currentPage, setCurrentPage] = React.useState(1);
     const itemsPerPage = 10;
 
-    const handleUploadComplete = (result) => {
-        console.log('Upload complete:', result);
+    const handleUploadComplete = (_result) => {
         // Refresh the page or update data after upload
         window.dispatchEvent(new Event('upload-data-changed'));
     };

@@ -1,5 +1,5 @@
 // frontend/src/pages/Reports.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { expenseAPI } from '../services/api';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
@@ -41,16 +41,16 @@ const Reports = () => {
     const { uploadedData } = useUpload();
     const { showNotification } = useNotification();
 
-    const months = [
+    const months = useMemo(() => [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
-    ];
+    ], []);
 
-    const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+    const years = useMemo(() => Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i), []);
 
-    const EXPENSE_COLORS = ['#f14668', '#ff6b6b', '#ff8787', '#ffa8a8', '#ffc9c9'];
-    const INCOME_COLORS = ['#48c774', '#51cf66', '#69db7e', '#8ce99a', '#b2f2bb'];
-    const COMBINED_COLORS = ['#667eea', '#764ba2', '#48c774', '#f14668', '#ff9f1c'];
+    const EXPENSE_COLORS = useMemo(() => ['#f14668', '#ff6b6b', '#ff8787', '#ffa8a8', '#ffc9c9'], []);
+    const INCOME_COLORS = useMemo(() => ['#48c774', '#51cf66', '#69db7e', '#8ce99a', '#b2f2bb'], []);
+    const COMBINED_COLORS = useMemo(() => ['#667eea', '#764ba2', '#48c774', '#f14668', '#ff9f1c'], []);
 
     const fetchReportData = useCallback(async () => {
         try {
@@ -58,8 +58,6 @@ const Reports = () => {
             
             // Get summary from API
             const summaryRes = await expenseAPI.getSummary(selectedMonth, selectedYear);
-            console.log('📊 FULL API RESPONSE:', summaryRes.data);
-            console.log('📊 Daily summary:', summaryRes.data?.daily_summary);
             
             setSummary(summaryRes.data);
             
@@ -134,7 +132,7 @@ const Reports = () => {
         setTotalExpenses(totalExp);
         setTotalIncome(totalInc);
         setNetSavings(totalInc - totalExp);
-    }, [summary]);
+    }, [summary, COMBINED_COLORS, EXPENSE_COLORS, INCOME_COLORS]);
 
     const getWeekNumber = (date) => {
         const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
@@ -144,13 +142,11 @@ const Reports = () => {
 
     const processDailyData = useCallback(() => {
         if (!summary?.daily_summary || summary.daily_summary.length === 0) {
-            console.log('⚠️ No daily summary data available');
             setDailyData([]);
             setWeeklyData([]);
             return;
         }
 
-        console.log('📊 Processing daily data:', summary.daily_summary);
         
         // Process daily data
         const daily = summary.daily_summary.map(day => ({
@@ -163,7 +159,6 @@ const Reports = () => {
             count: day.transaction_count || 0
         }));
         
-        console.log('📊 Processed daily data:', daily);
         setDailyData(daily);
 
         // Process weekly data
@@ -199,9 +194,8 @@ const Reports = () => {
             net: week.income - week.expenses
         })).sort((a, b) => a.week - b.week);
 
-        console.log('📊 Processed weekly data:', weekly);
         setWeeklyData(weekly);
-    }, [summary]);
+    }, [summary, months]);
 
     useEffect(() => {
         if (summary?.category_summary) {
@@ -210,7 +204,7 @@ const Reports = () => {
         if (summary?.daily_summary) {
             processDailyData();
         }
-    }, [summary]);
+    }, [summary, processCategoryData, processDailyData]);
 
     const handleExportReport = () => {
         if (combinedData.length === 0 && dailyData.length === 0) {

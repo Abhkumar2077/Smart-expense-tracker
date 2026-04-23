@@ -1,4 +1,4 @@
-﻿// backend/services/csvService.js
+// backend/services/csvService.js
 const moment = require('moment');
 const Expense = require('../models/Expense');
 const Category = require('../models/Category');
@@ -9,8 +9,6 @@ class CSVService {
     // ============================================
     static async processCSV(fileBuffer, userId) {
         try {
-            console.log('📁 ===== STARTING CSV PROCESSING =====');
-            console.log('👤 User ID:', userId);
             
             // Convert buffer to string
             const content = fileBuffer.toString();
@@ -20,7 +18,6 @@ class CSVService {
                 .map(line => line.trim())
                 .filter(line => line.length > 0);
             
-            console.log(`📊 Found ${lines.length} lines`);
             
             if (lines.length < 2) {
                 throw new Error('CSV file must have headers and at least one data row');
@@ -30,12 +27,9 @@ class CSVService {
             let headers = lines[0].replace(/^\uFEFF/, '').split(',').map(h => 
                 h.trim().replace(/^["']|["']$/g, '').toLowerCase()
             );
-            console.log('📋 Headers:', headers);
 
             // Get categories for auto-categorization
-            console.log('🔍 Fetching categories for user:', userId);
             const categories = await Category.getAll(userId);
-            console.log(`📂 Found ${categories.length} categories`);
 
             const expenses = [];
             const errors = [];
@@ -44,7 +38,6 @@ class CSVService {
             for (let i = 1; i < lines.length; i++) {
                 try {
                     if (!lines[i].trim()) {
-                        console.log(`⚠️ Row ${i + 1} is empty, skipping`);
                         continue;
                     }
                     
@@ -245,7 +238,6 @@ class CSVService {
                     }
 
                     if (!hasDate) {
-                        console.log(`⚠️ No date found for row ${i + 1}, using current date`);
                     }
 
                     // Determine category
@@ -268,7 +260,7 @@ class CSVService {
                     }
 
                 } catch (err) {
-                    console.error(`❌ Error processing row ${i + 1}:`, err);
+                    console.error(`? Error processing row ${i + 1}:`, err);
                     errors.push({
                         row: i + 1,
                         data: lines[i].substring(0, 100),
@@ -278,12 +270,6 @@ class CSVService {
                 }
             }
 
-            console.log(`\n📊 SUMMARY:`);
-            console.log(`   Total rows: ${lines.length - 1}`);
-            console.log(`   Valid transactions: ${expenses.length}`);
-            console.log(`   Income: ${expenses.filter(e => e.type === 'income').length}`);
-            console.log(`   Expense: ${expenses.filter(e => e.type === 'expense').length}`);
-            console.log(`   Errors: ${errors.length}`);
 
             // Save to database
             const saved = await this.saveExpenses(expenses, userId);
@@ -320,7 +306,7 @@ class CSVService {
             };
 
         } catch (error) {
-            console.error('❌ CSV Processing Error:', error);
+            console.error('? CSV Processing Error:', error);
             throw new Error(`Failed to process CSV: ${error.message}`);
         }
     }
@@ -551,7 +537,7 @@ class CSVService {
         // Remove quotes, currency symbols, and spaces
         let cleaned = amountStr.toString()
             .replace(/^["']|["']$/g, '')
-            .replace(/[₹$,€£¥\s]/g, '')
+            .replace(/[?$,���\s]/g, '')
             .replace(/\(/g, '-')
             .replace(/\)/g, '')
             .replace(/,/g, '') // Remove thousand separators
@@ -646,9 +632,8 @@ class CSVService {
                 const expenseId = await Expense.create(expenseData);
                 const savedExpense = await Expense.findById(expenseId, userId);
                 saved.push(savedExpense);
-                console.log(`✅ Saved: ${savedExpense.type} of ₹${savedExpense.amount} - ${savedExpense.description?.substring(0, 30)}`);
             } catch (error) {
-                console.error('❌ Error saving expense:', error.message);
+                console.error('? Error saving expense:', error.message);
                 invalid.push({
                     ...expenseData,
                     error: error.message

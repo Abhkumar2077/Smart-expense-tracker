@@ -10,7 +10,7 @@ import {
 
 const AIDashboard = () => {
     const [insights, setInsights] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('all');
     const [geminiInsights, setGeminiInsights] = useState(null);
@@ -46,15 +46,12 @@ const AIDashboard = () => {
             setLoading(true);
             setError(null);
             
-            console.log('🤖 Fetching AI insights...');
             const res = await axios.get('/api/ai/insights');
             
-            console.log('✅ AI insights received:', res.data);
             setInsights(res.data);
             
             // Check if Gemini is available and enhanced
             if (res.data.geminiEnhanced) {
-                console.log('🚀 Gemini AI enhancement detected!');
             }
             
         } catch (error) {
@@ -68,18 +65,15 @@ const AIDashboard = () => {
     const fetchGeminiInsights = async () => {
         try {
             setGeminiLoading(true);
-            console.log('🚀 Fetching Gemini AI insights...');
-            
+
             const res = await axios.get('/api/ai/gemini-insights');
-            
+
             if (res.data.success) {
-                console.log('✅ Gemini insights received:', res.data);
                 setGeminiInsights(res.data);
             } else {
-                console.log('⚠️ Gemini not available:', res.data.message);
                 setGeminiInsights({ error: res.data.message });
             }
-            
+
         } catch (error) {
             console.error('❌ Error fetching Gemini insights:', error);
             setGeminiInsights({ error: 'Failed to load Gemini insights' });
@@ -978,7 +972,7 @@ const AIDashboard = () => {
                             AI Analysis powered by advanced algorithms
                         </span>
                     </div>
-                    <div className="search-bar">
+                    <div className="search-bar" style={{ display: 'flex', gap: '10px' }}>
                         <button
                             onClick={fetchAIInsights}
                             className="refresh-btn"
@@ -996,6 +990,61 @@ const AIDashboard = () => {
                             }}
                         >
                             <FaSyncAlt /> Refresh AI Insights
+                        </button>
+                        <button
+                            onClick={() => {
+                                // If not on gemini tab, switch to it and fetch if needed
+                                if (activeTab !== 'gemini') {
+                                    setActiveTab('gemini');
+                                }
+                                if (!geminiInsights || geminiInsights.error) {
+                                    fetchGeminiInsights();
+                                }
+                            }}
+                            className="gemini-btn"
+                            style={{
+                                padding: '8px 16px',
+                                background: activeTab === 'gemini' ?
+                                    'linear-gradient(135deg, #4285f4 0%, #34a853 100%)' :
+                                    'linear-gradient(135deg, #4285f4 0%, #34a853 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                boxShadow: activeTab === 'gemini' ?
+                                    '0 4px 12px rgba(66, 133, 244, 0.4)' :
+                                    '0 2px 8px rgba(66, 133, 244, 0.3)',
+                                transform: activeTab === 'gemini' ? 'translateY(-1px)' : 'none',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            <FaBrain /> {geminiLoading ? (
+                                <>
+                                    <div className="spinner" style={{width: '12px', height: '12px'}}></div>
+                                    Analyzing...
+                                </>
+                            ) : geminiInsights && !geminiInsights.error ? (
+                                <>
+                                    🚀 Gemini AI Insights
+                                    <span style={{
+                                        padding: '1px 6px',
+                                        background: 'rgba(255,255,255,0.2)',
+                                        borderRadius: '8px',
+                                        fontSize: '11px'
+                                    }}>
+                                        {geminiInsights.geminiInsights?.length || 0}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    🚀 Get Gemini AI Insights
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -1345,6 +1394,136 @@ const AIDashboard = () => {
                 {(activeTab === 'all' || activeTab === 'anomalies') && renderAnomalies()}
                 {(activeTab === 'all' || activeTab === 'forecast') && renderForecast()}
                 {activeTab === 'gemini' && renderGeminiInsights()}
+
+                {/* Show Gemini insights when available, regardless of active tab */}
+                {geminiInsights && !geminiInsights.error && activeTab !== 'gemini' && (
+                    <div style={{ marginTop: '30px', padding: '20px', background: 'linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%)', borderRadius: '12px', border: '1px solid #4285f420' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+                            <h3 style={{ margin: 0, color: '#4285f4', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <FaBrain /> Gemini AI Insights
+                                <span style={{
+                                    padding: '2px 8px',
+                                    background: '#4285f4',
+                                    color: 'white',
+                                    borderRadius: '12px',
+                                    fontSize: '12px',
+                                    fontWeight: 'bold'
+                                }}>
+                                    {geminiInsights.confidence || 'AI'}
+                                </span>
+                            </h3>
+                            <button
+                                onClick={() => setActiveTab('gemini')}
+                                style={{
+                                    padding: '6px 12px',
+                                    background: 'transparent',
+                                    color: '#4285f4',
+                                    border: '1px solid #4285f4',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                View All →
+                            </button>
+                        </div>
+                        {geminiInsights.geminiInsights && geminiInsights.geminiInsights.length > 0 ? (
+                            <div style={{ display: 'grid', gap: '10px', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+                                {geminiInsights.geminiInsights.slice(0, 3).map((insight, index) => (
+                                    <div key={index} style={{
+                                        padding: '15px',
+                                        background: 'white',
+                                        borderRadius: '8px',
+                                        border: '1px solid #4285f420',
+                                        position: 'relative',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '4px',
+                                            height: '100%',
+                                            background: insight.type === 'pattern' ? '#4285f4' :
+                                                       insight.type === 'saving' ? '#34a853' :
+                                                       insight.type === 'alert' ? '#ea4335' : '#ff9f1c'
+                                        }} />
+                                        <div style={{ marginLeft: '15px' }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                marginBottom: '8px'
+                                            }}>
+                                                <span style={{
+                                                    fontSize: '16px',
+                                                    fontWeight: 'bold',
+                                                    color: insight.type === 'pattern' ? '#4285f4' :
+                                                           insight.type === 'saving' ? '#34a853' :
+                                                           insight.type === 'alert' ? '#ea4335' : '#ff9f1c'
+                                                }}>
+                                                    {insight.type === 'pattern' ? '📊' :
+                                                     insight.type === 'saving' ? '💰' :
+                                                     insight.type === 'alert' ? '⚠️' : '💡'}
+                                                </span>
+                                                <h4 style={{
+                                                    margin: 0,
+                                                    color: '#333',
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {insight.title}
+                                                </h4>
+                                            </div>
+                                            <p style={{
+                                                margin: '8px 0',
+                                                color: '#555',
+                                                fontSize: '13px',
+                                                lineHeight: '1.4'
+                                            }}>
+                                                {insight.description}
+                                            </p>
+                                            <div style={{
+                                                marginTop: '10px',
+                                                padding: '8px 10px',
+                                                background: '#f8f9fa',
+                                                borderRadius: '6px',
+                                                fontSize: '12px'
+                                            }}>
+                                                <strong style={{ color: '#4285f4' }}>💡 Action:</strong> {insight.actionable}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {geminiInsights.geminiInsights.length > 3 && (
+                                    <div style={{
+                                        padding: '15px',
+                                        background: 'white',
+                                        borderRadius: '8px',
+                                        border: '1px solid #4285f420',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#4285f4',
+                                        cursor: 'pointer'
+                                    }}
+                                    onClick={() => setActiveTab('gemini')}
+                                    >
+                                        <span style={{ fontWeight: 'bold' }}>
+                                            +{geminiInsights.geminiInsights.length - 3} more insights →
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                                <FaBrain size={24} style={{ color: '#4285f4', marginBottom: '10px' }} />
+                                <p>No advanced insights available at this time.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Global Styles */}
@@ -1520,6 +1699,25 @@ const AIDashboard = () => {
 
                 .kpi-change .negative {
                     color: #f14668;
+                }
+
+                /* Spinner Animation */
+                .spinner {
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    border-top: 2px solid white;
+                    animation: spin 1s linear infinite;
+                }
+
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+
+                /* Gemini Button Hover */
+                .gemini-btn:hover {
+                    transform: translateY(-2px) !important;
+                    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4) !important;
                 }
 
                 /* Responsive Design */

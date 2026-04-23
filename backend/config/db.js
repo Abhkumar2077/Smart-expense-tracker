@@ -3,7 +3,6 @@ const mysql = require('mysql2');
 require('dotenv').config();
 
 // Log database connection attempt (without password)
-console.log('🔌 Connecting to database:', {
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     database: process.env.DB_NAME || 'expense_tracker'
@@ -29,8 +28,6 @@ const promisePool = pool.promise();
 const testConnection = async () => {
     try {
         await promisePool.query('SELECT 1 + 1 AS solution');
-        console.log('✅ Database connected successfully');
-        console.log('📊 Database:', process.env.DB_NAME || 'expense_tracker');
         return true;
     } catch (error) {
         console.error('❌ Database connection failed:', error.message);

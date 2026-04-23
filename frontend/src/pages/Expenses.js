@@ -56,14 +56,12 @@ const Expenses = () => {
         setLoading(true);
         setError(null);
 
-        console.log('📊 Fetching expenses data...');
 
         // Fetch categories first
         let categoriesData = [];
         try {
           const categoriesRes = await categoryAPI.getAll();
           categoriesData = categoriesRes.data || [];
-          console.log('✅ Categories loaded:', categoriesData.length);
         } catch (catErr) {
           console.error('Error fetching categories:', catErr);
           // Don't set error for categories, just log it
@@ -77,9 +75,7 @@ const Expenses = () => {
         try {
           const expensesRes = await expenseAPI.getAll();
           expensesData = expensesRes.data || [];
-          console.log('✅ Expenses loaded:', expensesData.length, 'records');
           if (expensesData.length > 0) {
-            console.log('📊 Sample expense:', expensesData[0]);
           }
         } catch (expErr) {
           console.error('Error fetching expenses:', expErr);
@@ -107,13 +103,11 @@ const Expenses = () => {
 
     // Event handlers
     const handleUploadChange = () => {
-      console.log('🔄 Upload data changed, refreshing expenses...');
       if (isMounted) fetchData();
     };
 
     const handleStorageChange = (e) => {
       if (e.key === 'uploadedData' || e.key === 'uploadHistory') {
-        console.log('🔄 Storage changed, refreshing expenses...');
         if (isMounted) fetchData();
       }
     };
@@ -140,7 +134,6 @@ const Expenses = () => {
   // Separate useEffect for uploadedData changes (avoiding the fetchData redefinition)
   useEffect(() => {
     if (uploadedData) {
-      console.log('📦 uploadedData changed in context, refreshing...');
       // Trigger a refresh by dispatching custom event
       window.dispatchEvent(new CustomEvent('upload-data-changed'));
     }

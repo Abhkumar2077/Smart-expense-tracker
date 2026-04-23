@@ -1,4 +1,4 @@
-﻿const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 const Expense = require('../models/Expense');
 
 class EmailService {
@@ -37,14 +37,14 @@ class EmailService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>📊 Weekly Expense Report</h1>
+              <h1>?? Weekly Expense Report</h1>
               <p>Hello ${userName}!</p>
             </div>
             
             <div class="stats">
               <div class="stat-card">
                 <div style="color: #666; margin-bottom: 10px;">Total Spent</div>
-                <div class="amount">₹${total.toFixed(2)}</div>
+                <div class="amount">?${total.toFixed(2)}</div>
               </div>
               <div class="stat-card">
                 <div style="color: #666; margin-bottom: 10px;">Transactions</div>
@@ -69,7 +69,7 @@ class EmailService {
                 .map(([cat, amt]) => `
                   <tr>
                     <td style="padding: 10px; border-bottom: 1px solid #eee;">${cat}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">₹${amt.toFixed(2)}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">?${amt.toFixed(2)}</td>
                   </tr>
                 `).join('')}
             </table>
@@ -80,7 +80,7 @@ class EmailService {
             
             <div class="footer">
               <p>Smart Expense Tracker - Your personal finance assistant</p>
-              <p style="font-size: 12px;">To unsubscribe, visit Settings → Notifications</p>
+              <p style="font-size: 12px;">To unsubscribe, visit Settings ? Notifications</p>
             </div>
           </div>
         </body>
@@ -99,15 +99,14 @@ class EmailService {
       await transporter.sendMail({
         from: '"Smart Expense Tracker" <reports@smartexpense.com>',
         to: userEmail,
-        subject: `📊 Your Weekly Expense Report - ${endDate.toLocaleDateString()}`,
+        subject: `?? Your Weekly Expense Report - ${endDate.toLocaleDateString()}`,
         html: html
       });
 
-      console.log(`✅ Weekly report sent to ${userEmail}`);
       return { success: true };
       
     } catch (error) {
-      console.error('❌ Email error:', error);
+      console.error('? Email error:', error);
       return { success: false, error: error.message };
     }
   }

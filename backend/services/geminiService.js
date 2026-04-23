@@ -4,13 +4,12 @@ const axios = require('axios');
 class GeminiService {
     constructor() {
         this.apiKey = process.env.GEMINI_API_KEY;
-        this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+        this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
     }
 
     async generateFinancialInsights(data) {
         try {
             if (!this.apiKey) {
-                console.log('⚠️ Gemini API key not configured, using fallback AI');
                 return null;
             }
 
@@ -45,10 +44,8 @@ class GeminiService {
             
             // Check for specific error types
             if (error.response?.status === 429) {
-                console.log('⚠️ Gemini API quota exceeded - using fallback AI');
                 return { error: 'API quota exceeded', fallback: true };
             } else if (error.response?.status === 403) {
-                console.log('⚠️ Gemini API key invalid or unauthorized');
                 return { error: 'API key invalid', fallback: true };
             }
             

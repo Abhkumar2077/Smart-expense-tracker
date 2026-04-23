@@ -26,7 +26,6 @@ function testResponseValidator() {
 
     try {
         const result = validateAIResponse(validResponse);
-        console.log('Valid response passed:', result.insights.length, 'insights,', result.suggestions.length, 'suggestions');
     } catch (error) {
         console.error('Valid response failed:', error.message);
     }
@@ -36,9 +35,7 @@ function testResponseValidator() {
 
     try {
         validateAIResponse(invalidResponse);
-        console.log('Invalid response unexpectedly passed');
     } catch (error) {
-        console.log('Invalid response correctly rejected:', error.message);
     }
 
     // Response with forbidden phrase
@@ -57,7 +54,6 @@ function testResponseValidator() {
 
     try {
         const result = validateAIResponse(forbiddenResponse);
-        console.log('Forbidden response filtered:', result.insights.length, 'insights remaining');
     } catch (error) {
         console.error('Forbidden response error:', error.message);
     }

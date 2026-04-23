@@ -9,7 +9,6 @@ class DataSyncService {
         }
 
         try {
-            console.log('Syncing CSV data to backend...');
             
             // The expenses are already saved in backend during upload
             // Just need to refresh the UI by fetching fresh data from API
@@ -34,7 +33,6 @@ class DataSyncService {
             const apiRes = await expenseAPI.getAll();
             const apiExpenses = apiRes.data || [];
             
-            console.log(`📊 API returned ${apiExpenses.length} total expenses`);
             
             return {
                 success: true,

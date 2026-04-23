@@ -10,9 +10,7 @@ const app = express();
 // Start scheduler
 // Runs every Monday at 7:00 AM
 cron.schedule('0 7 * * 1', async () => {
-  console.log('Running weekly digest generation...');
   await runDigestForAllUsers();
-  console.log('Weekly digest done.');
 });
 
 // Middleware
@@ -21,9 +19,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Log environment
-console.log('🚀 Server starting...');
-console.log('📊 Database:', process.env.DB_NAME);
-console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -40,7 +35,6 @@ app.use('/api/budgets', require('./routes/budgets'));
 const testDBConnection = async () => {
     try {
         await db.query('SELECT 1 + 1 AS solution');
-        console.log('✅ Database connected successfully');
         return true;
     } catch (err) {
         console.error('❌ Database connection failed:', err.message);
@@ -57,7 +51,6 @@ testDBConnection();
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
 });
 
 module.exports = {

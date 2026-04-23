@@ -21,13 +21,11 @@ class AIService {
     // ============================================
     static async generateInsights(userId) {
         try {
-            console.log('🤖 AI Generating insights for user:', userId);
 
             // Check cache first
             const cacheKey = `insights_${userId}`;
             const cachedInsights = cache.get(cacheKey);
             if (cachedInsights) {
-                console.log('📋 Using cached AI insights for user:', userId);
                 return cachedInsights;
             }
 
@@ -35,7 +33,6 @@ class AIService {
             const expenses = await Expense.findByUserId(userId);
             const insights = await Expense.getSpendingInsights(userId);
 
-            console.log(`📊 Found ${expenses.length} total transactions`);
 
             // Get current month and year
             const now = new Date();
@@ -61,7 +58,6 @@ class AIService {
             // Determine if Gemini enhancement is needed
             const shouldUseGemini = this.shouldUseGeminiAI(expenses, patterns, alerts, anomalies);
 
-            console.log(`🤖 Gemini AI usage: ${shouldUseGemini ? 'ENABLED' : 'DISABLED'} (transactions: ${expenses.length})`);
 
             // Combine all suggestions
             const allSuggestions = [
@@ -89,7 +85,6 @@ class AIService {
 
             // Enhance with structured Gemini AI if available
             if (shouldUseGemini) {
-                console.log('🚀 Enhancing insights with structured Gemini AI...');
                 try {
                     const prompt = buildInsightPrompt({
                         user,
@@ -112,7 +107,6 @@ class AIService {
                     basicInsights.aiSuggestions = validated.suggestions;
                     basicInsights.geminiStructured = true;
 
-                    console.log(`🤖 Structured Gemini: ${validated.insights.length} insights, ${validated.suggestions.length} suggestions saved`);
                 } catch (err) {
                     console.error('Gemini structured call failed:', err.message);
                     basicInsights.aiInsights = [];
@@ -124,11 +118,8 @@ class AIService {
                 basicInsights.aiInsights = [];
                 basicInsights.aiSuggestions = [];
                 basicInsights.geminiStructured = false;
-                console.log('🤖 Using fallback AI insights (Gemini not needed)');
             }
 
-            console.log(`✅ Generated: ${basicInsights.patterns.length} patterns, ${basicInsights.alerts.length} alerts, ${basicInsights.recommendations.length} recommendations`);
-            console.log(`🤖 Gemini enhancement: ${basicInsights.geminiStructured ? 'Structured Active' : 'Fallback (not needed)'}`);
 
             // Cache the results for 1 hour
             cache.set(cacheKey, basicInsights, 3600000);
@@ -706,7 +697,6 @@ class AIService {
 
     static async learnFromCSV(_userId, _csvData) {
     try {
-        console.log('🧠 AI Learning from CSV data...');
         // Your existing learning logic
         return { success: true };
     } catch (error) {
@@ -733,7 +723,6 @@ class AIService {
             expenses.length > 50
         );
 
-        console.log(`🤖 Gemini AI decision: ${shouldUse ? 'YES' : 'NO'} | Transactions: ${expenses.length} | Patterns: ${patterns.length} | Alerts: ${alerts.length} | Anomalies: ${anomalies.length}`);
 
         return shouldUse;
     }

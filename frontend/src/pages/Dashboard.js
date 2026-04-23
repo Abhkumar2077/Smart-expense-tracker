@@ -53,10 +53,8 @@ const Dashboard = () => {
       const currentYear = new Date().getFullYear();
       const sparklineRes = await dashboardAPI.getSummary('month', currentMonth, currentYear);
       
-      console.log('📊 Sparkline API response:', sparklineRes.data);
       
       const monthlyData = sparklineRes.data?.summary?.monthly_summary || [];
-      console.log('📊 Monthly data for sparklines:', monthlyData);
       
       // Create a complete dataset for the last 5 months
       const currentDate = new Date();
@@ -84,7 +82,6 @@ const Dashboard = () => {
         });
       }
       
-      console.log('📊 Last 5 months data:', last5Months);
       
       const processedData = {
         savings: last5Months.map((item, index) => ({
@@ -105,7 +102,6 @@ const Dashboard = () => {
         }))
       };
       
-      console.log('📊 Processed sparkline data:', processedData);
       setSparklineData(processedData);
     } catch (error) {
       console.error('❌ Error fetching sparkline data:', error);
@@ -128,13 +124,9 @@ const Dashboard = () => {
       setLoading(true);
       setError(null);
       
-      console.log('📊 Fetching dashboard data...');
-      console.log('Time range:', timeRange, 'Month:', selectedMonth, 'Year:', selectedYear);
       
       // Fetch comprehensive dashboard data
       const dashboardRes = await dashboardAPI.getSummary(timeRange, selectedMonth, selectedYear);
-      console.log('📊 Dashboard data:', dashboardRes.data);
-      console.log('📊 Recent expenses:', dashboardRes.data.recent_expenses);
       
       setDashboardData(dashboardRes.data);
       setReminders(dashboardRes.data.reminders || []);

@@ -15,10 +15,8 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['x-auth-token'] = token;
-      console.log('✅ Token set in axios headers');
     } else {
       delete axios.defaults.headers.common['x-auth-token'];
-      console.log('❌ Token removed from axios headers');
     }
   }, [token]);
 
@@ -40,7 +38,6 @@ export const AuthProvider = ({ children }) => {
         // Fetch user data
         const res = await axios.get('/api/auth/me');
         setUser(res.data);
-        console.log('✅ User authenticated:', res.data.email);
       } catch (err) {
         console.error('❌ Token verification failed:', err);
         localStorage.removeItem('token');
@@ -69,7 +66,6 @@ export const AuthProvider = ({ children }) => {
       setToken(token);
       setUser(user);
       
-      console.log('✅ Login successful:', user.email);
       return { success: true };
     } catch (err) {
       console.error('❌ Login failed:', err);
@@ -92,7 +88,6 @@ export const AuthProvider = ({ children }) => {
       setToken(token);
       setUser(user);
       
-      console.log('✅ Registration successful:', user.email);
       return { success: true };
     } catch (err) {
       console.error('❌ Registration failed:', err);
@@ -106,7 +101,6 @@ export const AuthProvider = ({ children }) => {
     delete axios.defaults.headers.common['x-auth-token'];
     setToken(null);
     setUser(null);
-    console.log('✅ Logged out');
   };
 
   const value = {
