@@ -1,6 +1,6 @@
 {
-  "short_name": "Smart Expense",
-  "name": "Smart Expense Tracker",
+  "short_name": "Expense Manager",
+  "name": "Expense Manager",
   "icons": [
     {
       "src": "favicon.ico",
@@ -21,7 +21,7 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#667eea",
+  "theme_color": "#003087",
   "background_color": "#ffffff",
   "orientation": "portrait",
   "categories": ["finance", "productivity"]

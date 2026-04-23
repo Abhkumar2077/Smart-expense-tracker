@@ -36,6 +36,43 @@ const privateRoute = (element, sidebarCollapsed, toggleSidebar) => (
 );
 
 function App() {
+  // Update document title based on route
+  React.useEffect(() => {
+    const updateTitle = () => {
+      const location = window.location.pathname;
+      const titles = {
+        '/dashboard': 'Dashboard - Expense Manager',
+        '/goals': 'Savings Goals - Expense Manager',
+        '/expenses': 'Expenses - Expense Manager',
+        '/reminders': 'Reminders - Expense Manager',
+        '/reports': 'Reports - Expense Manager',
+        '/ai': 'AI Insights - Expense Manager',
+        '/notifications': 'Notifications - Expense Manager',
+        '/settings': 'Settings - Expense Manager',
+        '/upload': 'Upload Data - Expense Manager',
+        '/login': 'Login - Expense Manager',
+        '/register': 'Register - Expense Manager',
+        '/auth': 'Auth - Expense Manager'
+      };
+      
+      document.title = titles[location] || 'Expense Manager';
+    };
+    
+    // Initial update
+    updateTitle();
+    
+    // Update on route changes
+    const handleLocationChange = () => {
+      updateTitle();
+    };
+    
+    window.addEventListener('popstate', handleLocationChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <UploadProvider>
