@@ -1,4 +1,4 @@
-﻿-- ============================================
+-- ============================================
 -- Smart Expense Tracker - Complete Database Schema v2.1
 -- WITH INCOME/EXPENSE TYPE SUPPORT
 -- ============================================
@@ -93,22 +93,6 @@ INSERT INTO categories (name, icon, color, is_default) VALUES
 ('Income', '💰', '#48C774', TRUE),
 ('Other', '📌', '#B0B0B0', TRUE);
 
--- ============================================
--- 6. SAVINGS GOALS TABLE
--- ============================================
-CREATE TABLE savings_goals (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    target_amount DECIMAL(10,2) NOT NULL,
-    current_amount DECIMAL(10,2) DEFAULT 0,
-    deadline DATE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_goals (user_id),
-    INDEX idx_deadline (deadline)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================
 -- 7. BILL REMINDERS TABLE

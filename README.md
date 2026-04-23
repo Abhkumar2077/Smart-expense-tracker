@@ -15,7 +15,6 @@ A full-stack expense tracking application with AI-powered spending insights, bui
 - 📊 Track income and expenses with detailed categorization
 - 📈 Interactive dashboard with charts and analytics
 - 🤖 AI-powered spending insights and recommendations
-- 🎯 Savings goals tracking
 - 📅 Bill reminders and notifications
 - 📁 CSV import/export functionality
 - 🔐 Secure authentication with JWT
@@ -193,3 +192,4 @@ This project is licensed under the MIT License.
 ## Support
 
 For support or questions, please open an issue in the repository.
+

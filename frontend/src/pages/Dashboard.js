@@ -26,7 +26,6 @@ import {
 const Dashboard = () => {
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState(null);
-  const [goals, setGoals] = useState([]);
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -138,7 +137,6 @@ const Dashboard = () => {
       console.log('📊 Recent expenses:', dashboardRes.data.recent_expenses);
       
       setDashboardData(dashboardRes.data);
-      setGoals(dashboardRes.data.goals || []);
       setReminders(dashboardRes.data.reminders || []);
       
     } catch (err) {
@@ -624,42 +622,8 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Goals and Reminders Section */}
-        <div className="goals-reminders-section">
-          <div className="goals-widget">
-            <h3>Savings Goals</h3>
-            {goals.length > 0 ? (
-              <div className="goals-list">
-                {goals.slice(0, 3).map(goal => {
-                  const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
-                  return (
-                    <div key={goal.id} className="goal-item">
-                      <div className="goal-info">
-                        <span className="goal-name">{goal.name}</span>
-                        <span className="goal-progress">{progress.toFixed(0)}%</span>
-                      </div>
-                      <div className="goal-bar">
-                        <div 
-                          className="goal-fill" 
-                          style={{ width: `${Math.min(progress, 100)}%` }}
-                        ></div>
-                      </div>
-                      <div className="goal-amounts">
-                        <span>{formatCurrency(goal.current_amount)}</span>
-                        <span>{formatCurrency(goal.target_amount)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="no-goals">
-                <p>No savings goals set yet</p>
-                <Link to="/goals" className="create-goal-btn">Create Goal</Link>
-              </div>
-            )}
-          </div>
-
+        {/* Reminders Section */}
+        <div className="reminders-section">
           <div className="reminders-widget">
             <h3>Upcoming Bills</h3>
             {reminders.length > 0 ? (
@@ -1134,9 +1098,9 @@ const Dashboard = () => {
           height: 300px;
         }
 
-        .goals-reminders-section {
+        .reminders-section {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1fr;
           gap: 24px;
           margin-bottom: 48px;
           background: linear-gradient(135deg, #001435 0%, #003087 50%, #00A3E0 100%);
@@ -1147,7 +1111,7 @@ const Dashboard = () => {
           overflow: hidden;
         }
 
-        .goals-reminders-section::before {
+        .reminders-section::before {
           content: '';
           position: absolute;
           top: 0;
@@ -1158,7 +1122,7 @@ const Dashboard = () => {
           pointer-events: none;
         }
 
-        .goals-widget, .reminders-widget {
+        .reminders-widget {
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(10px);
           border-radius: 12px;
@@ -1169,64 +1133,26 @@ const Dashboard = () => {
           z-index: 1;
         }
 
-        .goals-widget h3, .reminders-widget h3 {
+        .reminders-widget h3 {
           font-size: 18px;
           font-weight: bold;
           margin-bottom: 16px;
           color: #333;
         }
 
-        .goals-list, .reminders-list {
+        .reminders-list {
           display: flex;
           flex-direction: column;
           gap: 16px;
         }
 
-        .goal-item, .reminder-item {
+        .reminder-item {
           display: flex;
           align-items: center;
           gap: 12px;
           padding: 12px;
           background: #f8f9fa;
           border-radius: 8px;
-        }
-
-        .goal-info {
-          flex: 1;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .goal-name {
-          font-weight: 500;
-        }
-
-        .goal-progress {
-          font-size: 12px;
-          color: #666;
-        }
-
-        .goal-bar {
-          width: 100%;
-          height: 6px;
-          background: #e0e0e0;
-          border-radius: 3px;
-          margin: 8px 0;
-          overflow: hidden;
-        }
-
-        .goal-fill {
-          height: 100%;
-          background: linear-gradient(90deg, #48c774, #667eea);
-          border-radius: 3px;
-        }
-
-        .goal-amounts {
-          display: flex;
-          justify-content: space-between;
-          font-size: 12px;
-          color: #666;
         }
 
         .reminder-icon {
@@ -1253,13 +1179,13 @@ const Dashboard = () => {
           color: #f14668;
         }
 
-        .no-goals, .no-reminders {
+        .no-reminders {
           text-align: center;
           padding: 20px;
           color: #666;
         }
 
-        .create-goal-btn, .create-reminder-btn {
+        .create-reminder-btn {
           display: inline-block;
           margin-top: 8px;
           padding: 8px 16px;
@@ -1648,10 +1574,10 @@ const Dashboard = () => {
             padding: 20px;
             margin-bottom: 32px;
           }
-          .goals-reminders-section {
-            padding: 20px;
-            margin-bottom: 32px;
-          }
+           .reminders-section {
+             padding: 20px;
+             margin-bottom: 32px;
+           }
         }
 
         .dashboard.sidebar-collapsed .main-content {
@@ -1839,3 +1765,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

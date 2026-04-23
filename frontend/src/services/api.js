@@ -65,13 +65,6 @@ export const budgetAPI = {
   getStatus: (month) => API.get('/budgets/status', { params: { month } })
 };
 
-// Goals API
-export const goalsAPI = {
-  getAll: () => API.get('/goals'),
-  create: (data) => API.post('/goals', data),
-  update: (id, data) => API.put(`/goals/${id}`, data),
-  delete: (id) => API.delete(`/goals/${id}`)
-};
 
 // Reminders API
 export const remindersAPI = {

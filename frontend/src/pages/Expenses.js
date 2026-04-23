@@ -1,7 +1,6 @@
 // frontend/src/pages/Expenses.js
 import React, { useState, useEffect, useCallback } from 'react';
-import BudgetCard from '../components/BudgetCard';
-import { expenseAPI, categoryAPI, budgetAPI } from '../services/api';
+import { expenseAPI, categoryAPI } from '../services/api';
 import { useUpload } from '../context/UploadContext';
 import { useNotification } from '../context/NotificationContext';
 import { 
@@ -12,27 +11,8 @@ import {
 } from 'react-icons/fa';
 
 const Expenses = () => {
-  const getMonthKey = (dateValue) => {
-    const parsedDate = dateValue ? new Date(dateValue) : new Date();
-    if (Number.isNaN(parsedDate.getTime())) {
-      return new Date().toISOString().slice(0, 7);
-    }
-
-    const year = parsedDate.getFullYear();
-    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
-  };
-
-  const [expenses, setExpenses] = useState([]);
+   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [budgetStatus, setBudgetStatus] = useState([]);
-  const [budgetLoading, setBudgetLoading] = useState(false);
-  const [budgetSaving, setBudgetSaving] = useState(false);
-  const [budgetForm, setBudgetForm] = useState({
-    category_id: '',
-    monthly_limit: '',
-    month: getMonthKey()
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filterType, setFilterType] = useState('all');
@@ -110,18 +90,6 @@ const Expenses = () => {
         if (!isMounted) return;
         setExpenses(expensesData);
 
-        try {
-          const budgetRes = await budgetAPI.getStatus(getMonthKey());
-          if (isMounted) {
-            setBudgetStatus(budgetRes.data || []);
-          }
-        } catch (budgetErr) {
-          console.error('Error fetching initial budget status:', budgetErr);
-          if (isMounted) {
-            setBudgetStatus([]);
-          }
-        }
-
       } catch (err) {
         console.error('❌ Error in fetchData:', err);
         if (isMounted) {
@@ -169,19 +137,6 @@ const Expenses = () => {
     window.dispatchEvent(new CustomEvent('upload-data-changed'));
   }, []);
 
-  const fetchBudgetStatus = useCallback(async (month = getMonthKey()) => {
-    try {
-      setBudgetLoading(true);
-      const budgetRes = await budgetAPI.getStatus(month);
-      setBudgetStatus(budgetRes.data || []);
-    } catch (budgetErr) {
-      console.error('Error fetching budgets:', budgetErr);
-      setBudgetStatus([]);
-    } finally {
-      setBudgetLoading(false);
-    }
-  }, []);
-
   // Separate useEffect for uploadedData changes (avoiding the fetchData redefinition)
   useEffect(() => {
     if (uploadedData) {
@@ -190,10 +145,6 @@ const Expenses = () => {
       window.dispatchEvent(new CustomEvent('upload-data-changed'));
     }
   }, [uploadedData]);
-
-  useEffect(() => {
-    fetchBudgetStatus(budgetForm.month);
-  }, [budgetForm.month, fetchBudgetStatus]);
 
   const calculateStats = useCallback(() => {
     try {
@@ -244,7 +195,6 @@ const Expenses = () => {
         await expenseAPI.delete(id);
         // Optimistically update UI
         setExpenses(prev => prev.filter(exp => exp.id !== id));
-        await fetchBudgetStatus();
         showNotification('Transaction deleted successfully!', 'success');
       } catch (error) {
         console.error('Error deleting:', error);
@@ -252,33 +202,6 @@ const Expenses = () => {
         // Refresh to ensure consistency
         refetchData();
       }
-    }
-  };
-
-  const handleBudgetSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!budgetForm.category_id || !budgetForm.monthly_limit || !budgetForm.month) {
-      showNotification('Please fill category, monthly limit, and month', 'error');
-      return;
-    }
-
-    try {
-      setBudgetSaving(true);
-      const payload = {
-        category_id: Number(budgetForm.category_id),
-        monthly_limit: Number(budgetForm.monthly_limit),
-        month: budgetForm.month
-      };
-
-      await budgetAPI.upsert(payload);
-      await fetchBudgetStatus(budgetForm.month);
-      showNotification('Budget saved successfully', 'success');
-    } catch (error) {
-      console.error('Error saving budget:', error);
-      showNotification('Failed to save budget', 'error');
-    } finally {
-      setBudgetSaving(false);
     }
   };
 
@@ -393,7 +316,6 @@ const Expenses = () => {
   };
 
   const filteredExpenses = getFilteredExpenses();
-  const budgetCategories = categories.filter(cat => cat.name !== 'Income');
 
   // Add CSS animation for loading spinner
   const styleSheet = document.createElement("style");
@@ -940,121 +862,6 @@ const Expenses = () => {
             </button>
           </div>
         </form>
-      </div>
-
-      {/* Budget Dashboard */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.96)',
-        borderRadius: '20px',
-        padding: '28px',
-        marginBottom: '40px',
-        boxShadow: '0 10px 32px rgba(0, 20, 53, 0.1)',
-        border: '1px solid rgba(0, 48, 135, 0.12)'
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '14px',
-          marginBottom: '18px'
-        }}>
-          <div>
-            <h3 style={{ margin: 0, color: '#001435' }}>Monthly Category Budgets</h3>
-            <p style={{ margin: '6px 0 0', color: '#4f6d8a' }}>
-              Track usage in real-time by category and react before overspending.
-            </p>
-          </div>
-          <button
-            onClick={() => fetchBudgetStatus(budgetForm.month)}
-            style={{
-              padding: '10px 16px',
-              borderRadius: '10px',
-              border: '1px solid rgba(0, 48, 135, 0.2)',
-              background: '#eef5ff',
-              color: '#003087',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Refresh Budgets
-          </button>
-        </div>
-
-        <form onSubmit={handleBudgetSubmit} style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '12px',
-          marginBottom: '18px'
-        }}>
-          <select
-            value={budgetForm.category_id}
-            onChange={(e) => setBudgetForm(prev => ({ ...prev, category_id: e.target.value }))}
-            style={{ padding: '11px 12px', borderRadius: '10px', border: '1px solid #bed3e7' }}
-            required
-          >
-            <option value="">Select Category</option>
-            {budgetCategories.map(category => (
-              <option key={category.id} value={category.id}>
-                {category.icon} {category.name}
-              </option>
-            ))}
-          </select>
-
-          <input
-            type="number"
-            min="1"
-            step="0.01"
-            placeholder="Monthly Limit"
-            value={budgetForm.monthly_limit}
-            onChange={(e) => setBudgetForm(prev => ({ ...prev, monthly_limit: e.target.value }))}
-            style={{ padding: '11px 12px', borderRadius: '10px', border: '1px solid #bed3e7' }}
-            required
-          />
-
-          <input
-            type="month"
-            value={budgetForm.month}
-            onChange={(e) => setBudgetForm(prev => ({ ...prev, month: e.target.value }))}
-            style={{ padding: '11px 12px', borderRadius: '10px', border: '1px solid #bed3e7' }}
-            required
-          />
-
-          <button
-            type="submit"
-            disabled={budgetSaving}
-            style={{
-              padding: '11px 12px',
-              borderRadius: '10px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #003087 0%, #00A3E0 100%)',
-              color: '#fff',
-              fontWeight: 700,
-              cursor: budgetSaving ? 'not-allowed' : 'pointer',
-              opacity: budgetSaving ? 0.7 : 1
-            }}
-          >
-            {budgetSaving ? 'Saving...' : 'Save Budget'}
-          </button>
-        </form>
-
-        {budgetLoading ? (
-          <p style={{ color: '#486581', margin: 0 }}>Loading budget status...</p>
-        ) : budgetStatus.length === 0 ? (
-          <p style={{ color: '#486581', margin: 0 }}>
-            No budgets found for {budgetForm.month}. Add one to start tracking usage.
-          </p>
-        ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '14px'
-          }}>
-            {budgetStatus.map((budget, index) => (
-              <BudgetCard key={`${budget.category}-${index}`} budget={budget} />
-            ))}
-          </div>
-        )}
       </div>
 
       {/* CSV Banner */}

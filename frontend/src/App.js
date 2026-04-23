@@ -10,7 +10,6 @@ import TopNav from './components/TopNav';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
-import Goals from './pages/Goals';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Upload from './pages/Upload';
@@ -42,7 +41,6 @@ function App() {
       const location = window.location.pathname;
       const titles = {
         '/dashboard': 'Dashboard - Expense Manager',
-        '/goals': 'Savings Goals - Expense Manager',
         '/expenses': 'Expenses - Expense Manager',
         '/reminders': 'Reminders - Expense Manager',
         '/reports': 'Reports - Expense Manager',
@@ -106,7 +104,6 @@ const AppContent = () => {
         <Route path="/auth" element={<Auth />} />
         <Route path="/register" element={<Auth />} />
         <Route path="/dashboard" element={privateRoute(<Dashboard />, sidebarCollapsed, toggleSidebar)} />
-        <Route path="/goals" element={privateRoute(<Goals />, sidebarCollapsed, toggleSidebar)} />
         <Route path="/expenses" element={privateRoute(<Expenses />, sidebarCollapsed, toggleSidebar)} />
         <Route path="/reminders" element={privateRoute(<Reminders />, sidebarCollapsed, toggleSidebar)} />
         <Route path="/reports" element={privateRoute(<Reports />, sidebarCollapsed, toggleSidebar)} />
