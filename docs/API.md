@@ -192,24 +192,6 @@ Get AI-powered spending insights for the authenticated user.
 ```
 
 ### Goals
-
-#### GET /goals
-Get user's savings goals.
-
-#### POST /goals
-Create a new savings goal.
-
-**Request Body:**
-```json
-{
-  "name": "Emergency Fund",
-  "target_amount": 10000,
-  "current_amount": 2500,
-  "target_date": "2024-12-31",
-  "description": "6 months of expenses"
-}
-```
-
 ### Reminders
 
 #### GET /reminders
