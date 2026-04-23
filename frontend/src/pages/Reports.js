@@ -35,7 +35,9 @@ const Reports = () => {
     const [totalExpenses, setTotalExpenses] = useState(0);
     const [totalIncome, setTotalIncome] = useState(0);
     const [netSavings, setNetSavings] = useState(0);
-    
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
     const { uploadedData } = useUpload();
     const { showNotification } = useNotification();
 
@@ -74,6 +76,7 @@ const Reports = () => {
 
     useEffect(() => {
         fetchReportData();
+        setCurrentPage(1); // Reset to first page when month/year changes
     }, [selectedMonth, selectedYear, fetchReportData]);
 
     const processCategoryData = useCallback(() => {
@@ -665,13 +668,24 @@ const Reports = () => {
     }
 
     return (
-        <>
+        <div style={{
+            background: 'linear-gradient(135deg, #E0F2FE 0%, #B3E5FC 100%)',
+            minHeight: '100vh',
+            padding: '20px'
+        }}>
             {/* Header */}
-            <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
+            <div style={{
+                    background: 'linear-gradient(135deg, #003087 0%, #001435 100%)',
+                    color: 'white',
+                    padding: '20px',
+                    borderRadius: '12px',
                     marginBottom: 'var(--spacing-2xl)',
+                    boxShadow: '0 4px 20px rgba(0, 3, 135, 0.3)'
+                }}>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                     flexWrap: 'wrap',
                     gap: 'var(--spacing-lg)'
                 }}>
@@ -701,21 +715,35 @@ const Reports = () => {
                     <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                             <FaCalendarAlt color="#666" />
-                            <select 
-                                value={selectedMonth} 
+                            <select
+                                value={selectedMonth}
                                 onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
                                 className="form-control"
-                                style={{ width: '120px' }}
+                                style={{
+                                    width: '120px',
+                                    border: '2px solid rgba(0, 163, 224, 0.2)',
+                                    borderRadius: '8px',
+                                    padding: '8px 12px',
+                                    background: 'white',
+                                    color: '#003087'
+                                }}
                             >
                                 {months.map((month, index) => (
                                     <option key={index} value={index + 1}>{month}</option>
                                 ))}
                             </select>
-                            <select 
-                                value={selectedYear} 
+                            <select
+                                value={selectedYear}
                                 onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                                 className="form-control"
-                                style={{ width: '100px' }}
+                                style={{
+                                    width: '100px',
+                                    border: '2px solid rgba(0, 163, 224, 0.2)',
+                                    borderRadius: '8px',
+                                    padding: '8px 12px',
+                                    background: 'white',
+                                    color: '#003087'
+                                }}
                             >
                                 {years.map(year => (
                                     <option key={year} value={year}>{year}</option>
@@ -723,48 +751,213 @@ const Reports = () => {
                             </select>
                         </div>
                         
-                        <button 
-                            onClick={handleExportReport} 
+                        <button
+                            onClick={handleExportReport}
                             className="btn btn-primary"
+                            style={{
+                                background: 'linear-gradient(135deg, #003087, #00A3E0)',
+                                border: 'none',
+                                borderRadius: '8px',
+                                color: 'white',
+                                padding: '10px 20px',
+                                fontWeight: 'bold',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 15px rgba(0, 48, 135, 0.3)'
+                            }}
+                            onMouseOver={(e) => e.target.style.background = 'linear-gradient(135deg, #001435, #003087)'}
+                            onMouseOut={(e) => e.target.style.background = 'linear-gradient(135deg, #003087, #00A3E0)'}
                         >
                             <FaDownload /> Export Detailed Report
                         </button>
                     </div>
                 </div>
+                </div>
 
                 {/* Summary Cards */}
                 <div className="stats-grid">
-                    <div className="stat-card" style={{ borderLeft: '4px solid #f14668' }}>
-                        <div className="stat-label">Total Expenses</div>
-                        <div className="stat-value" style={{ color: '#f14668' }}>
+                    <div className="stat-card" style={{
+                        background: 'white',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                        borderLeft: '4px solid #f14668',
+                        position: 'relative',
+                        overflow: 'hidden'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #f14668, #ff6b6b)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontSize: '18px'
+                            }}>
+                                <FaArrowUp />
+                            </div>
+                            <div>
+                                <div className="stat-label">Total Expenses</div>
+                                <div style={{
+                                    width: '100%',
+                                    height: '4px',
+                                    background: '#f0f0f0',
+                                    borderRadius: '2px',
+                                    marginTop: '5px'
+                                }}>
+                                    <div style={{
+                                        width: `${totalExpenses > 0 ? Math.min((totalExpenses / (totalExpenses + totalIncome)) * 100, 100) : 0}%`,
+                                        height: '100%',
+                                        background: 'linear-gradient(135deg, #f14668, #ff6b6b)',
+                                        borderRadius: '2px'
+                                    }}></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="stat-value" style={{ color: '#f14668', fontSize: '24px', fontWeight: 'bold' }}>
                             ₹{totalExpenses.toLocaleString()}
                         </div>
                         <div className="stat-label">{months[selectedMonth - 1]} {selectedYear}</div>
                     </div>
-                    
-                    <div className="stat-card" style={{ borderLeft: '4px solid #48c774' }}>
-                        <div className="stat-label">Total Income</div>
-                        <div className="stat-value" style={{ color: '#48c774' }}>
+
+                    <div className="stat-card" style={{
+                        background: 'white',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                        borderLeft: '4px solid #48c774',
+                        position: 'relative',
+                        overflow: 'hidden'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #48c774, #51cf66)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontSize: '18px'
+                            }}>
+                                <FaArrowDown />
+                            </div>
+                            <div>
+                                <div className="stat-label">Total Income</div>
+                                <div style={{
+                                    width: '100%',
+                                    height: '4px',
+                                    background: '#f0f0f0',
+                                    borderRadius: '2px',
+                                    marginTop: '5px'
+                                }}>
+                                    <div style={{
+                                        width: `${totalIncome > 0 ? Math.min((totalIncome / (totalExpenses + totalIncome)) * 100, 100) : 0}%`,
+                                        height: '100%',
+                                        background: 'linear-gradient(135deg, #48c774, #51cf66)',
+                                        borderRadius: '2px'
+                                    }}></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="stat-value" style={{ color: '#48c774', fontSize: '24px', fontWeight: 'bold' }}>
                             ₹{totalIncome.toLocaleString()}
                         </div>
                         <div className="stat-label">{months[selectedMonth - 1]} {selectedYear}</div>
                     </div>
-                    
-                    <div className="stat-card" style={{ 
-                        borderLeft: `4px solid ${netSavings >= 0 ? '#48c774' : '#f14668'}` 
+
+                    <div className="stat-card" style={{
+                        background: 'white',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                        borderLeft: `4px solid ${netSavings >= 0 ? '#48c774' : '#f14668'}`,
+                        position: 'relative',
+                        overflow: 'hidden'
                     }}>
-                        <div className="stat-label">Net Savings</div>
-                        <div className="stat-value" style={{ 
-                            color: netSavings >= 0 ? '#48c774' : '#f14668' 
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                background: `linear-gradient(135deg, ${netSavings >= 0 ? '#48c774' : '#f14668'}, ${netSavings >= 0 ? '#51cf66' : '#ff6b6b'})`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontSize: '18px'
+                            }}>
+                                <FaExchangeAlt />
+                            </div>
+                            <div>
+                                <div className="stat-label">Net Savings</div>
+                                <div style={{
+                                    width: '100%',
+                                    height: '4px',
+                                    background: '#f0f0f0',
+                                    borderRadius: '2px',
+                                    marginTop: '5px'
+                                }}>
+                                    <div style={{
+                                        width: `${netSavings > 0 ? Math.min((Math.abs(netSavings) / (totalExpenses + totalIncome)) * 100, 100) : 0}%`,
+                                        height: '100%',
+                                        background: `linear-gradient(135deg, ${netSavings >= 0 ? '#48c774' : '#f14668'}, ${netSavings >= 0 ? '#51cf66' : '#ff6b6b'})`,
+                                        borderRadius: '2px'
+                                    }}></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="stat-value" style={{
+                            color: netSavings >= 0 ? '#48c774' : '#f14668',
+                            fontSize: '24px',
+                            fontWeight: 'bold'
                         }}>
                             ₹{Math.abs(netSavings).toLocaleString()}
                         </div>
                         <div className="stat-label">{netSavings >= 0 ? 'Surplus' : 'Deficit'}</div>
                     </div>
-                    
-                    <div className="stat-card">
-                        <div className="stat-label">Transactions</div>
-                        <div className="stat-value">
+
+                    <div className="stat-card" style={{
+                        background: 'white',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                        borderLeft: '4px solid #003087',
+                        position: 'relative',
+                        overflow: 'hidden'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #003087, #00A3E0)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontSize: '18px'
+                            }}>
+                                <FaMoneyBillWave />
+                            </div>
+                            <div>
+                                <div className="stat-label">Transactions</div>
+                                <div style={{
+                                    width: '100%',
+                                    height: '4px',
+                                    background: '#f0f0f0',
+                                    borderRadius: '2px',
+                                    marginTop: '5px'
+                                }}>
+                                    <div style={{
+                                        width: `${combinedData.reduce((sum, item) => sum + item.count, 0) > 0 ? Math.min((combinedData.reduce((sum, item) => sum + item.count, 0) / 100) * 100, 100) : 0}%`,
+                                        height: '100%',
+                                        background: 'linear-gradient(135deg, #003087, #00A3E0)',
+                                        borderRadius: '2px'
+                                    }}></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="stat-value" style={{ color: '#003087', fontSize: '24px', fontWeight: 'bold' }}>
                             {combinedData.reduce((sum, item) => sum + item.count, 0)}
                         </div>
                         <div className="stat-label">This Month</div>
@@ -772,7 +965,12 @@ const Reports = () => {
                 </div>
 
                 {/* Chart Controls */}
-                <div className="card">
+                <div className="card" style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                    border: 'none'
+                }}>
                     <div className="card-header">
                         <h3 className="card-title">Visualization Options</h3>
                         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
@@ -781,7 +979,16 @@ const Reports = () => {
                                 <button
                                     className={`btn ${dataType === 'both' ? 'btn-primary' : ''}`}
                                     onClick={() => setDataType('both')}
-                                    style={{ padding: '6px 12px', fontSize: '13px' }}
+                                    style={{
+                                        padding: '6px 12px',
+                                        fontSize: '13px',
+                                        background: dataType === 'both' ? 'linear-gradient(135deg, #003087, #00A3E0)' : 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        color: dataType === 'both' ? 'white' : '#003087',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: dataType === 'both' ? '0 4px 15px rgba(0, 48, 135, 0.3)' : 'none'
+                                    }}
                                 >
                                     <FaExchangeAlt /> Both
                                 </button>
@@ -791,7 +998,12 @@ const Reports = () => {
                                     style={{
                                         padding: '6px 12px',
                                         fontSize: '13px',
-                                        background: dataType === 'expense' ? '#f14668' : undefined
+                                        background: dataType === 'expense' ? 'linear-gradient(135deg, #f14668, #ff6b6b)' : 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        color: dataType === 'expense' ? 'white' : '#f14668',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: dataType === 'expense' ? '0 4px 15px rgba(241, 70, 104, 0.3)' : 'none'
                                     }}
                                 >
                                     <FaArrowUp /> Expenses
@@ -802,7 +1014,12 @@ const Reports = () => {
                                     style={{
                                         padding: '6px 12px',
                                         fontSize: '13px',
-                                        background: dataType === 'income' ? '#48c774' : undefined
+                                        background: dataType === 'income' ? 'linear-gradient(135deg, #48c774, #51cf66)' : 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        color: dataType === 'income' ? 'white' : '#48c774',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: dataType === 'income' ? '0 4px 15px rgba(72, 199, 116, 0.3)' : 'none'
                                     }}
                                 >
                                     <FaArrowDown /> Income
@@ -811,21 +1028,45 @@ const Reports = () => {
 
                             {/* Chart Type Selector */}
                             <div style={{ display: 'flex', gap: '5px' }}>
-                                <button 
+                                <button
                                     className={`btn ${chartType === 'pie' ? 'btn-primary' : ''}`}
                                     onClick={() => setChartType('pie')}
+                                    style={{
+                                        background: chartType === 'pie' ? 'linear-gradient(135deg, #003087, #00A3E0)' : 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        color: chartType === 'pie' ? 'white' : '#003087',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: chartType === 'pie' ? '0 4px 15px rgba(0, 48, 135, 0.3)' : 'none'
+                                    }}
                                 >
                                     <FaChartPie /> Pie
                                 </button>
-                                <button 
+                                <button
                                     className={`btn ${chartType === 'bar' ? 'btn-primary' : ''}`}
                                     onClick={() => setChartType('bar')}
+                                    style={{
+                                        background: chartType === 'bar' ? 'linear-gradient(135deg, #003087, #00A3E0)' : 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        color: chartType === 'bar' ? 'white' : '#003087',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: chartType === 'bar' ? '0 4px 15px rgba(0, 48, 135, 0.3)' : 'none'
+                                    }}
                                 >
                                     <FaChartBar /> Bar
                                 </button>
-                                <button 
+                                <button
                                     className={`btn ${chartType === 'trend' ? 'btn-primary' : ''}`}
                                     onClick={() => setChartType('trend')}
+                                    style={{
+                                        background: chartType === 'trend' ? 'linear-gradient(135deg, #003087, #00A3E0)' : 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        color: chartType === 'trend' ? 'white' : '#003087',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: chartType === 'trend' ? '0 4px 15px rgba(0, 48, 135, 0.3)' : 'none'
+                                    }}
                                 >
                                     <FaChartLine /> Trend
                                 </button>
@@ -848,18 +1089,42 @@ const Reports = () => {
                                     <button
                                         className={`btn ${trendType === 'monthly' ? 'btn-primary' : ''}`}
                                         onClick={() => setTrendType('monthly')}
+                                        style={{
+                                            background: trendType === 'monthly' ? 'linear-gradient(135deg, #003087, #00A3E0)' : 'white',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            color: trendType === 'monthly' ? 'white' : '#003087',
+                                            transition: 'all 0.3s ease',
+                                            boxShadow: trendType === 'monthly' ? '0 4px 15px rgba(0, 48, 135, 0.3)' : 'none'
+                                        }}
                                     >
                                         <FaCalendarCheck /> Monthly
                                     </button>
                                     <button
                                         className={`btn ${trendType === 'weekly' ? 'btn-primary' : ''}`}
                                         onClick={() => setTrendType('weekly')}
+                                        style={{
+                                            background: trendType === 'weekly' ? 'linear-gradient(135deg, #003087, #00A3E0)' : 'white',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            color: trendType === 'weekly' ? 'white' : '#003087',
+                                            transition: 'all 0.3s ease',
+                                            boxShadow: trendType === 'weekly' ? '0 4px 15px rgba(0, 48, 135, 0.3)' : 'none'
+                                        }}
                                     >
                                         <FaCalendarWeek /> Weekly
                                     </button>
                                     <button
                                         className={`btn ${trendType === 'daily' ? 'btn-primary' : ''}`}
                                         onClick={() => setTrendType('daily')}
+                                        style={{
+                                            background: trendType === 'daily' ? 'linear-gradient(135deg, #003087, #00A3E0)' : 'white',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            color: trendType === 'daily' ? 'white' : '#003087',
+                                            transition: 'all 0.3s ease',
+                                            boxShadow: trendType === 'daily' ? '0 4px 15px rgba(0, 48, 135, 0.3)' : 'none'
+                                        }}
                                     >
                                         <FaCalendarDay /> Daily
                                     </button>
@@ -880,7 +1145,12 @@ const Reports = () => {
                 )}
 
                 {/* Category Breakdown Table */}
-                <div className="card">
+                <div className="card" style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                    border: 'none'
+                }}>
                     <div className="card-header">
                         <h3 className="card-title">Category Breakdown</h3>
                         {uploadedData && (
@@ -895,10 +1165,10 @@ const Reports = () => {
                             </span>
                         )}
                     </div>
-                    
+
                     {combinedData.length === 0 ? (
-                        <div style={{ 
-                            textAlign: 'center', 
+                        <div style={{
+                            textAlign: 'center',
                             padding: '60px 20px',
                             color: '#666'
                         }}>
@@ -907,85 +1177,171 @@ const Reports = () => {
                             <p>No transactions found for {months[selectedMonth - 1]} {selectedYear}</p>
                         </div>
                     ) : (
-                        <div className="table-container">
-                            <table className="table">
-                                <thead>
-                                    <tr>
-                                        <th>Category</th>
-                                        <th>Transactions</th>
-                                        <th>Expenses</th>
-                                        <th>Income</th>
-                                        <th>Net</th>
-                                        <th>Daily Avg</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {combinedData.map(item => {
-                                        const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-                                        const dailyExpense = item.expense / daysInMonth;
-                                        
-                                        return (
-                                            <tr key={item.name}>
-                                                <td>
-                                                    <span className="category-badge" style={{ 
-                                                        backgroundColor: item.color,
-                                                        color: 'white',
-                                                        padding: '5px 12px',
-                                                        borderRadius: '20px',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        gap: '5px'
+                        <>
+                            <div className="table-container">
+                                <table className="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Transactions</th>
+                                            <th>Expenses</th>
+                                            <th>Income</th>
+                                            <th>Net</th>
+                                            <th>Daily Avg</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {combinedData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(item => {
+                                            const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+                                            const dailyExpense = item.expense / daysInMonth;
+                                            const net = item.income - item.expense;
+
+                                            return (
+                                                <tr key={item.name}>
+                                                    <td>
+                                                        <span className="category-badge" style={{
+                                                            backgroundColor: item.color,
+                                                            color: 'white',
+                                                            padding: '5px 12px',
+                                                            borderRadius: '20px',
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '5px'
+                                                        }}>
+                                                            <span className="category-icon">{normalizeCategoryIcon(item.icon, item.name)}</span>
+                                                            {item.name}
+                                                        </span>
+                                                    </td>
+                                                    <td><strong>{item.count}</strong></td>
+                                                    <td style={{ color: '#f14668', fontWeight: 'bold' }}>
+                                                        ₹{item.expense.toLocaleString()}
+                                                    </td>
+                                                    <td style={{ color: '#48c774', fontWeight: 'bold' }}>
+                                                        ₹{item.income.toLocaleString()}
+                                                    </td>
+                                                    <td style={{
+                                                        color: net >= 0 ? '#48c774' : '#f14668',
+                                                        fontWeight: 'bold'
                                                     }}>
-                                                        <span className="category-icon">{normalizeCategoryIcon(item.icon, item.name)}</span>
-                                                        {item.name}
-                                                    </span>
-                                                </td>
-                                                <td><strong>{item.count}</strong></td>
-                                                <td style={{ color: '#f14668', fontWeight: 'bold' }}>
-                                                    ₹{item.expense.toLocaleString()}
-                                                </td>
-                                                <td style={{ color: '#48c774', fontWeight: 'bold' }}>
-                                                    ₹{item.income.toLocaleString()}
-                                                </td>
-                                                <td style={{ 
-                                                    color: item.income - item.expense >= 0 ? '#48c774' : '#f14668',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    ₹{(item.income - item.expense).toLocaleString()}
-                                                </td>
-                                                <td>₹{dailyExpense.toFixed(0)}/day</td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                                <tfoot>
-                                    <tr style={{ 
-                                        background: 'linear-gradient(135deg, #00308710, #00A3E010)',
-                                        fontWeight: 'bold',
-                                        borderTop: '2px solid #003087'
-                                    }}>
-                                        <td><strong>TOTAL</strong></td>
-                                        <td><strong>{combinedData.reduce((sum, item) => sum + item.count, 0)}</strong></td>
-                                        <td style={{ color: '#f14668' }}>
-                                            <strong>₹{totalExpenses.toLocaleString()}</strong>
-                                        </td>
-                                        <td style={{ color: '#48c774' }}>
-                                            <strong>₹{totalIncome.toLocaleString()}</strong>
-                                        </td>
-                                        <td style={{ 
-                                            color: netSavings >= 0 ? '#48c774' : '#f14668'
+                                                        ₹{net.toLocaleString()}
+                                                    </td>
+                                                    <td>₹{dailyExpense.toFixed(0)}/day</td>
+                                                    <td>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '5px'
+                                                        }}>
+                                                            <div style={{
+                                                                width: '10px',
+                                                                height: '10px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: net > 0 ? '#48c774' : net < 0 ? '#f14668' : '#ffa500'
+                                                            }}></div>
+                                                            <span style={{ fontSize: '12px', color: '#666' }}>
+                                                                {net > 0 ? 'Profit' : net < 0 ? 'Loss' : 'Break-even'}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr style={{
+                                            background: 'linear-gradient(135deg, #00308710, #00A3E010)',
+                                            fontWeight: 'bold',
+                                            borderTop: '2px solid #003087'
                                         }}>
-                                            <strong>₹{Math.abs(netSavings).toLocaleString()}</strong>
-                                        </td>
-                                        <td>
-                                            <strong>
-                                                ₹{(totalExpenses / new Date(selectedYear, selectedMonth, 0).getDate()).toFixed(0)}/day
-                                            </strong>
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                                            <td><strong>TOTAL</strong></td>
+                                            <td><strong>{combinedData.reduce((sum, item) => sum + item.count, 0)}</strong></td>
+                                            <td style={{ color: '#f14668' }}>
+                                                <strong>₹{totalExpenses.toLocaleString()}</strong>
+                                            </td>
+                                            <td style={{ color: '#48c774' }}>
+                                                <strong>₹{totalIncome.toLocaleString()}</strong>
+                                            </td>
+                                            <td style={{
+                                                color: netSavings >= 0 ? '#48c774' : '#f14668'
+                                            }}>
+                                                <strong>₹{Math.abs(netSavings).toLocaleString()}</strong>
+                                            </td>
+                                            <td>
+                                                <strong>
+                                                    ₹{(totalExpenses / new Date(selectedYear, selectedMonth, 0).getDate()).toFixed(0)}/day
+                                                </strong>
+                                            </td>
+                                            <td>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '5px'
+                                                }}>
+                                                    <div style={{
+                                                        width: '10px',
+                                                        height: '10px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: netSavings > 0 ? '#48c774' : netSavings < 0 ? '#f14668' : '#ffa500'
+                                                    }}></div>
+                                                    <span style={{ fontSize: '12px' }}>
+                                                        {netSavings > 0 ? 'Surplus' : netSavings < 0 ? 'Deficit' : 'Balanced'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            {/* Pagination */}
+                            {combinedData.length > itemsPerPage && (
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    padding: '20px',
+                                    borderTop: '1px solid #e0e0e0'
+                                }}>
+                                    <button
+                                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                        disabled={currentPage === 1}
+                                        style={{
+                                            padding: '8px 12px',
+                                            background: currentPage === 1 ? '#f0f0f0' : 'linear-gradient(135deg, #003087, #00A3E0)',
+                                            color: currentPage === 1 ? '#666' : 'white',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                    >
+                                        Previous
+                                    </button>
+
+                                    <span style={{ color: '#666', fontWeight: 'bold' }}>
+                                        Page {currentPage} of {Math.ceil(combinedData.length / itemsPerPage)}
+                                    </span>
+
+                                    <button
+                                        onClick={() => setCurrentPage(Math.min(Math.ceil(combinedData.length / itemsPerPage), currentPage + 1))}
+                                        disabled={currentPage === Math.ceil(combinedData.length / itemsPerPage)}
+                                        style={{
+                                            padding: '8px 12px',
+                                            background: currentPage === Math.ceil(combinedData.length / itemsPerPage) ? '#f0f0f0' : 'linear-gradient(135deg, #003087, #00A3E0)',
+                                            color: currentPage === Math.ceil(combinedData.length / itemsPerPage) ? '#666' : 'white',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            cursor: currentPage === Math.ceil(combinedData.length / itemsPerPage) ? 'not-allowed' : 'pointer',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
 
@@ -1037,7 +1393,7 @@ const Reports = () => {
                     100% { transform: rotate(360deg); }
                 }
             `}} />
-        </>
+        </div>
     );
 };
 

@@ -112,7 +112,9 @@ class Budget {
              LEFT JOIN (
                 SELECT user_id, category_id, SUM(amount) AS previous_used
                 FROM expenses
-                WHERE type = 'expense' AND DATE_FORMAT(date, '%Y-%m') = ?
+                WHERE type = 'expense' 
+                  AND DATE_FORMAT(date, '%Y-%m') = ?
+                  AND user_id = ?
                 GROUP BY user_id, category_id
              ) pm
                 ON pm.user_id = b.user_id
@@ -129,6 +131,7 @@ class Budget {
                     WHERE type = 'expense'
                         AND date >= DATE_SUB(STR_TO_DATE(CONCAT(?, '-01'), '%Y-%m-%d'), INTERVAL 3 MONTH)
                         AND date < STR_TO_DATE(CONCAT(?, '-01'), '%Y-%m-%d')
+                        AND user_id = ?
                     GROUP BY user_id, category_id, DATE_FORMAT(date, '%Y-%m')
                 ) m
                 GROUP BY m.user_id, m.category_id
@@ -138,7 +141,7 @@ class Budget {
              WHERE b.user_id = ? AND b.month = ?
              GROUP BY b.category_id, c.name, c.icon, c.color, b.monthly_limit, pm.previous_used, avg3.avg_used
              ORDER BY c.name ASC`,
-            [previousMonth, normalizedMonth, normalizedMonth, userId, normalizedMonth]
+            [previousMonth, userId, normalizedMonth, normalizedMonth, userId, userId, normalizedMonth]
         );
 
         return rows.map((row) => {

@@ -58,23 +58,23 @@ const Sidebar = ({ collapsed }) => {
           </NavLink>
         </li>
 
-        <li className="nav-item">
-          <NavLink
-            to="/goals"
-            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-          >
-            <FaBullseye /> <span className="nav-text">Savings Goals</span>
-          </NavLink>
-        </li>
+         <li className="nav-item">
+           <NavLink
+             to="/goals"
+             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+           >
+             <FaBullseye /> <span className="nav-text">Savings Goals</span>
+           </NavLink>
+         </li>
 
-        <li className="nav-item">
-          <NavLink
-            to="/reminders"
-            className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-          >
-            <FaBell /> <span className="nav-text">Reminders</span>
-          </NavLink>
-        </li>
+         <li className="nav-item">
+           <NavLink
+             to="/reminders"
+             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+           >
+             <FaBell /> <span className="nav-text">Reminders</span>
+           </NavLink>
+         </li>
 
         <li className="nav-item">
           <NavLink
